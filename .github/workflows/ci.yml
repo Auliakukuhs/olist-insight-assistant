@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.21"
+      - name: Pasang dependensi dari lockfile
+        run: uv sync --locked
+      - name: Lint
+        run: uv run ruff check .
+      - name: Format
+        run: uv run ruff format --check .
+      - name: Test
+        run: uv run pytest
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t olist-api:ci .
+      - name: Smoke test /health
+        run: |
+          docker run -d --name api -p 8000:8000 olist-api:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8000/health; then exit 0; fi
+            sleep 1
+          done
+          docker logs api
+          exit 1
+      - name: Pastikan image tidak memuat berkas .env
+        run: |
+          if docker run --rm olist-api:ci sh -c 'find / -name ".env" -not -path "/proc/*" 2>/dev/null | grep -q .'; then
+            echo "Image memuat berkas .env"; exit 1
+          fi
