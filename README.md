@@ -58,6 +58,30 @@ Baseline TF-IDF + Logistic Regression, hiperparameter dipilih di split val.
 
 HYBRID paling sulit karena kalimatnya mencampur permintaan angka dan alasan. Detail pencarian hiperparameter, confusion matrix, dan contoh salah ada di `reports/router_baseline.json`.
 
+### Fine-tuning IndoBERT-lite
+
+```sh
+uv sync --all-groups
+uv run python scripts/train_router_finetune.py
+uv run mlflow ui --backend-store-uri sqlite:///mlflow.db   # lihat run di browser
+```
+
+Model dasar `indobenchmark/indobert-lite-base-p1` (ALBERT, 11 juta parameter, dilatih bahasa Indonesia) di-fine-tune dengan loop PyTorch manual dan AdamW. Learning rate dan epoch dipilih memakai split val, split test dipakai sekali. Tokenizer yang benar adalah `BertTokenizerFast`. Tokenizer ALBERT bawaan mengubah semua kata menjadi `[UNK]`.
+
+Model terpilih diekspor ke ONNX lalu dikuantisasi dinamis int8, sehingga container cukup memakai onnxruntime tanpa PyTorch.
+
+| Model | Test macro-F1 | F1 SQL | F1 RAG | F1 HYBRID | F1 OUT_OF_SCOPE |
+|---|---|---|---|---|---|
+| Baseline TF-IDF + LR | 0,637 | 0,63 | 0,71 | 0,31 | 0,90 |
+| IndoBERT-lite fine-tuned, fp32 | **0,861** | | | | |
+| IndoBERT-lite fine-tuned, ONNX int8 | 0,887 | 0,83 | 0,94 | 0,90 | 0,88 |
+
+| Ukuran fp32 | Ukuran int8 | Inference CPU | Kesepakatan fp32 vs int8 |
+|---|---|---|---|
+| 47,0 MB | 12,1 MB | sekitar 4 ms per pertanyaan | 97 persen |
+
+Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan dua prediksi berubah karena pembulatan bobot. Angka acuan fine-tuning adalah fp32, 0,861. Val set juga kecil (58 kalimat), jadi pemilihan epoch berisik. Detail per epoch ada di `reports/router_finetune.json` dan di MLflow.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |
