@@ -51,6 +51,8 @@ uv run python scripts/ingest_qdrant.py             # embedding + upsert ke Qdran
 
 Hasilnya 42.687 dokumen review (satu review satu dokumen, tanpa chunking) dan 73 dokumen kategori. ID titik dibuat deterministik dengan uuid5, jadi menjalankan ulang skrip menimpa titik yang sama dan tidak menggandakan data. Koleksi memakai 1536 dimensi dan cosine, sesuai `text-embedding-3-small`.
 
+Ingestion penuh ke Qdrant Cloud pada 18 Oktober 2026 memasukkan 42.760 titik ke koleksi `olist_rag_v1` dalam 61 menit. Progres dicetak setiap sekitar 3.200 dokumen.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |

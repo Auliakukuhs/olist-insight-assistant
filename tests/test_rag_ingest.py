@@ -41,3 +41,13 @@ def test_ensure_collection_tidak_menghapus_koleksi_yang_ada():
     upsert_documents(client, "uji", DOCS, fake_embed)
     ensure_collection(client, "uji", vector_size=SIZE)
     assert client.count("uji", exact=True).count == len(DOCS)
+
+
+def test_progress_dipanggil_per_batch():
+    client = QdrantClient(":memory:")
+    ensure_collection(client, "uji", vector_size=SIZE)
+    calls = []
+    upsert_documents(
+        client, "uji", DOCS, fake_embed, batch_size=2, progress=lambda d, t: calls.append((d, t))
+    )
+    assert calls == [(2, 5), (4, 5), (5, 5)]

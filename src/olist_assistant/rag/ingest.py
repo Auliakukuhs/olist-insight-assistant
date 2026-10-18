@@ -15,6 +15,7 @@ EMBEDDING_MODEL = "text-embedding-3-small"
 VECTOR_SIZE = 1536
 
 Embedder = Callable[[list[str]], list[list[float]]]
+Progress = Callable[[int, int], None]
 
 KEYWORD_FIELDS = ("metadata.doc_type", "metadata.categories", "metadata.seller_states")
 
@@ -44,6 +45,7 @@ def upsert_documents(
     embed: Embedder,
     batch_size: int = 64,
     attempts: int = 3,
+    progress: Progress | None = None,
 ) -> int:
     """Upsert per batch. ID deterministik membuat ingestion ulang menimpa, bukan menambah."""
     written = 0
@@ -59,6 +61,8 @@ def upsert_documents(
         ]
         _upsert_with_retry(client, name, points, attempts)
         written += len(batch)
+        if progress:
+            progress(written, len(documents))
     return written
 
 

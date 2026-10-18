@@ -13,6 +13,7 @@ import collections
 import json
 import os
 import sys
+import time
 from pathlib import Path
 
 from olist_assistant.rag.documents import build_all_documents, load_tables
@@ -68,7 +69,16 @@ def main() -> int:
         url=os.environ["QDRANT_URL"], api_key=os.environ["QDRANT_API_KEY"], timeout=60
     )
     ensure_collection(client, args.collection)
-    written = upsert_documents(client, args.collection, documents, embeddings.embed_documents)
+    started = time.monotonic()
+
+    def report(done: int, total: int) -> None:
+        if done == total or done % 3200 < 64:
+            minutes = (time.monotonic() - started) / 60
+            print(f"  {done}/{total} ({done / total:.0%}), {minutes:.1f} menit", flush=True)
+
+    written = upsert_documents(
+        client, args.collection, documents, embeddings.embed_documents, progress=report
+    )
     total = client.count(args.collection, exact=True).count
     print(f"{written} dokumen di-upsert. Isi koleksi {args.collection} sekarang {total} titik.")
     return 0
