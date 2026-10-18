@@ -4,6 +4,13 @@ Chatbot multi-agent untuk customer dan seller di atas data e-commerce OLIST. Fin
 
 Status saat ini adalah kerangka F1. API sudah punya kontrak `GET /health` dan `POST /chat`, tetapi `/chat` masih mengembalikan respons stub sampai agent tersambung di F3.
 
+## Link
+
+| Bagian | URL |
+|---|---|
+| Backend (REST API di AWS ECS Express Mode) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws |
+| Frontend (Streamlit Community Cloud) | menyusul |
+
 ## Arsitektur
 
 ```
@@ -54,6 +61,16 @@ API terbuka di `http://localhost:8000`, dokumentasi interaktif di `http://localh
 |---|---|
 | Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)) | Kerangka, kontrak API, Docker, CI, deploy AWS, agent RAG, supervisor, router intent |
 | Starletto ([@Starletto](https://github.com/Starletto)) | ETL ke SQLite, agent SQL dan guardrail, Streamlit |
+
+## Deploy ke AWS
+
+API berjalan di Amazon ECS Express Mode, region `ap-southeast-1`, satu task Fargate ARM64 (0,25 vCPU, 1 GB) di belakang Application Load Balancer dengan HTTPS otomatis. Health check memakai `GET /health`.
+
+```sh
+AWS_PROFILE=olist scripts/deploy_aws.sh
+```
+
+Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR (tag immutable, scan saat push), lalu memperbarui service. Kunci layanan disuntik sebagai environment saat runtime, tidak pernah masuk image.
 
 ## Alur kerja
 
