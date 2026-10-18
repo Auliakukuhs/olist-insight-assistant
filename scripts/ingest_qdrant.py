@@ -29,8 +29,11 @@ def load_dotenv(path: Path) -> None:
         line = line.strip()
         if line and not line.startswith("#") and "=" in line:
             key, value = line.split("=", 1)
+            value = value.strip()
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+                value = value[1:-1]
             if value:
-                os.environ.setdefault(key.strip(), value.strip())
+                os.environ.setdefault(key.strip(), value)
 
 
 def main() -> int:
@@ -61,7 +64,9 @@ def main() -> int:
     from qdrant_client import QdrantClient
 
     embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
-    client = QdrantClient(url=os.environ["QDRANT_URL"], api_key=os.environ["QDRANT_API_KEY"])
+    client = QdrantClient(
+        url=os.environ["QDRANT_URL"], api_key=os.environ["QDRANT_API_KEY"], timeout=60
+    )
     ensure_collection(client, args.collection)
     written = upsert_documents(client, args.collection, documents, embeddings.embed_documents)
     total = client.count(args.collection, exact=True).count

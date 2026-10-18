@@ -4,6 +4,7 @@ Payload memakai bentuk `page_content` dan `metadata` supaya koleksi bisa dibaca
 langsung oleh `QdrantVectorStore` dari langchain-qdrant di agent RAG.
 """
 
+import time
 from collections.abc import Callable, Iterator, Sequence
 
 from qdrant_client import QdrantClient, models
@@ -41,22 +42,35 @@ def upsert_documents(
     name: str,
     documents: Sequence[RagDocument],
     embed: Embedder,
-    batch_size: int = 128,
+    batch_size: int = 64,
+    attempts: int = 3,
 ) -> int:
     """Upsert per batch. ID deterministik membuat ingestion ulang menimpa, bukan menambah."""
     written = 0
     for batch in _batches(documents, batch_size):
         vectors = embed([doc.text for doc in batch])
-        client.upsert(
-            collection_name=name,
-            points=[
-                models.PointStruct(
-                    id=doc.id,
-                    vector=vector,
-                    payload={"page_content": doc.text, "metadata": doc.metadata},
-                )
-                for doc, vector in zip(batch, vectors, strict=True)
-            ],
-        )
+        points = [
+            models.PointStruct(
+                id=doc.id,
+                vector=vector,
+                payload={"page_content": doc.text, "metadata": doc.metadata},
+            )
+            for doc, vector in zip(batch, vectors, strict=True)
+        ]
+        _upsert_with_retry(client, name, points, attempts)
         written += len(batch)
     return written
+
+
+def _upsert_with_retry(
+    client: QdrantClient, name: str, points: list[models.PointStruct], attempts: int
+) -> None:
+    """Ulangi batch yang gagal karena jaringan. Aman karena upsert dengan ID sama idempoten."""
+    for attempt in range(1, attempts + 1):
+        try:
+            client.upsert(collection_name=name, points=points)
+            return
+        except Exception:
+            if attempt == attempts:
+                raise
+            time.sleep(2**attempt)
