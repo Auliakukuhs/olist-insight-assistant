@@ -39,6 +39,18 @@ docker compose up --build
 
 API terbuka di `http://localhost:8000`, dokumentasi interaktif di `http://localhost:8000/docs`.
 
+## Ingestion RAG
+
+Taruh 9 CSV OLIST di `data/raw/` (tidak di-commit), lalu jalankan.
+
+```sh
+uv sync --all-groups
+uv run python scripts/ingest_qdrant.py --dry-run   # bangun dokumen saja, tanpa API key
+uv run python scripts/ingest_qdrant.py             # embedding + upsert ke Qdrant Cloud
+```
+
+Hasilnya 42.687 dokumen review (satu review satu dokumen, tanpa chunking) dan 73 dokumen kategori. ID titik dibuat deterministik dengan uuid5, jadi menjalankan ulang skrip menimpa titik yang sama dan tidak menggandakan data. Koleksi memakai 1536 dimensi dan cosine, sesuai `text-embedding-3-small`.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |
