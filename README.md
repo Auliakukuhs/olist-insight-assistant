@@ -39,6 +39,25 @@ docker compose up --build
 
 API terbuka di `http://localhost:8000`, dokumentasi interaktif di `http://localhost:8000/docs`.
 
+## Router intent
+
+Supervisor memakai router untuk memilih jalur SQL, RAG, HYBRID, atau OUT_OF_SCOPE.
+
+```sh
+uv sync --all-groups
+uv run python scripts/train_router_baseline.py
+```
+
+Dataset dibangun dari 72 templat pertanyaan berbahasa Indonesia (`src/olist_assistant/router/templates.py`) menjadi 422 kalimat di `data/router/dataset.csv`. Split train, val, dan test dibagi **per templat**, sehingga angka test mengukur pola kalimat yang belum pernah dilihat model.
+
+Baseline TF-IDF + Logistic Regression, hiperparameter dipilih di split val.
+
+| Analyzer | Test macro-F1 | F1 SQL | F1 RAG | F1 HYBRID | F1 OUT_OF_SCOPE |
+|---|---|---|---|---|---|
+| char n-gram 2 sampai 5, C=3 | 0,637 | 0,63 | 0,71 | 0,31 | 0,90 |
+
+HYBRID paling sulit karena kalimatnya mencampur permintaan angka dan alasan. Detail pencarian hiperparameter, confusion matrix, dan contoh salah ada di `reports/router_baseline.json`.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |

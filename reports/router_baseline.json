@@ -1,0 +1,267 @@
+{
+  "sizes": {
+    "train": 293,
+    "val": 58,
+    "test": 71
+  },
+  "search": [
+    {
+      "analyzer": "word_1_2",
+      "C": 0.3,
+      "val_macro_f1": 0.5037
+    },
+    {
+      "analyzer": "word_1_2",
+      "C": 1.0,
+      "val_macro_f1": 0.5178
+    },
+    {
+      "analyzer": "word_1_2",
+      "C": 3.0,
+      "val_macro_f1": 0.5219
+    },
+    {
+      "analyzer": "word_1_2",
+      "C": 10.0,
+      "val_macro_f1": 0.5219
+    },
+    {
+      "analyzer": "char_2_5",
+      "C": 0.3,
+      "val_macro_f1": 0.6864
+    },
+    {
+      "analyzer": "char_2_5",
+      "C": 1.0,
+      "val_macro_f1": 0.7175
+    },
+    {
+      "analyzer": "char_2_5",
+      "C": 3.0,
+      "val_macro_f1": 0.7462
+    },
+    {
+      "analyzer": "char_2_5",
+      "C": 10.0,
+      "val_macro_f1": 0.732
+    }
+  ],
+  "selected": {
+    "analyzer": "char_2_5",
+    "C": 3.0,
+    "val_macro_f1": 0.7462
+  },
+  "test": {
+    "macro_f1": 0.6371,
+    "per_class": {
+      "SQL": {
+        "precision": 0.6,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.631578947368421,
+        "support": 18.0
+      },
+      "RAG": {
+        "precision": 0.75,
+        "recall": 0.6666666666666666,
+        "f1-score": 0.7058823529411765,
+        "support": 18.0
+      },
+      "HYBRID": {
+        "precision": 0.2857142857142857,
+        "recall": 0.3333333333333333,
+        "f1-score": 0.3076923076923077,
+        "support": 18.0
+      },
+      "OUT_OF_SCOPE": {
+        "precision": 1.0,
+        "recall": 0.8235294117647058,
+        "f1-score": 0.9032258064516129,
+        "support": 17.0
+      },
+      "accuracy": 0.6197183098591549,
+      "macro avg": {
+        "precision": 0.6589285714285714,
+        "recall": 0.6225490196078431,
+        "f1-score": 0.6370948536133795,
+        "support": 71.0
+      },
+      "weighted avg": {
+        "precision": 0.6541247484909456,
+        "recall": 0.6197183098591549,
+        "f1-score": 0.6333465303339678,
+        "support": 71.0
+      }
+    },
+    "confusion_matrix": {
+      "labels": [
+        "SQL",
+        "RAG",
+        "HYBRID",
+        "OUT_OF_SCOPE"
+      ],
+      "matrix": [
+        [
+          12,
+          0,
+          6,
+          0
+        ],
+        [
+          0,
+          12,
+          6,
+          0
+        ],
+        [
+          8,
+          4,
+          6,
+          0
+        ],
+        [
+          0,
+          0,
+          3,
+          14
+        ]
+      ]
+    }
+  },
+  "test_errors": [
+    {
+      "text": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Campinas.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tolong, tampilkan 5 seller dengan penjualan terbanyak di Porto Alegre.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tampilkan 5 seller dengan penjualan terbanyak di Belo Horizonte.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tampilkan 5 seller dengan penjualan terbanyak di Rio de Janeiro.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Curitiba.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Rio de Janeiro.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tolong, beri contoh ulasan positif untuk alat tulis.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Mau tanya, beri contoh ulasan positif untuk parfum.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Beri contoh ulasan positif untuk perlengkapan bayi.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Beri contoh ulasan positif untuk mainan.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Kak, beri contoh ulasan positif untuk aksesoris komputer.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Beri contoh ulasan positif untuk perkakas taman.",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Kak, berapa persen pesanan alat tulis yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "RAG"
+    },
+    {
+      "text": "Halo, berapa persen pesanan parfum yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "RAG"
+    },
+    {
+      "text": "Berapa persen pesanan kasur dan perlengkapan kamar mandi yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "RAG"
+    },
+    {
+      "text": "Tolong, berapa persen pesanan perkakas taman yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Berapa persen pesanan furnitur dan dekorasi yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "RAG"
+    },
+    {
+      "text": "Berapa persen pesanan mainan yang terlambat, dan apa kata pembeli soal itu?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Kak, kategori terlaris tahun 2017 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Mau tanya, kategori terlaris bulan Desember 2017 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Tolong, kategori terlaris bulan Desember 2017 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Tolong, kategori terlaris selama 2016 sampai 2018 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Kategori terlaris selama 2016 sampai 2018 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Kategori terlaris kuartal pertama 2018 itu pembelinya puas tidak?",
+      "label": "HYBRID",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Hapus tabel orders dari database.",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Mau tanya, hapus tabel orders dari database.",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Mau tanya, tampilkan foto produk perlengkapan hewan peliharaan.",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "HYBRID"
+    }
+  ]
+}
