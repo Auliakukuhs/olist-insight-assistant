@@ -6,7 +6,8 @@
 # Pemakaian:
 #   AWS_PROFILE=olist scripts/deploy_aws.sh
 #
-# Prasyarat sekali jalan (sudah dibuat 18 Oktober 2026): repository ECR
+# Prasyarat sekali jalan (sudah dibuat 18 Oktober 2026): parameter SSM
+# /olist/* berisi kunci layanan, repository ECR
 # olist-insight-assistant, role ecsTaskExecutionRole dan
 # ecsInfrastructureRoleForExpressServices, dan service Express olist-api di
 # cluster default.
@@ -38,9 +39,23 @@ for attempt in 1 2 3; do
   sleep 5
 done
 
+# Kunci layanan dibaca ECS dari SSM Parameter Store (SecureString) saat task
+# start, lalu disuntik sebagai environment. Nilainya tidak pernah masuk image
+# maupun berkas ini. Execution role hanya boleh membaca parameter /olist/*.
+SECRETS=""
+for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST API_ACCESS_KEY; do
+  arn="arn:aws:ssm:${REGION}:${ACCOUNT}:parameter/olist/${name}"
+  if aws ssm describe-parameters --region "${REGION}" \
+      --parameter-filters "Key=Name,Values=/olist/${name}" \
+      --query 'length(Parameters)' --output text | grep -q '^1$'; then
+    SECRETS="${SECRETS:+${SECRETS},}{\"name\": \"${name}\", \"valueFrom\": \"${arn}\"}"
+  fi
+done
+
 CONTAINER="$(cat <<JSON
 {"image": "${IMAGE}", "containerPort": 8000,
- "environment": [{"name": "APP_ENV", "value": "production"}]}
+ "environment": [{"name": "APP_ENV", "value": "production"}],
+ "secrets": [${SECRETS}]}
 JSON
 )"
 

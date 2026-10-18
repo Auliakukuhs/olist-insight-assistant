@@ -70,7 +70,7 @@ API berjalan di Amazon ECS Express Mode, region `ap-southeast-1`, satu task Farg
 AWS_PROFILE=olist scripts/deploy_aws.sh
 ```
 
-Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR (tag immutable, scan saat push), lalu memperbarui service. Kunci layanan disuntik sebagai environment saat runtime, tidak pernah masuk image.
+Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR (tag immutable, scan saat push), lalu memperbarui service. Kunci layanan disimpan di AWS SSM Parameter Store sebagai SecureString di bawah `/olist/`, lalu disuntik ECS sebagai environment saat task start. Nilainya tidak pernah masuk image atau repo, dan execution role hanya boleh membaca parameter `/olist/*`. Di cloud, `POST /chat` mewajibkan header `X-API-Key`.
 
 ## Alur kerja
 
