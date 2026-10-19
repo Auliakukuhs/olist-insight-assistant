@@ -1,0 +1,191 @@
+{
+  "base_model": "indobenchmark/indobert-lite-base-p1",
+  "selected": {
+    "lr": 5e-05,
+    "epoch": 2,
+    "val_macro_f1": 0.721
+  },
+  "history": {
+    "2e-05": [
+      {
+        "epoch": 1,
+        "train_loss": 1.2287,
+        "val_macro_f1": 0.4358
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.6889,
+        "val_macro_f1": 0.4801
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.2993,
+        "val_macro_f1": 0.641
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.1144,
+        "val_macro_f1": 0.6267
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.0571,
+        "val_macro_f1": 0.6573
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.0375,
+        "val_macro_f1": 0.7095
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.027,
+        "val_macro_f1": 0.6946
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.0217,
+        "val_macro_f1": 0.6946
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.0174,
+        "val_macro_f1": 0.6946
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.0148,
+        "val_macro_f1": 0.6946
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.0125,
+        "val_macro_f1": 0.6946
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.0111,
+        "val_macro_f1": 0.6716
+      }
+    ],
+    "5e-05": [
+      {
+        "epoch": 1,
+        "train_loss": 1.0634,
+        "val_macro_f1": 0.5954
+      },
+      {
+        "epoch": 2,
+        "train_loss": 0.2885,
+        "val_macro_f1": 0.721
+      },
+      {
+        "epoch": 3,
+        "train_loss": 0.0669,
+        "val_macro_f1": 0.5856
+      },
+      {
+        "epoch": 4,
+        "train_loss": 0.0234,
+        "val_macro_f1": 0.6667
+      },
+      {
+        "epoch": 5,
+        "train_loss": 0.0121,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 6,
+        "train_loss": 0.0085,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 7,
+        "train_loss": 0.0065,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 8,
+        "train_loss": 0.0054,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 9,
+        "train_loss": 0.0044,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 10,
+        "train_loss": 0.0038,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 11,
+        "train_loss": 0.0033,
+        "val_macro_f1": 0.6486
+      },
+      {
+        "epoch": 12,
+        "train_loss": 0.003,
+        "val_macro_f1": 0.6486
+      }
+    ]
+  },
+  "test_macro_f1_torch_fp32": 0.861,
+  "test_macro_f1_onnx_int8": 0.8874,
+  "test_f1_per_class_onnx_int8": {
+    "SQL": 0.8333,
+    "RAG": 0.9412,
+    "HYBRID": 0.9,
+    "OUT_OF_SCOPE": 0.875
+  },
+  "baseline_tfidf_lr_test_macro_f1": 0.6371,
+  "torch_vs_onnx_agreement": 0.9718,
+  "onnx_cpu_ms_per_query": 4.07,
+  "model_size": {
+    "fp32_mb": 47.0,
+    "int8_mb": 12.1
+  },
+  "test_errors": [
+    {
+      "text": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Campinas.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tolong, tampilkan 5 seller dengan penjualan terbanyak di Porto Alegre.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tampilkan 5 seller dengan penjualan terbanyak di Belo Horizonte.",
+      "label": "SQL",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Halo, review negatif tentang kasur dan perlengkapan kamar mandi biasanya membahas apa?",
+      "label": "RAG",
+      "predicted": "HYBRID"
+    },
+    {
+      "text": "Tolong, beri contoh ulasan positif untuk alat tulis.",
+      "label": "RAG",
+      "predicted": "OUT_OF_SCOPE"
+    },
+    {
+      "text": "Halo, siapa nama pemilik toko furnitur kantor terbesar di Belo Horizonte?",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Halo, siapa nama pemilik toko perkakas taman terbesar di Campinas?",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "SQL"
+    },
+    {
+      "text": "Siapa nama pemilik toko perkakas taman terbesar di Campinas?",
+      "label": "OUT_OF_SCOPE",
+      "predicted": "SQL"
+    }
+  ]
+}

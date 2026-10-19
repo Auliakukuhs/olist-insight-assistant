@@ -21,3 +21,4 @@ mlruns/
 
 # Model hasil training, dibangun ulang dari skrip
 artifacts/
+mlflow.db
