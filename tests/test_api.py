@@ -31,6 +31,11 @@ VALID = {"message": "Kategori apa yang paling laris?", "session_id": "sesi-1"}
 @pytest.fixture(autouse=True)
 def tanpa_api_key(monkeypatch):
     monkeypatch.delenv("API_ACCESS_KEY", raising=False)
+    from olist_assistant.api import main
+    from olist_assistant.api.ratelimit import RateLimiter
+
+    monkeypatch.setattr(main, "per_session", RateLimiter(1000))
+    monkeypatch.setattr(main, "per_client", RateLimiter(1000))
     app.dependency_overrides[get_supervisor] = fake_supervisor
     yield
     app.dependency_overrides.clear()
@@ -113,3 +118,40 @@ def test_api_key_diwajibkan_bila_diatur(monkeypatch):
 def test_health_tidak_butuh_api_key(monkeypatch):
     monkeypatch.setenv("API_ACCESS_KEY", "rahasia-uji")
     assert client.get("/health").status_code == 200
+
+
+def test_rate_limit_per_sesi_429_dengan_retry_after(monkeypatch):
+    from olist_assistant.api import main
+    from olist_assistant.api.ratelimit import RateLimiter
+
+    monkeypatch.setattr(main, "per_session", RateLimiter(2))
+    monkeypatch.setattr(main, "per_client", RateLimiter(100))
+    body = {**VALID, "session_id": "spam"}
+    assert client.post("/chat", json=body).status_code == 200
+    assert client.post("/chat", json=body).status_code == 200
+    response = client.post("/chat", json=body)
+    assert response.status_code == 429
+    assert int(response.headers["retry-after"]) > 0
+    # sesi lain tidak ikut terblokir
+    assert client.post("/chat", json={**VALID, "session_id": "lain"}).status_code == 200
+
+
+def test_rate_limit_per_klien_memakai_x_forwarded_for(monkeypatch):
+    from olist_assistant.api import main
+    from olist_assistant.api.ratelimit import RateLimiter
+
+    monkeypatch.setattr(main, "per_session", RateLimiter(100))
+    monkeypatch.setattr(main, "per_client", RateLimiter(1))
+    headers = {"X-Forwarded-For": "203.0.113.7, 10.0.0.1"}
+    assert client.post("/chat", json=VALID, headers=headers).status_code == 200
+    assert (
+        client.post("/chat", json={**VALID, "session_id": "x2"}, headers=headers).status_code == 429
+    )
+    other = {"X-Forwarded-For": "198.51.100.9"}
+    assert client.post("/chat", json=VALID, headers=other).status_code == 200
+
+
+def test_format_body_tetap_datar():
+    schema = client.get("/openapi.json").json()
+    ref = schema["paths"]["/chat"]["post"]["requestBody"]["content"]["application/json"]["schema"]
+    assert ref["$ref"].endswith("/ChatRequest")

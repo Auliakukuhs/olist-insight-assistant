@@ -3,21 +3,49 @@
 import logging
 import os
 import secrets
+import threading
 import uuid
+from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
+from olist_assistant.api.ratelimit import RateLimiter
 from olist_assistant.api.schemas import ChatRequest, ChatResponse, HealthResponse, Source
 from olist_assistant.config import Settings, get_settings, load_dotenv
 
 REQUIRED_ENV = ("OPENAI_API_KEY", "QDRANT_URL", "QDRANT_API_KEY")
 
-logger = logging.getLogger("olist_assistant.api")
-app = FastAPI(title="OLIST Insight Assistant", version=__version__)
+# Menumpang logger uvicorn supaya pesan terlihat di log container (CloudWatch).
+logger = logging.getLogger("uvicorn.error")
+
+per_session = RateLimiter(int(os.getenv("RATE_LIMIT_PER_SESSION", "20")))
+per_client = RateLimiter(int(os.getenv("RATE_LIMIT_PER_CLIENT", "60")))
+
+
+def _warm_up() -> None:
+    """Bangun supervisor dan muat model router sebelum request pertama datang."""
+    try:
+        get_supervisor()
+        logger.info("Supervisor siap")
+    except HTTPException:
+        logger.info("Kunci layanan belum ada, pemanasan dilewati")
+    except Exception:
+        logger.exception("Pemanasan supervisor gagal")
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Di thread terpisah supaya /health langsung menjawab health check ECS.
+    if os.getenv("WARMUP", "1") == "1":
+        threading.Thread(target=_warm_up, daemon=True).start()
+    yield
+
+
+app = FastAPI(title="OLIST Insight Assistant", version=__version__, lifespan=lifespan)
 
 
 def require_api_key(
@@ -46,6 +74,25 @@ def get_supervisor() -> Supervisor:
     return default_supervisor()
 
 
+def client_key(request: Request) -> str:
+    """Alamat klien asli. Di belakang load balancer AWS, ada di X-Forwarded-For."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def enforce_rate_limit(session_id: str, request: Request) -> None:
+    for limiter, key in ((per_client, client_key(request)), (per_session, session_id)):
+        wait = limiter.check(key)
+        if wait is not None:
+            raise HTTPException(
+                status.HTTP_429_TOO_MANY_REQUESTS,
+                detail=f"Terlalu banyak pertanyaan. Coba lagi dalam {wait:.0f} detik.",
+                headers={"Retry-After": str(int(wait) + 1)},
+            )
+
+
 @app.get("/health")
 def health() -> HealthResponse:
     return HealthResponse(status="ok", version=__version__)
@@ -54,10 +101,12 @@ def health() -> HealthResponse:
 @app.post("/chat", dependencies=[Depends(require_api_key)])
 def chat(
     request: ChatRequest,
+    http_request: Request,
     supervisor: Annotated[Supervisor, Depends(get_supervisor)],
 ) -> ChatResponse:
     # Fungsi sinkron sengaja dipakai supaya pemanggilan LLM yang blocking
     # dijalankan FastAPI di threadpool, tidak menahan event loop.
+    enforce_rate_limit(request.session_id, http_request)
     request_id = uuid.uuid4().hex
     try:
         state = supervisor.ask(request.message, request.session_id, request.role)
