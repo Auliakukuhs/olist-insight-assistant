@@ -2,7 +2,14 @@
 
 Chatbot multi-agent untuk customer dan seller di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status saat ini adalah kerangka F1. API sudah punya kontrak `GET /health` dan `POST /chat`, tetapi `/chat` masih mengembalikan respons stub sampai agent tersambung di F3.
+Status per 19 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, guard prompt injection, riwayat per sesi, dan tracing Langfuse sudah berjalan di AWS. Agent SQL dan antarmuka Streamlit masih dikerjakan, jadi pertanyaan angka sementara dijawab bahwa datanya belum tersedia.
+
+## Link
+
+| Bagian | URL |
+|---|---|
+| Backend (REST API di AWS ECS Express Mode) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws |
+| Frontend (Streamlit Community Cloud) | menyusul |
 
 ## Arsitektur
 
@@ -98,7 +105,7 @@ HYBRID paling sulit karena kalimatnya mencampur permintaan angka dan alasan. Det
 | `GET /health` | | `{"status": "ok", "version": "0.1.0"}` |
 | `POST /chat` | `{"message": "...", "session_id": "abc123", "role": "customer"}` | `{"answer", "route", "sources", "table", "request_id"}` |
 
-`route` bernilai `rag`, `sql`, `hybrid`, `out_of_scope`, atau `stub`. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
+`route` bernilai `rag`, `sql`, `hybrid`, atau `out_of_scope`. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
 
 ## Tim dan pembagian
 
@@ -106,6 +113,16 @@ HYBRID paling sulit karena kalimatnya mencampur permintaan angka dan alasan. Det
 |---|---|
 | Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)) | Kerangka, kontrak API, Docker, CI, deploy AWS, agent RAG, supervisor, router intent |
 | Starletto ([@Starletto](https://github.com/Starletto)) | ETL ke SQLite, agent SQL dan guardrail, Streamlit |
+
+## Deploy ke AWS
+
+API berjalan di Amazon ECS Express Mode, region `ap-southeast-1`, satu task Fargate ARM64 (0,25 vCPU, 1 GB) di belakang Application Load Balancer dengan HTTPS otomatis. Health check memakai `GET /health`.
+
+```sh
+AWS_PROFILE=olist scripts/deploy_aws.sh
+```
+
+Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR (tag immutable, scan saat push), lalu memperbarui service. Kunci layanan disimpan di AWS SSM Parameter Store sebagai SecureString di bawah `/olist/`, lalu disuntik ECS sebagai environment saat task start. Nilainya tidak pernah masuk image atau repo, dan execution role hanya boleh membaca parameter `/olist/*`. Di cloud, `POST /chat` mewajibkan header `X-API-Key`.
 
 ## Alur kerja
 
