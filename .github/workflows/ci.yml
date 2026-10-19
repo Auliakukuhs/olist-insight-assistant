@@ -17,7 +17,7 @@ jobs:
         with:
           version: "0.11.21"
       - name: Pasang dependensi dari lockfile
-        run: uv sync --locked
+        run: uv sync --locked --all-groups
       - name: Lint
         run: uv run ruff check .
       - name: Format
