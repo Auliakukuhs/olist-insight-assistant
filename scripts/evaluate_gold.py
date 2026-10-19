@@ -12,7 +12,7 @@ import json
 import sys
 import time
 import uuid
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 from olist_assistant.agents.supervisor import default_supervisor
@@ -36,18 +36,27 @@ def main() -> None:
         try:
             state = supervisor.ask(case["question"], session)
             route, answer, sources = state["route"], state["answer"], state.get("sources", [])
-            error = None
+            route_by, error = state.get("route_by"), None
         except Exception as exc:  # dicatat sebagai gagal, evaluasi tetap lanjut
             route, answer, sources, error = "error", "", [], repr(exc)
+            route_by = None
         seconds = time.monotonic() - started
         verdict = check_case(case, route, answer, sources)
         results.append(
             case
             | verdict
-            | {"rute": route, "detik": round(seconds, 1), "jawaban": answer[:400], "error": error}
+            | {
+                "rute": route,
+                "diputuskan_oleh": route_by,
+                "detik": round(seconds, 1),
+                "jawaban": answer[:400],
+                "error": error,
+            }
         )
         mark = "LULUS" if verdict["lulus"] else "GAGAL"
-        print(f"{mark} {case['id']:15s} rute={route:13s} {seconds:5.1f}s  {case['question'][:60]}")
+        by = (route_by or "-")[:22]
+        question = case["question"][:50]
+        print(f"{mark} {case['id']:15s} rute={route:13s} {by:22s} {seconds:5.1f}s  {question}")
 
     per_type = defaultdict(list)
     for r in results:
@@ -58,6 +67,9 @@ def main() -> None:
             "rute_benar": sum(r["checks"]["rute_benar"] for r in rows),
             "lulus_semua_cek": sum(r["lulus"] for r in rows),
             "latensi_detik": latency_summary([r["detik"] for r in rows]),
+            "diputuskan_oleh": dict(
+                Counter((r["diputuskan_oleh"] or "-").split(" ")[0] for r in rows)
+            ),
         }
         for kind, rows in per_type.items()
     }

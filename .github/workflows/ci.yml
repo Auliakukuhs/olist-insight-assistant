@@ -42,6 +42,9 @@ jobs:
           done
           docker logs api
           exit 1
+      - name: Pastikan router ONNX terbaca di dalam image
+        run: |
+          docker run --rm olist-api:ci python -c "from olist_assistant.router.onnx_router import OnnxRouter; p = OnnxRouter().predict('Berapa rata-rata ongkir?'); print(p)"
       - name: Pastikan image tidak memuat berkas .env
         run: |
           if docker run --rm olist-api:ci sh -c 'find / -name ".env" -not -path "/proc/*" 2>/dev/null | grep -q .'; then

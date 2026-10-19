@@ -56,6 +56,11 @@ ATTACK_PATTERNS = [
     r"\bapi[\s_-]?key\b|\bsecret\b|\bpassword\b",
     r"\b(drop|truncate|alter)\s+table\b|\bdelete\s+from\b|\binsert\s+into\b",
     r"\bupdate\s+\w+\s+set\b",
+    # Keluarga jailbreak bermain peran: meminta model menjadi persona tanpa aturan.
+    r"(ber)?pura-pura\s+(jadi|menjadi)|pretend\s+(to\s+be|you\s+are)|role-?play",
+    r"\bdan\b\s+(yang|mode|tanpa)|\bdo\s+anything\s+now\b",
+    r"tanpa\s+(batasan|aturan|filter|sensor)|no\s+(restrictions|rules|limits)",
+    r"\b(mem)?bobol\b|\bhack(ing)?\b",
 ]
 
 ROUTER_PROMPT = """Kamu router untuk chatbot data e-commerce OLIST (Brasil, 2016 sampai 2018).
@@ -76,6 +81,9 @@ lokasi pembeli dan seller (kota, negara bagian), kategori produk, skor ulasan,
 dan teks ulasan pembeli. Data tidak memuat nama produk, nama atau kontak orang,
 stok, atau harga saat ini.
 
+Pertanyaan lanjutan yang pendek, misalnya "kalau yang di SP?" atau "yang bintang
+satu saja?", mengikuti jalur pertanyaan sebelumnya di riwayat.
+
 Kata seperti paling laris, terbanyak, termurah, tertinggi, terendah, atau
 peringkat berarti butuh angka. Bila dibarengi permintaan pendapat atau ulasan
 pembeli, pilih hybrid.
@@ -92,12 +100,14 @@ class SupervisorState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     role: str
     route: Route
+    route_by: str
     answer: str
     sources: list[dict]
     table: list[dict] | None
 
 
-Classifier = Callable[[str, list[Message]], Route]
+# Classifier boleh mengembalikan jalur saja, atau (jalur, siapa yang memutuskan).
+Classifier = Callable[[str, list[Message]], "Route | tuple[Route, str]"]
 RagFn = Callable[[str, list[Message]], RagResult]
 SqlFn = Callable[[str, list[Message]], SqlResult]
 SynthFn = Callable[[str, str, str], str]
@@ -160,11 +170,13 @@ class Supervisor:
 
     def _guard(self, state: SupervisorState) -> dict:
         if looks_like_attack(self._question(state)):
-            return {"route": "out_of_scope"}
-        return {"route": None}
+            return {"route": "out_of_scope", "route_by": "guard"}
+        return {"route": None, "route_by": None}
 
     def _route(self, state: SupervisorState) -> dict:
-        return {"route": self.classify(self._question(state), _history(state["messages"]))}
+        result = self.classify(self._question(state), _history(state["messages"]))
+        route, by = (result, "classifier") if isinstance(result, str) else result
+        return {"route": route, "route_by": by}
 
     def _reply(self, answer: str, sources: list[dict], table: list[dict] | None) -> dict:
         return {
@@ -234,6 +246,28 @@ def llm_classifier(model) -> Classifier:
     return classify
 
 
+ONNX_LABELS = {"SQL": "sql", "RAG": "rag", "HYBRID": "hybrid", "OUT_OF_SCOPE": "out_of_scope"}
+ROUTER_THRESHOLD = 0.8
+
+
+def router_classifier(router, fallback: Classifier, threshold: float = ROUTER_THRESHOLD):
+    """Router hasil fine-tuning dulu. Bila keyakinannya di bawah ambang, serahkan ke LLM.
+
+    Ambang 0,8 ditetapkan sebelum evaluasi gold set dan tidak diatur dari hasilnya.
+    """
+
+    def classify(question: str, history: list[Message]):
+        prediction = router.predict(question)
+        if prediction.confidence >= threshold:
+            return ONNX_LABELS[prediction.label], f"onnx {prediction.confidence:.2f}"
+        fallback_route = fallback(question, history)
+        if not isinstance(fallback_route, str):
+            fallback_route = fallback_route[0]
+        return fallback_route, f"llm (onnx ragu {prediction.confidence:.2f})"
+
+    return classify
+
+
 def llm_synthesizer(model) -> SynthFn:
     def synthesize(question: str, sql_answer: str, rag_answer: str) -> str:
         prompt = (
@@ -267,8 +301,15 @@ def default_supervisor() -> Supervisor:
 
     model = default_model()
     search = default_search()
+    classify = llm_classifier(model)
+    try:
+        from olist_assistant.router.onnx_router import OnnxRouter
+
+        classify = router_classifier(OnnxRouter(), classify)
+    except FileNotFoundError:
+        pass  # model router belum ada, pakai router LLM saja
     return Supervisor(
-        classify=llm_classifier(model),
+        classify=classify,
         rag=lambda q, h: jawab_rag(q, h, search, model),
         sql=jawab_sql,
         synthesize=llm_synthesizer(model),

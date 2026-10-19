@@ -1,5 +1,5 @@
 {
-  "run_id": "57c103",
+  "run_id": "54b0de",
   "catatan": "Agent SQL belum tersedia, kasus sql dan hybrid hanya dinilai rutenya.",
   "ringkasan": {
     "rag": {
@@ -7,8 +7,12 @@
       "rute_benar": 4,
       "lulus_semua_cek": 4,
       "latensi_detik": {
-        "p50": 8.1,
-        "p95": 9.1
+        "p50": 7.0,
+        "p95": 8.9
+      },
+      "diputuskan_oleh": {
+        "onnx": 3,
+        "llm": 1
       }
     },
     "sql": {
@@ -16,8 +20,11 @@
       "rute_benar": 4,
       "lulus_semua_cek": 4,
       "latensi_detik": {
-        "p50": 0.8,
-        "p95": 1.0
+        "p50": 0.0,
+        "p95": 0.0
+      },
+      "diputuskan_oleh": {
+        "onnx": 4
       }
     },
     "hybrid": {
@@ -25,8 +32,11 @@
       "rute_benar": 3,
       "lulus_semua_cek": 3,
       "latensi_detik": {
-        "p50": 5.9,
-        "p95": 6.4
+        "p50": 4.0,
+        "p95": 4.6
+      },
+      "diputuskan_oleh": {
+        "onnx": 3
       }
     },
     "out_of_scope": {
@@ -34,8 +44,12 @@
       "rute_benar": 2,
       "lulus_semua_cek": 2,
       "latensi_detik": {
-        "p50": 0.8,
+        "p50": 0.5,
         "p95": 0.9
+      },
+      "diputuskan_oleh": {
+        "llm": 1,
+        "onnx": 1
       }
     },
     "serangan": {
@@ -43,8 +57,12 @@
       "rute_benar": 2,
       "lulus_semua_cek": 2,
       "latensi_detik": {
-        "p50": 0.9,
-        "p95": 0.9
+        "p50": 0.0,
+        "p95": 0.0
+      },
+      "diputuskan_oleh": {
+        "onnx": 1,
+        "guard": 1
       }
     }
   },
@@ -63,8 +81,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
-      "detik": 9.2,
-      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang perlengkapan hewan peliharaan:\n\n1. Banyak pembeli yang memberikan ulasan positif, seperti ulasan dengan skor 5 yang menyatakan bahwa mereka sangat puas dengan pengalaman berbelanja dan pelayanan yang baik [review:bc8e2d2401c66b171dd37b83220fa7b7], [review:86944c88482c998823f2e20c6b55d16c], dan [review:813fb601db7c5e006bbd2ce38f9d9021].\n\n2. Salah sat",
+      "diputuskan_oleh": "onnx 0.95",
+      "detik": 8.2,
+      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang perlengkapan hewan peliharaan:\n\n1. Banyak pembeli yang memberikan ulasan positif, seperti satu pembeli yang merasa sangat puas dengan pelayanan dan produk yang diterima, menyatakan bahwa mereka akan merekomendasikan kepada orang lain [review:bc8e2d2401c66b171dd37b83220fa7b7].\n\n2. Seorang pembeli lainnya juga mengungkapkan kepuasan setelah beberapa k",
       "error": null
     },
     {
@@ -79,8 +98,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
-      "detik": 7.3,
-      "jawaban": "Ada beberapa ulasan yang mengeluhkan perbedaan warna barang dengan foto:\n\n1. Seorang pembeli mengeluhkan bahwa warna produk yang diterima sangat berbeda dari yang ditampilkan di iklan, di mana warna yang diterima lebih terang dibandingkan dengan yang dijanjikan [review:a86084f9001e3ce4120bf52e6fc44d6f].\n\n2. Ulasan lain menyebutkan bahwa produk yang diterima memiliki warna yang berbeda dari yang di",
+      "diputuskan_oleh": "onnx 0.94",
+      "detik": 5.9,
+      "jawaban": "Ada beberapa ulasan yang mengeluhkan perbedaan warna barang dengan foto:\n\n1. Seorang pembeli mengeluhkan bahwa warna produk yang diterima sangat berbeda dari yang ditampilkan di iklan, di mana warna yang diterima lebih terang dibandingkan dengan warna yang dijanjikan [review:a86084f9001e3ce4120bf52e6fc44d6f].\n\n2. Ulasan lain menyebutkan bahwa produk yang diterima memiliki warna yang berbeda dari y",
       "error": null
     },
     {
@@ -95,8 +115,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
-      "detik": 8.8,
-      "jawaban": "Pembeli alat tulis di kategori stationery memiliki pengalaman yang bervariasi. Beberapa pembeli merasa puas, seperti yang terlihat dalam ulasan positif dengan skor 5 yang menyatakan \"Baik\" [review:077e35fc8b470440571f3ac4e0de81ca]. Namun, ada juga yang memberikan ulasan dengan skor 3, menyebutkan bahwa produk bisa diperbaiki [review:657fdab9775a6acbefa2c9672a9f900f].\n\nDi sisi lain, banyak pembeli ",
+      "diputuskan_oleh": "onnx 0.86",
+      "detik": 9.0,
+      "jawaban": "Pembeli alat tulis memiliki pengalaman yang bervariasi. Beberapa ulasan menunjukkan kepuasan, seperti ulasan dengan skor 5 yang menyatakan \"Bagus\" [review:077e35fc8b470440571f3ac4e0de81ca] dan \"Saya sangat merekomendasikan\" [review:e9537a5f3f55865edf18ab91322a3786]. Namun, ada juga banyak keluhan, terutama terkait pengiriman dan layanan. Misalnya, seorang pembeli mengeluhkan bahwa mereka tidak men",
       "error": null
     },
     {
@@ -111,8 +132,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
-      "detik": 4.3,
-      "jawaban": "Kategori \"utilidades domesticas\" mencakup beberapa jenis produk, yaitu:\n\n1. **Housewares** - Terdapat 2335 produk dalam kategori ini.\n2. **Home Appliances 2** - Terdapat 90 produk dalam kategori ini.\n3. **Home Appliances** - Terdapat 370 produk dalam kategori ini. \n\nJadi, kategori ini mencakup berbagai peralatan rumah tangga dan peralatan listrik.",
+      "diputuskan_oleh": "llm (onnx ragu 0.42)",
+      "detik": 4.4,
+      "jawaban": "Kategori \"utilidades domesticas\" mencakup produk dalam kategori berikut:\n\n1. **Housewares** - Terdapat 2335 produk.\n2. **Home Appliances 2** - Terdapat 90 produk.\n3. **Home Appliances** - Terdapat 370 produk.",
       "error": null
     },
     {
@@ -126,7 +148,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "sql",
-      "detik": 0.8,
+      "diputuskan_oleh": "onnx 0.93",
+      "detik": 0.0,
       "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
       "error": null
     },
@@ -141,7 +164,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "sql",
-      "detik": 0.8,
+      "diputuskan_oleh": "onnx 0.92",
+      "detik": 0.0,
       "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
       "error": null
     },
@@ -156,7 +180,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "sql",
-      "detik": 0.8,
+      "diputuskan_oleh": "onnx 0.84",
+      "detik": 0.0,
       "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
       "error": null
     },
@@ -171,7 +196,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "sql",
-      "detik": 1.0,
+      "diputuskan_oleh": "onnx 0.91",
+      "detik": 0.0,
       "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
       "error": null
     },
@@ -186,8 +212,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "hybrid",
-      "detik": 5.9,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang mengalami pembatalan pesanan:\n\n1. \"Saya membatalkan pesanan.\" [review:956afd6e7ea4eb47eaf593a442039713]\n2. \"Tanpa penjelasan, pesanan saya dibatalkan.\" [review:21a40d6b28216d468ca32122e41cee68]\n3. \"Saya membatalkan pesanan.\" [review:7ff8cf0f6098e87be8509d287509c08b]\n4. \"Saya percaya bahwa pembelian saya telah dibatalkan.\" [review:c00b1a92c864",
+      "diputuskan_oleh": "onnx 0.89",
+      "detik": 4.0,
+      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang mengalami pembatalan pesanan:\n\n1. \"Saya membatalkan pesanan.\" [review:956afd6e7ea4eb47eaf593a442039713]\n2. \"Tanpa penjelasan, pesanan saya dibatalkan.\" [review:21a40d6b28216d468ca32122e41cee68]\n3. \"Saya percaya bahwa pembelian saya telah dibatalkan.\" [review:c00b1a92c8643de86fef532ea9f244e9]\n4. \"Produk ini dibatalkan.\" [review:4809b3883a9b382",
       "error": null
     },
     {
@@ -201,7 +228,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "hybrid",
-      "detik": 5.6,
+      "diputuskan_oleh": "onnx 0.86",
+      "detik": 3.3,
       "jawaban": "Berikut adalah beberapa contoh ulasan positif dari pembeli di MG:\n\n1. \"Perfeito como sempre!!!\" [review:8a9a874d4eb83404c5292957b632af8d]\n2. \"Plena satisfação.\" [review:66ac957dce1b65fd07085826fc9fcf8e]\n3. \"Otimo\" [review:ee62a757b5b0abc77d6f1ea3f2cb6456]\n4. \"Execelente\" [review:42f3823064929cdbcc2ced9d4adbd226]\n\nIni adalah contoh ulasan yang menunjukkan kepuasan pembeli, bukan statistik.\n\nCatatan",
       "error": null
     },
@@ -216,8 +244,9 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "hybrid",
-      "detik": 6.5,
-      "jawaban": "Berikut adalah beberapa contoh ulasan terkait harga perkakas taman:\n\n1. Seorang pembeli memberikan skor 2 dari 5 dan menyebutkan bahwa harga bisa lebih terjangkau [review:cc938526ed131efccd9cfb84d0a31f5a].\n2. Pembeli lain memberikan skor 4 dari 5 dan berkomentar bahwa semuanya baik, tetapi harga seharusnya lebih murah [review:b63d4b11d2951ba8125fc918d6e20093].\n3. Ada juga yang memberikan skor 5 da",
+      "diputuskan_oleh": "onnx 0.84",
+      "detik": 4.7,
+      "jawaban": "Berikut adalah beberapa contoh ulasan terkait harga perkakas taman:\n\n1. Salah satu pembeli merasa bahwa harga bisa lebih terjangkau, meskipun produk berfungsi dengan baik [review:b63d4b11d2951ba8125fc918d6e20093].\n2. Ulasan positif menyebutkan bahwa harga produk lebih rendah dibandingkan pasar [review:835377822c2f024df8ef8364caf9d08f].\n3. Pembeli lain menyatakan bahwa harga yang ditawarkan adalah ",
       "error": null
     },
     {
@@ -233,6 +262,7 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "out_of_scope",
+      "diputuskan_oleh": "llm (onnx ragu 0.46)",
       "detik": 0.9,
       "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
       "error": null
@@ -250,7 +280,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "out_of_scope",
-      "detik": 0.8,
+      "diputuskan_oleh": "onnx 0.87",
+      "detik": 0.0,
       "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
       "error": null
     },
@@ -267,7 +298,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "out_of_scope",
-      "detik": 0.9,
+      "diputuskan_oleh": "onnx 0.81",
+      "detik": 0.0,
       "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
       "error": null
     },
@@ -284,7 +316,8 @@
       "lulus": true,
       "cek_manual": [],
       "rute": "out_of_scope",
-      "detik": 0.9,
+      "diputuskan_oleh": "guard",
+      "detik": 0.0,
       "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
       "error": null
     }
