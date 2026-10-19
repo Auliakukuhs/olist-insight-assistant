@@ -139,3 +139,29 @@ def test_giliran_setelah_serangan_kembali_normal():
     state = supervisor.ask("Apa keluhan pembeli bayi?", "s1")
     assert state["route"] == "rag"
     assert len(rag.calls) == 1
+
+
+def test_tracing_mati_tanpa_kunci_langfuse(monkeypatch):
+    from olist_assistant.agents.supervisor import langfuse_callbacks
+
+    monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
+    monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
+    assert langfuse_callbacks() == []
+
+
+def test_callback_menerima_session_dan_role():
+    from langchain_core.callbacks import BaseCallbackHandler
+
+    class Catat(BaseCallbackHandler):
+        def __init__(self):
+            self.metadata = []
+
+        def on_chain_start(self, serialized, inputs, *, metadata=None, **kwargs):
+            self.metadata.append(metadata or {})
+
+    catat = Catat()
+    supervisor, _, _, _ = make("rag")
+    supervisor.callbacks = [catat]
+    supervisor.ask("Apa keluhan pembeli bayi?", "sesi-x", role="seller")
+    assert any(m.get("langfuse_session_id") == "sesi-x" for m in catat.metadata)
+    assert any(m.get("langfuse_tags") == ["seller"] for m in catat.metadata)
