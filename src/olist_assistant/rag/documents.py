@@ -12,16 +12,12 @@ dari beberapa seller, jadi metadata menyimpan semuanya dan teks tidak pernah
 mengklaim review itu membahas satu produk tertentu.
 """
 
-import uuid
-from dataclasses import dataclass
 from pathlib import Path
 
 import pandas as pd
 
-# Namespace tetap untuk uuid5. Jangan diubah, kalau berubah semua ID titik di
-# Qdrant ikut berubah dan ingestion ulang akan menggandakan data.
-NAMESPACE = uuid.UUID("b2c425c6-1af7-4430-a6ef-a14bf66da083")
-DOC_VERSION = "v1"
+from olist_assistant.rag.model import RagDocument, doc_id
+
 UNKNOWN_CATEGORY = "unknown"
 
 CSV_FILES = {
@@ -31,18 +27,6 @@ CSV_FILES = {
     "sellers": "olist_sellers_dataset.csv",
     "translation": "product_category_name_translation.csv",
 }
-
-
-@dataclass(frozen=True)
-class RagDocument:
-    id: str
-    text: str
-    metadata: dict
-
-
-def doc_id(*parts: str) -> str:
-    """ID deterministik dari kunci alami, sama di setiap kali dibangun."""
-    return str(uuid.uuid5(NAMESPACE, "|".join((DOC_VERSION, *parts))))
 
 
 def load_tables(raw_dir: Path) -> dict[str, pd.DataFrame]:

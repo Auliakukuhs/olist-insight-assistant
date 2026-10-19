@@ -1,15 +1,22 @@
 """REST API OLIST Insight Assistant."""
 
+import logging
+import os
 import secrets
 import uuid
+from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
 
 from olist_assistant import __version__
-from olist_assistant.api.schemas import ChatRequest, ChatResponse, HealthResponse
-from olist_assistant.config import Settings, get_settings
+from olist_assistant.agents.supervisor import Supervisor
+from olist_assistant.api.schemas import ChatRequest, ChatResponse, HealthResponse, Source
+from olist_assistant.config import Settings, get_settings, load_dotenv
 
+REQUIRED_ENV = ("OPENAI_API_KEY", "QDRANT_URL", "QDRANT_API_KEY")
+
+logger = logging.getLogger("olist_assistant.api")
 app = FastAPI(title="OLIST Insight Assistant", version=__version__)
 
 
@@ -24,18 +31,46 @@ def require_api_key(
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="API key tidak valid")
 
 
+@lru_cache(maxsize=1)
+def get_supervisor() -> Supervisor:
+    """Bangun supervisor sekali, saat permintaan pertama."""
+    load_dotenv()
+    missing = [key for key in REQUIRED_ENV if not os.getenv(key)]
+    if missing:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Layanan agent belum dikonfigurasi di server",
+        )
+    from olist_assistant.agents.supervisor import default_supervisor
+
+    return default_supervisor()
+
+
 @app.get("/health")
 def health() -> HealthResponse:
     return HealthResponse(status="ok", version=__version__)
 
 
 @app.post("/chat", dependencies=[Depends(require_api_key)])
-def chat(request: ChatRequest) -> ChatResponse:
-    # Stub F1. Supervisor LangGraph menggantikan isi fungsi ini di F3.
+def chat(
+    request: ChatRequest,
+    supervisor: Annotated[Supervisor, Depends(get_supervisor)],
+) -> ChatResponse:
     # Fungsi sinkron sengaja dipakai supaya pemanggilan LLM yang blocking
     # dijalankan FastAPI di threadpool, tidak menahan event loop.
+    request_id = uuid.uuid4().hex
+    try:
+        state = supervisor.ask(request.message, request.session_id, request.role)
+    except Exception:
+        logger.exception("chat gagal, request_id=%s", request_id)
+        raise HTTPException(
+            status.HTTP_502_BAD_GATEWAY,
+            detail=f"Agent gagal menjawab. Sebutkan kode {request_id} saat melapor.",
+        ) from None
     return ChatResponse(
-        answer="Layanan belum tersambung ke agent. Ini respons stub F1.",
-        route="stub",
-        request_id=uuid.uuid4().hex,
+        answer=state["answer"],
+        route=state["route"],
+        sources=[Source(**s) for s in state.get("sources", [])],
+        table=state.get("table"),
+        request_id=request_id,
     )

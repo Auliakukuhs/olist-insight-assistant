@@ -2,8 +2,8 @@ import hashlib
 
 from qdrant_client import QdrantClient
 
-from olist_assistant.rag.documents import RagDocument, doc_id
 from olist_assistant.rag.ingest import ensure_collection, upsert_documents
+from olist_assistant.rag.model import RagDocument, doc_id
 
 SIZE = 8
 

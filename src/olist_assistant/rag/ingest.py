@@ -9,7 +9,7 @@ from collections.abc import Callable, Iterator, Sequence
 
 from qdrant_client import QdrantClient, models
 
-from olist_assistant.rag.documents import RagDocument
+from olist_assistant.rag.model import RagDocument
 
 EMBEDDING_MODEL = "text-embedding-3-small"
 VECTOR_SIZE = 1536

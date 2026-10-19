@@ -16,25 +16,11 @@ import sys
 import time
 from pathlib import Path
 
+from olist_assistant.config import load_dotenv
 from olist_assistant.rag.documents import build_all_documents, load_tables
 from olist_assistant.rag.ingest import EMBEDDING_MODEL, ensure_collection, upsert_documents
 
 REQUIRED_ENV = ("OPENAI_API_KEY", "QDRANT_URL", "QDRANT_API_KEY")
-
-
-def load_dotenv(path: Path) -> None:
-    """Muat .env sederhana tanpa menimpa environment yang sudah ada."""
-    if not path.exists():
-        return
-    for line in path.read_text().splitlines():
-        line = line.strip()
-        if line and not line.startswith("#") and "=" in line:
-            key, value = line.split("=", 1)
-            value = value.strip()
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-                value = value[1:-1]
-            if value:
-                os.environ.setdefault(key.strip(), value)
 
 
 def main() -> int:
