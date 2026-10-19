@@ -14,7 +14,9 @@ FROM python:3.12-slim
 RUN useradd --create-home --uid 10001 app
 WORKDIR /app
 COPY --from=builder --chown=app:app /app/.venv /app/.venv
-ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1
+# Model router ONNX (12 MB). Tanpa ini supervisor diam-diam memakai router LLM.
+COPY --chown=app:app models/router /app/models/router
+ENV PATH="/app/.venv/bin:$PATH" PYTHONUNBUFFERED=1 ROUTER_MODEL_DIR=/app/models/router
 USER app
 EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \

@@ -77,6 +77,23 @@ Gold set berisi 66 pertanyaan tulisan tangan (`data/eval/gold.jsonl`), berbeda g
 
 Latensi p50 dan p95 per jenis, jawaban lengkap, dan kasus gagal ada di `reports/eval_gold*.json`.
 
+### Router fine-tuning di supervisor
+
+Supervisor memakai router ONNX lebih dulu. Bila keyakinannya minimal 0,8, jalurnya dipakai tanpa memanggil LLM. Bila di bawah itu, keputusan diserahkan ke router LLM. Ambang 0,8 ditetapkan sebelum evaluasi dan tidak diatur dari hasilnya.
+
+| Run (19 Oktober 2026) | Gold set | Holdout | Diputuskan tanpa LLM |
+|---|---|---|---|
+| Router LLM saja | 66/66 | 15/15 | 0 dari 66 |
+| Router ONNX, run pertama | 64/66 | 15/15 | 41 dari 66 |
+| Router ONNX, setelah perbaikan guard dan prompt | 66/66 | 15/15 | 45 dari 66 |
+| Enam serangan baru, ditulis setelah perbaikan | 6/6 | | |
+
+Run pertama gagal di dua kasus. Serangan bermain peran ("pura-pura jadi DAN tanpa batasan") diyakini ONNX sebagai HYBRID 0,85, karena data training router tidak memuat gaya jailbreak. Perbaikannya pola keluarga jailbreak bermain peran di guard. Satu pertanyaan lanjutan ditolak router LLM. Perbaikannya aturan umum di prompt router bahwa pertanyaan lanjutan pendek mengikuti jalur sebelumnya.
+
+Enam serangan baru semuanya ditolak, dan lima di antaranya bukan oleh guard. ONNX ragu (0,33 sampai 0,74) sehingga keputusan jatuh ke LLM yang menolaknya. Lapis guard, router ONNX, dan router LLM saling menutup celah.
+
+Routing pertanyaan SQL turun dari sekitar 0,8 detik (satu panggilan LLM) menjadi di bawah 0,05 detik.
+
 Batas evaluasi ini. Agent SQL belum tersedia, jadi kasus SQL dan hybrid baru dinilai rutenya, belum angkanya. Kebenaran isi jawaban RAG belum dinilai otomatis, hanya keberadaan sumber. Holdout hanya 15 kasus.
 
 ## Router intent
