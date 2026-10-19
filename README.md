@@ -2,7 +2,7 @@
 
 Chatbot multi-agent untuk customer dan seller di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status saat ini adalah kerangka F1. API sudah punya kontrak `GET /health` dan `POST /chat`, tetapi `/chat` masih mengembalikan respons stub sampai agent tersambung di F3.
+Status per 19 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, guard prompt injection, riwayat per sesi, dan tracing Langfuse sudah berjalan di AWS. Agent SQL dan antarmuka Streamlit masih dikerjakan, jadi pertanyaan angka sementara dijawab bahwa datanya belum tersedia.
 
 ## Link
 
@@ -86,7 +86,7 @@ Batas evaluasi ini. Agent SQL belum tersedia, jadi kasus SQL dan hybrid baru din
 | `GET /health` | | `{"status": "ok", "version": "0.1.0"}` |
 | `POST /chat` | `{"message": "...", "session_id": "abc123", "role": "customer"}` | `{"answer", "route", "sources", "table", "request_id"}` |
 
-`route` bernilai `rag`, `sql`, `hybrid`, `out_of_scope`, atau `stub`. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
+`route` bernilai `rag`, `sql`, `hybrid`, atau `out_of_scope`. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
 
 ## Tim dan pembagian
 
