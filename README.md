@@ -53,6 +53,25 @@ Hasilnya 42.687 dokumen review (satu review satu dokumen, tanpa chunking) dan 73
 
 Ingestion penuh ke Qdrant Cloud pada 18 Oktober 2026 memasukkan 42.760 titik ke koleksi `olist_rag_v1` dalam 61 menit. Progres dicetak setiap sekitar 3.200 dokumen.
 
+## Evaluasi
+
+```sh
+uv run python scripts/evaluate_gold.py                               # gold set, 66 kasus
+uv run python scripts/evaluate_gold.py data/eval/gold_holdout.jsonl  # holdout buta, 15 kasus
+```
+
+Gold set berisi 66 pertanyaan tulisan tangan (`data/eval/gold.jsonl`), berbeda gaya dari templat router. Isinya 15 RAG, 15 SQL, 15 hybrid, 7 di luar cakupan, 8 serangan (prompt injection, perintah tulis SQL, permintaan kunci), dan 3 pasang pertanyaan lanjutan dalam satu sesi. Setiap kasus dinilai rutenya, lalu dicek sesuai jenis. RAG harus punya sumber, serangan tidak boleh punya sumber dan tidak boleh membocorkan prompt, pertanyaan lanjutan harus menyebut konteks dari giliran sebelumnya.
+
+| Run (19 Oktober 2026) | Lulus | Catatan |
+|---|---|---|
+| Gold set, sebelum perbaikan | 63/66 | Gagal di jawaban kategori tanpa sumber, "cicilan" ditolak, "paling laris" masuk RAG |
+| Gold set, setelah perbaikan | 66/66 | Perbaikan umum di prompt router dan sumber kategori. Gold set tidak lagi buta |
+| Holdout buta | 15/15 | Ditulis sebelum melihat hasil perbaikan, tidak pernah dipakai untuk mengubah sistem |
+
+Latensi p50 dan p95 per jenis, jawaban lengkap, dan kasus gagal ada di `reports/eval_gold*.json`.
+
+Batas evaluasi ini. Agent SQL belum tersedia, jadi kasus SQL dan hybrid baru dinilai rutenya, belum angkanya. Kebenaran isi jawaban RAG belum dinilai otomatis, hanya keberadaan sumber. Holdout hanya 15 kasus.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |

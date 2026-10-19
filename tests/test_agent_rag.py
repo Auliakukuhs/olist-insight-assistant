@@ -147,3 +147,16 @@ def test_agent_rag_tidak_menarik_pandas():
     code = "import sys, olist_assistant.agents.rag; print('pandas' in sys.modules)"
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == "False"
+
+
+def test_jawaban_dari_dokumen_kategori_bersumber_kategori(search):
+    model = ScriptedModel(
+        responses=[
+            tool_call("cari_kategori", {"frasa": "perlengkapan bayi"}),
+            AIMessage(content="Kategori baby berisi perlengkapan bayi."),
+        ]
+    )
+    result = jawab_rag("Kategori bayi isinya apa?", [], search, model)
+    assert result["sources"] == [
+        {"kind": "category", "id": "baby", "snippet": "Kategori produk baby"}
+    ]

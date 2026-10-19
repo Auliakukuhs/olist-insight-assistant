@@ -217,13 +217,24 @@ def _make_tools(search: ReviewSearch, collector: _Collector) -> list:
 
 
 def _sources(answer: str, collector: _Collector) -> list[Source]:
-    """Ulasan yang dikutip di jawaban. Bila tidak ada yang dikutip, semua yang ditemukan."""
-    reviews = [h for h in collector.hits.values() if h.metadata.get("doc_type") == "review"]
+    """Ulasan yang dikutip di jawaban. Bila tidak ada yang dikutip, semua yang ditemukan.
+
+    Bila jawaban hanya berasal dari dokumen kategori, kategori itulah sumbernya.
+    """
+    hits = list(collector.hits.values())
+    reviews = [h for h in hits if h.metadata.get("doc_type") == "review"]
     cited = [h for h in reviews if h.metadata["review_id"] in answer]
-    return [
+    sources: list[Source] = [
         {"kind": "review", "id": h.metadata["review_id"], "snippet": h.text[:MAX_SNIPPET]}
         for h in (cited or reviews)
     ]
+    if not sources:
+        sources = [
+            {"kind": "category", "id": h.metadata["category"], "snippet": h.text[:MAX_SNIPPET]}
+            for h in hits
+            if h.metadata.get("doc_type") == "category"
+        ]
+    return sources
 
 
 def jawab_rag(
