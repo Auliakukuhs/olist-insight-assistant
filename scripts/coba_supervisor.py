@@ -23,6 +23,11 @@ def main() -> None:
         print(f"RUTE   {state['route']}  ({time.monotonic() - started:.1f} detik)")
         print(f"JAWAB  {state['answer'][:400]}")
         print(f"SUMBER {[s['id'][:8] for s in state.get('sources', [])]}")
+    if supervisor.callbacks:
+        from langfuse import get_client
+
+        get_client().flush()
+        print(f"\nTrace terkirim ke Langfuse, session {session}")
 
 
 if __name__ == "__main__":

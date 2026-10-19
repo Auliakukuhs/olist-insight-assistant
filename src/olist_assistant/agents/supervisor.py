@@ -14,9 +14,10 @@ Alur graph:
   agent RAG dan agent SQL. Klien tidak mengirim riwayat.
 """
 
+import os
 import re
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
@@ -121,6 +122,7 @@ class Supervisor:
     rag: RagFn
     sql: SqlFn
     synthesize: SynthFn
+    callbacks: list = field(default_factory=list)
 
     def __post_init__(self) -> None:
         self.graph = self._build()
@@ -192,7 +194,13 @@ class Supervisor:
 
     def ask(self, question: str, session_id: str, role: str = "customer") -> SupervisorState:
         """Satu giliran percakapan. Riwayat diambil dari checkpointer per session_id."""
-        config = {"configurable": {"thread_id": session_id}}
+        config = {
+            "configurable": {"thread_id": session_id},
+            "callbacks": self.callbacks,
+            "run_name": "olist-supervisor",
+            # Dibaca handler Langfuse untuk mengelompokkan trace per sesi.
+            "metadata": {"langfuse_session_id": session_id, "langfuse_tags": [role]},
+        }
         return self.graph.invoke(
             {"messages": [HumanMessage(content=question)], "role": role}, config
         )
@@ -231,6 +239,17 @@ def llm_synthesizer(model) -> SynthFn:
     return synthesize
 
 
+def langfuse_callbacks() -> list:
+    """Handler Langfuse bila kuncinya ada. Tanpa kunci, tracing mati tanpa error."""
+    if not (os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")):
+        return []
+    if os.getenv("LANGFUSE_HOST") and not os.getenv("LANGFUSE_BASE_URL"):
+        os.environ["LANGFUSE_BASE_URL"] = os.environ["LANGFUSE_HOST"]
+    from langfuse.langchain import CallbackHandler
+
+    return [CallbackHandler()]
+
+
 def default_supervisor() -> Supervisor:
     """Supervisor dengan LLM, Qdrant Cloud, dan agent SQL sesuai environment."""
     from olist_assistant.agents.rag import default_model, default_search, jawab_rag
@@ -243,4 +262,5 @@ def default_supervisor() -> Supervisor:
         rag=lambda q, h: jawab_rag(q, h, search, model),
         sql=jawab_sql,
         synthesize=llm_synthesizer(model),
+        callbacks=langfuse_callbacks(),
     )
