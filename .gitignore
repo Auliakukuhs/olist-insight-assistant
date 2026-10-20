@@ -24,3 +24,6 @@ mlruns/
 # Model hasil training, dibangun ulang dari skrip
 artifacts/
 mlflow.db
+
+# Database hasil ETL terlalu besar untuk GitHub. Yang di-commit versi .gz
+data/olist.db
