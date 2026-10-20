@@ -146,7 +146,9 @@ Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan
 | `GET /health` | | `{"status": "ok", "version": "0.1.0"}` |
 | `POST /chat` | `{"message": "...", "session_id": "abc123", "role": "customer"}` | `{"answer", "route", "sources", "table", "request_id"}` |
 
-`route` bernilai `rag`, `sql`, `hybrid`, atau `out_of_scope`. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
+`route` bernilai `rag`, `sql`, `hybrid`, atau `out_of_scope`.
+
+Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
 
 ## Endpoint analytics
 
