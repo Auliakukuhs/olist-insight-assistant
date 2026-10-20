@@ -150,6 +150,18 @@ Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan
 
 Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
 
+## Endpoint analytics
+
+Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan query tetap dan parameter terikat, tidak lewat LLM.
+
+| Endpoint | Isi |
+|---|---|
+| `GET /analytics/kategori?urut=total_penjualan_brl&limit=10` | Ringkasan per kategori. `urut` salah satu dari `total_penjualan_brl`, `jumlah_order`, `rata_skor`, `persen_terlambat` |
+| `GET /analytics/seller/{seller_id}` | Ringkasan satu seller |
+| `GET /analytics/tren?kategori=toys&seller_id=...` | Penjualan per bulan, filter opsional |
+
+Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assistant/api/analytics.py`). Bila `data/olist.db` belum ada, endpoint menjawab 503.
+
 ## Tim dan pembagian
 
 | Anggota | Jalur |

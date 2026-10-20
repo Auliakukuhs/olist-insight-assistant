@@ -13,6 +13,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
+from olist_assistant.api import analytics
 from olist_assistant.api.ratelimit import RateLimiter
 from olist_assistant.api.schemas import ChatRequest, ChatResponse, HealthResponse, Source
 from olist_assistant.config import Settings, get_settings, load_dotenv
@@ -72,6 +73,9 @@ def get_supervisor() -> Supervisor:
     from olist_assistant.agents.supervisor import default_supervisor
 
     return default_supervisor()
+
+
+app.include_router(analytics.router, dependencies=[Depends(require_api_key)])
 
 
 def client_key(request: Request) -> str:
