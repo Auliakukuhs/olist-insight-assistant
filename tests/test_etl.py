@@ -1,5 +1,8 @@
 import copy
+import gzip
+import shutil
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -286,3 +289,35 @@ def test_kategori_tanpa_terjemahan_resmi_dilengkapi(tmp_path):
     conn = bangun(tmp_path, data)
     rows = dict(conn.execute("SELECT product_id, kategori FROM v_item_penjualan").fetchall())
     assert rows == {"p1": "toys", "p2": "portable_kitchen_food_processors"}
+
+
+# Database yang di-commit dan ikut masuk image Docker.
+COMMITTED_GZ = Path("data/olist.db.gz")
+
+
+@pytest.fixture(scope="module")
+def db_asli(tmp_path_factory):
+    path = tmp_path_factory.mktemp("asli") / "olist.db"
+    with gzip.open(COMMITTED_GZ) as source, path.open("wb") as target:
+        shutil.copyfileobj(source, target)
+    conn = sqlite3.connect(path)
+    yield conn
+    conn.close()
+
+
+def test_database_ter_commit_dibangun_dari_kode_terbaru(db, db_asli):
+    """Gagal bila views.sql atau etl.py berubah tetapi olist.db.gz belum dibangun ulang."""
+    skema = "SELECT name, sql FROM sqlite_master WHERE type IN ('view', 'index') ORDER BY name"
+    assert db_asli.execute(skema).fetchall() == db.execute(skema).fetchall()
+
+
+def test_angka_database_ter_commit(db_asli):
+    assert one(db_asli, "SELECT ROUND(SUM(total_bayar_brl), 2) FROM v_pembayaran_per_order") == (
+        16_008_872.12
+    )
+    # Tanpa 549 item dari pesanan canceled dan unavailable.
+    assert one(db_asli, "SELECT ROUND(SUM(total_penjualan_brl), 2) FROM v_ringkasan_kategori") == (
+        13_494_400.74
+    )
+    assert one(db_asli, "SELECT COUNT(*) FROM v_ringkasan_seller") == 3095
+    assert one(db_asli, "SELECT COUNT(*) FROM geolocation") == 19_015
