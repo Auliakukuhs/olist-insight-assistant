@@ -13,12 +13,17 @@ from pathlib import Path
 class Settings:
     app_env: str
     api_access_key: str | None
+    auth_secret: str | None
+    demo_users: str | None
+    """JSON akun demo, misalnya {"admin": {"password": "...", "peran": "admin"}}."""
 
 
 def get_settings() -> Settings:
     return Settings(
         app_env=os.getenv("APP_ENV", "local"),
         api_access_key=os.getenv("API_ACCESS_KEY") or None,
+        auth_secret=os.getenv("AUTH_SECRET") or None,
+        demo_users=os.getenv("DEMO_USERS") or None,
     )
 
 

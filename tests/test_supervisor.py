@@ -15,8 +15,8 @@ class Recorder:
         self.result = result
         self.calls = []
 
-    def __call__(self, question, history):
-        self.calls.append((question, history))
+    def __call__(self, question, history, *pengguna):
+        self.calls.append((question, history, *pengguna))
         if isinstance(self.result, Exception):
             raise self.result
         return self.result
@@ -191,7 +191,9 @@ def test_router_onnx_yakin_tidak_memanggil_llm():
 
     llm_calls = []
     classify = router_classifier(FakeRouter("SQL", 0.95), lambda q, h: llm_calls.append(q) or "rag")
-    assert classify("Berapa ongkir?", []) == ("sql", "onnx 0.95")
+    route, by, alasan = classify("Berapa ongkir?", [])
+    assert (route, by) == ("sql", "onnx 0.95")
+    assert "ONNX yakin 0.95" in alasan
     assert llm_calls == []
 
 
@@ -199,9 +201,10 @@ def test_router_onnx_ragu_diserahkan_ke_llm():
     from olist_assistant.agents.supervisor import router_classifier
 
     classify = router_classifier(FakeRouter("SQL", 0.55), lambda q, h: "hybrid")
-    route, by = classify("Kategori paling laris dan kenapa?", [])
+    route, by, alasan = classify("Kategori paling laris dan kenapa?", [])
     assert route == "hybrid"
     assert by.startswith("llm")
+    assert "ragu (0.55)" in alasan
 
 
 def test_state_mencatat_siapa_yang_memutuskan():

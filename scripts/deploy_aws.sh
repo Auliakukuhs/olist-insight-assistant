@@ -43,7 +43,7 @@ done
 # start, lalu disuntik sebagai environment. Nilainya tidak pernah masuk image
 # maupun berkas ini. Execution role hanya boleh membaca parameter /olist/*.
 SECRETS=""
-for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST API_ACCESS_KEY; do
+for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST API_ACCESS_KEY AUTH_SECRET DEMO_USERS; do
   arn="arn:aws:ssm:${REGION}:${ACCOUNT}:parameter/olist/${name}"
   if aws ssm describe-parameters --region "${REGION}" \
       --parameter-filters "Key=Name,Values=/olist/${name}" \

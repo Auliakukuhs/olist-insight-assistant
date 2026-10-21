@@ -11,8 +11,11 @@ import sqlite3
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel
+
+from olist_assistant.api.auth import current_user
+from olist_assistant.api.schemas import Pengguna
 
 # Kontrak dengan ETL. Nama dan kolom ini yang dibaca endpoint.
 VIEW_CONTRACT: dict[str, list[str]] = {
@@ -98,6 +101,22 @@ class TrenResponse(BaseModel):
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
+User = Annotated[Pengguna | None, Depends(current_user)]
+
+
+def check_seller_access(user: Pengguna | None, seller_id: str) -> None:
+    """Performa per seller adalah data internal. Seller hanya boleh melihat miliknya."""
+    if user is None or user.peran == "admin":
+        return
+    if user.peran == "seller" and user.seller_id == seller_id:
+        return
+    detail = (
+        "Seller hanya bisa melihat datanya sendiri"
+        if user.peran == "seller"
+        else "Data performa seller hanya untuk seller yang bersangkutan dan admin"
+    )
+    raise HTTPException(status.HTTP_403_FORBIDDEN, detail=detail)
+
 
 def db_path() -> Path:
     return Path(os.getenv("SQLITE_PATH", "data/olist.db"))
@@ -124,6 +143,7 @@ def kategori(
     urut: Urutan = "total_penjualan_brl",
     limit: Annotated[int, Query(ge=1, le=100)] = 10,
     min_order: Annotated[int, Query(ge=1)] = 1,
+    user: User = None,
 ) -> KategoriResponse:
     """Ringkasan per kategori, diurutkan menurun.
 
@@ -139,7 +159,8 @@ def kategori(
 
 
 @router.get("/seller/{seller_id}")
-def seller(seller_id: str) -> SellerRow:
+def seller(seller_id: str, user: User = None) -> SellerRow:
+    check_seller_access(user, seller_id)
     rows = query("SELECT * FROM v_ringkasan_seller WHERE seller_id = ?", (seller_id,))
     if not rows:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Seller tidak ditemukan")
@@ -147,8 +168,12 @@ def seller(seller_id: str) -> SellerRow:
 
 
 @router.get("/tren")
-def tren(kategori: str | None = None, seller_id: str | None = None) -> TrenResponse:
+def tren(
+    kategori: str | None = None, seller_id: str | None = None, user: User = None
+) -> TrenResponse:
     """Penjualan per bulan tanpa pesanan batal, bisa difilter kategori atau seller."""
+    if seller_id is not None:
+        check_seller_access(user, seller_id)
     rows = query(
         """
         SELECT strftime('%Y-%m', tanggal_beli) AS bulan,

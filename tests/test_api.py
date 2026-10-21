@@ -20,7 +20,7 @@ def fake_supervisor(route="rag", rag_error=None):
     return Supervisor(
         classify=lambda q, h: route,
         rag=rag,
-        sql=lambda q, h: {"answer": "angka", "sql": "SELECT 1", "rows": [{"n": 1}]},
+        sql=lambda q, h, u: {"answer": "angka", "sql": "SELECT 1", "rows": [{"n": 1}]},
         synthesize=lambda q, s, r: s + r,
     )
 
@@ -51,7 +51,7 @@ def test_chat_mengikuti_kontrak():
     response = client.post("/chat", json=VALID)
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == {"answer", "route", "sources", "table", "request_id"}
+    assert set(body) == {"answer", "route", "sources", "table", "proses", "request_id"}
     assert body["route"] == "rag"
     assert body["sources"] == [{"kind": "review", "id": "r1", "snippet": "x"}]
     assert len(body["request_id"]) == 32
@@ -80,8 +80,9 @@ def test_tanpa_kunci_layanan_503(monkeypatch):
     assert client.post("/chat", json=VALID).status_code == 503
 
 
-def test_chat_role_bawaan_customer_dan_seller_diterima():
-    response = client.post("/chat", json={**VALID, "role": "seller"})
+@pytest.mark.parametrize("role", ["customer", "seller", "admin"])
+def test_chat_tanpa_login_menerima_peran_dari_body(role):
+    response = client.post("/chat", json={**VALID, "role": role})
     assert response.status_code == 200
 
 
@@ -93,7 +94,7 @@ def test_chat_role_bawaan_customer_dan_seller_diterima():
         {"session_id": ""},
         {"session_id": "ada spasi"},
         {"session_id": "../etc/passwd"},
-        {"role": "admin"},
+        {"role": "superuser"},
     ],
 )
 def test_chat_menolak_input_tidak_valid(perubahan):

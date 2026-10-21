@@ -16,18 +16,21 @@ Alur graph:
 
 import os
 import re
+import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
+from langchain_core.runnables import RunnableLambda
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
+from olist_assistant.agents.proses import ProsesRecorder
 from olist_assistant.agents.rag import RagResult
-from olist_assistant.agents.sql_contract import Message, SqlResult
+from olist_assistant.agents.sql_contract import Message, Pengguna, SqlResult
 
 Route = Literal["rag", "sql", "hybrid", "out_of_scope"]
 HISTORY_MESSAGES = 6
@@ -99,17 +102,20 @@ class RouteDecision(BaseModel):
 class SupervisorState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     role: str
+    seller_id: str | None
     route: Route
     route_by: str
+    alasan: str | None
     answer: str
     sources: list[dict]
     table: list[dict] | None
 
 
-# Classifier boleh mengembalikan jalur saja, atau (jalur, siapa yang memutuskan).
-Classifier = Callable[[str, list[Message]], "Route | tuple[Route, str]"]
+# Classifier boleh mengembalikan jalur saja, (jalur, siapa yang memutuskan),
+# atau (jalur, siapa, alasan).
+Classifier = Callable[[str, list[Message]], "Route | tuple[str, ...]"]
 RagFn = Callable[[str, list[Message]], RagResult]
-SqlFn = Callable[[str, list[Message]], SqlResult]
+SqlFn = Callable[[str, list[Message], Pengguna], SqlResult]
 SynthFn = Callable[[str, str, str], str]
 
 
@@ -145,7 +151,28 @@ class Supervisor:
     callbacks: list = field(default_factory=list)
 
     def __post_init__(self) -> None:
+        # Sub-agent dibungkus run bernama supaya tercatat sebagai langkah di
+        # panel proses dan di Langfuse, termasuk token LLM di dalamnya.
+        self._agent_rag = RunnableLambda(lambda x: self.rag(x["q"], x["h"])).with_config(
+            run_name="agent_rag"
+        )
+        self._agent_sql = RunnableLambda(lambda x: self.sql(x["q"], x["h"], x["u"])).with_config(
+            run_name="agent_sql"
+        )
+        self._sintesis = RunnableLambda(
+            lambda x: self.synthesize(x["q"], x["sql"], x["rag"])
+        ).with_config(run_name="sintesis")
         self.graph = self._build()
+
+    def _call_rag(self, question: str, history: list[Message]) -> RagResult:
+        return self._agent_rag.invoke({"q": question, "h": history})
+
+    def _call_sql(self, state: SupervisorState, question: str, history) -> SqlResult:
+        user: Pengguna = {
+            "peran": state.get("role", "customer"),
+            "seller_id": state.get("seller_id"),
+        }
+        return self._agent_sql.invoke({"q": question, "h": history, "u": user})
 
     def _build(self):
         graph = StateGraph(SupervisorState)
@@ -170,13 +197,21 @@ class Supervisor:
 
     def _guard(self, state: SupervisorState) -> dict:
         if looks_like_attack(self._question(state)):
-            return {"route": "out_of_scope", "route_by": "guard"}
-        return {"route": None, "route_by": None}
+            return {
+                "route": "out_of_scope",
+                "route_by": "guard",
+                "alasan": "Guard mengenali pola serangan, pertanyaan tidak diteruskan ke LLM.",
+            }
+        return {"route": None, "route_by": None, "alasan": None}
 
     def _route(self, state: SupervisorState) -> dict:
         result = self.classify(self._question(state), _history(state["messages"]))
-        route, by = (result, "classifier") if isinstance(result, str) else result
-        return {"route": route, "route_by": by}
+        if isinstance(result, str):
+            result = (result,)
+        route = result[0]
+        by = result[1] if len(result) > 1 else "classifier"
+        alasan = result[2] if len(result) > 2 else f"Dipilih {by}."
+        return {"route": route, "route_by": by, "alasan": alasan}
 
     def _reply(self, answer: str, sources: list[dict], table: list[dict] | None) -> dict:
         return {
@@ -187,12 +222,12 @@ class Supervisor:
         }
 
     def _rag(self, state: SupervisorState) -> dict:
-        result = self.rag(self._question(state), _history(state["messages"]))
+        result = self._call_rag(self._question(state), _history(state["messages"]))
         return self._reply(result["answer"], _rag_sources(result), None)
 
     def _sql(self, state: SupervisorState) -> dict:
         try:
-            result = self.sql(self._question(state), _history(state["messages"]))
+            result = self._call_sql(state, self._question(state), _history(state["messages"]))
         except NotImplementedError:
             return self._reply(SQL_UNAVAILABLE, [], None)
         return self._reply(result["answer"], [_sql_source(result)], result["rows"])
@@ -200,32 +235,49 @@ class Supervisor:
     def _hybrid(self, state: SupervisorState) -> dict:
         question, history = self._question(state), _history(state["messages"])
         try:
-            sql_result = self.sql(question, history)
+            sql_result = self._call_sql(state, question, history)
         except NotImplementedError:
-            rag_result = self.rag(f"{question}\n\n{NO_RANKING_NOTE}", history)
+            rag_result = self._call_rag(f"{question}\n\n{NO_RANKING_NOTE}", history)
             answer = f"{rag_result['answer']}\n\nCatatan: {SQL_UNAVAILABLE}"
             return self._reply(answer, _rag_sources(rag_result), None)
         enriched = f"{question}\n\nKonteks angka dari database: {sql_result['answer']}"
-        rag_result = self.rag(enriched, history)
-        answer = self.synthesize(question, sql_result["answer"], rag_result["answer"])
+        rag_result = self._call_rag(enriched, history)
+        answer = self._sintesis.invoke(
+            {"q": question, "sql": sql_result["answer"], "rag": rag_result["answer"]}
+        )
         sources = [_sql_source(sql_result), *_rag_sources(rag_result)]
         return self._reply(answer, sources, sql_result["rows"])
 
     def _out_of_scope(self, state: SupervisorState) -> dict:
         return self._reply(OUT_OF_SCOPE_ANSWER, [], None)
 
-    def ask(self, question: str, session_id: str, role: str = "customer") -> SupervisorState:
-        """Satu giliran percakapan. Riwayat diambil dari checkpointer per session_id."""
+    def ask(
+        self,
+        question: str,
+        session_id: str,
+        role: str = "customer",
+        seller_id: str | None = None,
+    ) -> SupervisorState:
+        """Satu giliran percakapan. Riwayat diambil dari checkpointer per session_id.
+
+        Hasilnya state graph ditambah kunci "proses", ringkasan agent, tool,
+        token, biaya, dan lama tiap langkah untuk giliran ini saja.
+        """
+        recorder = ProsesRecorder()
         config = {
             "configurable": {"thread_id": session_id},
-            "callbacks": self.callbacks,
+            "callbacks": [*self.callbacks, recorder],
             "run_name": "olist-supervisor",
             # Dibaca handler Langfuse untuk mengelompokkan trace per sesi.
             "metadata": {"langfuse_session_id": session_id, "langfuse_tags": [role]},
         }
-        return self.graph.invoke(
-            {"messages": [HumanMessage(content=question)], "role": role}, config
+        started = time.perf_counter()
+        state = self.graph.invoke(
+            {"messages": [HumanMessage(content=question)], "role": role, "seller_id": seller_id},
+            config,
         )
+        durasi_ms = round((time.perf_counter() - started) * 1000)
+        return {**state, "proses": recorder.summary(durasi_ms, state.get("alasan"))}
 
 
 def llm_classifier(model) -> Classifier:
@@ -239,9 +291,14 @@ def llm_classifier(model) -> Classifier:
             {"role": "user", "content": question},
         ]
         try:
-            return structured.invoke(messages).route
+            decision = structured.invoke(messages)
         except Exception:
-            return "out_of_scope"
+            return (
+                "out_of_scope",
+                "llm",
+                "Router LLM gagal menjawab, demi aman dianggap di luar topik.",
+            )
+        return decision.route, "llm", decision.alasan
 
     return classify
 
@@ -258,12 +315,20 @@ def router_classifier(router, fallback: Classifier, threshold: float = ROUTER_TH
 
     def classify(question: str, history: list[Message]):
         prediction = router.predict(question)
+        route = ONNX_LABELS[prediction.label]
         if prediction.confidence >= threshold:
-            return ONNX_LABELS[prediction.label], f"onnx {prediction.confidence:.2f}"
-        fallback_route = fallback(question, history)
-        if not isinstance(fallback_route, str):
-            fallback_route = fallback_route[0]
-        return fallback_route, f"llm (onnx ragu {prediction.confidence:.2f})"
+            alasan = f"Router ONNX yakin {prediction.confidence:.2f} bahwa ini jalur {route}."
+            return route, f"onnx {prediction.confidence:.2f}", alasan
+        result = fallback(question, history)
+        if isinstance(result, str):
+            result = (result,)
+        fallback_route, llm_alasan = result[0], (result[2] if len(result) > 2 else None)
+        alasan = (
+            f"Router ONNX ragu ({prediction.confidence:.2f}), router LLM memilih {fallback_route}."
+        )
+        if llm_alasan:
+            alasan = f"{alasan} {llm_alasan}"
+        return fallback_route, f"llm (onnx ragu {prediction.confidence:.2f})", alasan
 
     return classify
 
@@ -311,7 +376,7 @@ def default_supervisor() -> Supervisor:
     return Supervisor(
         classify=classify,
         rag=lambda q, h: jawab_rag(q, h, search, model),
-        sql=jawab_sql,
+        sql=lambda q, h, u: jawab_sql(q, h, peran=u["peran"], seller_id=u["seller_id"]),
         synthesize=llm_synthesizer(model),
         callbacks=langfuse_callbacks(),
     )
