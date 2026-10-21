@@ -74,11 +74,16 @@ def test_sql_belum_tersedia_dijawab_jujur():
     assert state["answer"] == SQL_UNAVAILABLE
 
 
-def test_hybrid_memakai_angka_sql_sebagai_konteks_rag():
+def test_hybrid_memanggil_kedua_agent_dengan_rencana_yang_sama():
     supervisor, rag, sql, _ = make("hybrid")
-    state = supervisor.ask("Kategori apa paling telat dan kenapa?", "s1")
-    assert len(sql.calls) == 1
-    assert "Konteks angka dari database: Rata-rata ongkir" in rag.calls[0][0]
+    supervisor.plan = lambda q, h, role: {
+        "pertanyaan_sql": "Rata-rata harga furniture seller SP",
+        "pertanyaan_rag": "Keluhan pembeli furniture seller SP",
+        "asumsi": "Sao Paulo dibaca negara bagian SP.",
+    }
+    state = supervisor.ask("Rata-rata harga furniture di Sao Paulo dan keluhannya?", "s1")
+    assert sql.calls[0][0] == "Rata-rata harga furniture seller SP"
+    assert rag.calls[0][0].startswith("Keluhan pembeli furniture seller SP")
     assert state["answer"] == f"{SQL_RESULT['answer']} {RAG_RESULT['answer']}"
     assert [s["kind"] for s in state["sources"]] == ["sql", "review"]
 
