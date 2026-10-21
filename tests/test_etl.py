@@ -1,4 +1,8 @@
+import copy
+import gzip
+import shutil
 import sqlite3
+from pathlib import Path
 
 import pandas as pd
 import pytest
@@ -173,15 +177,19 @@ MINI = {
 }
 
 
-@pytest.fixture
-def db(tmp_path):
+def bangun(tmp_path, data) -> sqlite3.Connection:
     raw = tmp_path / "raw"
     raw.mkdir()
-    for table, rows in MINI.items():
+    for table, rows in data.items():
         pd.DataFrame(rows).to_csv(raw / CSV_FILES[table], index=False)
     path = tmp_path / "olist.db"
     build_database(raw, path)
-    conn = sqlite3.connect(path)
+    return sqlite3.connect(path)
+
+
+@pytest.fixture
+def db(tmp_path):
+    conn = bangun(tmp_path, MINI)
     yield conn
     conn.close()
 
@@ -236,3 +244,80 @@ def test_view_sesuai_kontrak_analytics(db):
     for view, columns in VIEW_CONTRACT.items():
         actual = {row[1] for row in db.execute(f"PRAGMA table_info({view})")}
         assert set(columns) <= actual, f"{view} kurang kolom {set(columns) - actual}"
+
+
+def test_pesanan_batal_tidak_dihitung_penjualan(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["orders"].append(
+        {
+            **data["orders"][0],
+            "order_id": "o3",
+            "order_status": "canceled",
+            "order_delivered_customer_date": "",
+        }
+    )
+    data["order_items"].append({**data["order_items"][0], "order_id": "o3", "price": "500.0"})
+    conn = bangun(tmp_path, data)
+    # Item tetap terlihat di v_item_penjualan, tetapi tidak masuk ringkasan.
+    assert one(conn, "SELECT COUNT(*) FROM v_item_penjualan") == 4
+    toys = conn.execute(
+        "SELECT jumlah_order, total_penjualan_brl FROM v_ringkasan_kategori WHERE kategori = 'toys'"
+    ).fetchone()
+    assert toys == (1, 90.0)
+    assert one(conn, "SELECT jumlah_order FROM v_ringkasan_seller WHERE seller_id = 's1'") == 2
+
+
+def test_kategori_utama_seri_dipecah_menurut_nama(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["order_items"][2]["price"] = "90.0"  # toys 90 dan unknown 90, seri
+    conn = bangun(tmp_path, data)
+    assert (
+        one(conn, "SELECT kategori_utama FROM v_ringkasan_seller WHERE seller_id = 's1'") == "toys"
+    )
+
+
+def test_ringkasan_disimpan_sebagai_tabel(db):
+    jenis = dict(db.execute("SELECT name, type FROM sqlite_master").fetchall())
+    assert jenis["ringkasan_seller"] == "table"
+    assert jenis["v_ringkasan_seller"] == "view"
+    assert one(db, "SELECT COUNT(*) FROM v_ringkasan_kategori") == 2
+
+
+def test_kategori_tanpa_terjemahan_resmi_dilengkapi(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["products"][1]["product_category_name"] = "portateis_cozinha_e_preparadores_de_alimentos"
+    conn = bangun(tmp_path, data)
+    rows = dict(conn.execute("SELECT product_id, kategori FROM v_item_penjualan").fetchall())
+    assert rows == {"p1": "toys", "p2": "portable_kitchen_food_processors"}
+
+
+# Database yang di-commit dan ikut masuk image Docker.
+COMMITTED_GZ = Path("data/olist.db.gz")
+
+
+@pytest.fixture(scope="module")
+def db_asli(tmp_path_factory):
+    path = tmp_path_factory.mktemp("asli") / "olist.db"
+    with gzip.open(COMMITTED_GZ) as source, path.open("wb") as target:
+        shutil.copyfileobj(source, target)
+    conn = sqlite3.connect(path)
+    yield conn
+    conn.close()
+
+
+def test_database_ter_commit_dibangun_dari_kode_terbaru(db, db_asli):
+    """Gagal bila views.sql atau etl.py berubah tetapi olist.db.gz belum dibangun ulang."""
+    skema = "SELECT name, sql FROM sqlite_master WHERE type IN ('view', 'index') ORDER BY name"
+    assert db_asli.execute(skema).fetchall() == db.execute(skema).fetchall()
+
+
+def test_angka_database_ter_commit(db_asli):
+    assert one(db_asli, "SELECT ROUND(SUM(total_bayar_brl), 2) FROM v_pembayaran_per_order") == (
+        16_008_872.12
+    )
+    # Tanpa 549 item dari pesanan canceled dan unavailable.
+    assert one(db_asli, "SELECT ROUND(SUM(total_penjualan_brl), 2) FROM v_ringkasan_kategori") == (
+        13_494_400.74
+    )
+    assert one(db_asli, "SELECT COUNT(*) FROM v_ringkasan_seller") == 3095
+    assert one(db_asli, "SELECT COUNT(*) FROM geolocation") == 19_015

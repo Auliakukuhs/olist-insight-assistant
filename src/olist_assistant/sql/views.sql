@@ -26,6 +26,13 @@ LEFT JOIN category_translation AS t ON t.product_category_name = p.product_categ
 LEFT JOIN sellers AS s ON s.seller_id = i.seller_id
 LEFT JOIN customers AS c ON c.customer_id = o.customer_id;
 
+-- Item yang dihitung sebagai penjualan. Pesanan canceled dan unavailable tidak
+-- pernah jadi transaksi, jadi tidak masuk angka penjualan maupun ringkasan.
+CREATE VIEW v_item_terjual AS
+SELECT *
+FROM v_item_penjualan
+WHERE status_order NOT IN ('canceled', 'unavailable');
+
 -- Satu baris per pesanan. Pesanan bisa dibayar beberapa kali (voucher + kartu).
 CREATE VIEW v_pembayaran_per_order AS
 SELECT
@@ -71,7 +78,7 @@ WITH angka_item AS (
         ROUND(SUM(harga_brl), 2) AS total_penjualan_brl,
         ROUND(AVG(harga_brl), 2) AS rata_harga_brl,
         ROUND(AVG(ongkir_brl), 2) AS rata_ongkir_brl
-    FROM v_item_penjualan
+    FROM v_item_terjual
     GROUP BY kategori
 ),
 angka_order AS (
@@ -79,7 +86,7 @@ angka_order AS (
         k.kategori,
         ROUND(AVG(o.skor), 2) AS rata_skor,
         ROUND(100.0 * AVG(o.terlambat), 1) AS persen_terlambat
-    FROM (SELECT DISTINCT order_id, kategori FROM v_item_penjualan) AS k
+    FROM (SELECT DISTINCT order_id, kategori FROM v_item_terjual) AS k
     JOIN v_order AS o ON o.order_id = k.order_id
     GROUP BY k.kategori
 )
@@ -94,7 +101,7 @@ WITH angka_item AS (
         seller_id,
         COUNT(DISTINCT order_id) AS jumlah_order,
         ROUND(SUM(harga_brl), 2) AS total_penjualan_brl
-    FROM v_item_penjualan
+    FROM v_item_terjual
     GROUP BY seller_id
 ),
 kategori_utama AS (
@@ -103,8 +110,11 @@ kategori_utama AS (
         SELECT
             seller_id,
             kategori,
-            ROW_NUMBER() OVER (PARTITION BY seller_id ORDER BY SUM(harga_brl) DESC) AS urutan
-        FROM v_item_penjualan
+            -- Nama kategori memecah seri supaya hasilnya sama di setiap build.
+            ROW_NUMBER() OVER (
+                PARTITION BY seller_id ORDER BY SUM(harga_brl) DESC, kategori
+            ) AS urutan
+        FROM v_item_terjual
         GROUP BY seller_id, kategori
     )
     WHERE urutan = 1
@@ -115,7 +125,7 @@ angka_order AS (
         ROUND(AVG(o.skor), 2) AS rata_skor,
         ROUND(AVG(o.hari_kirim), 1) AS rata_hari_kirim,
         ROUND(100.0 * AVG(o.terlambat), 1) AS persen_terlambat
-    FROM (SELECT DISTINCT seller_id, order_id FROM v_item_penjualan) AS so
+    FROM (SELECT DISTINCT seller_id, order_id FROM v_item_terjual) AS so
     JOIN v_order AS o ON o.order_id = so.order_id
     GROUP BY so.seller_id
 )

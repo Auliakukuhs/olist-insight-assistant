@@ -44,13 +44,33 @@ DROP_COLUMNS = {
     "orders": ["order_approved_at", "order_delivered_carrier_date"],
 }
 
-# Index hanya untuk kolom penghubung yang dipakai join di dalam view.
+# Dua kategori di products tidak punya terjemahan di CSV resmi, sehingga
+# muncul dengan nama Portugis di samping 71 kategori berbahasa Inggris.
+EXTRA_TRANSLATIONS = {
+    "pc_gamer": "pc_gamer",
+    "portateis_cozinha_e_preparadores_de_alimentos": "portable_kitchen_food_processors",
+}
+
+# Index untuk kolom penghubung yang dipakai join di dalam view, ditambah
+# seller_id yang dipakai filter per seller. Tanpa index products dan customers,
+# SQLite membangun index sementara di setiap query (tren per seller 99 ms jadi 7 ms).
 INDEXES = [
     "CREATE INDEX idx_items_order ON order_items(order_id)",
+    "CREATE INDEX idx_items_seller ON order_items(seller_id)",
+    "CREATE INDEX idx_products_product ON products(product_id)",
+    "CREATE INDEX idx_customers_customer ON customers(customer_id)",
     "CREATE INDEX idx_orders_order ON orders(order_id)",
     "CREATE INDEX idx_payments_order ON order_payments(order_id)",
     "CREATE INDEX idx_reviews_order ON order_reviews(order_id)",
 ]
+
+# View ringkasan mengagregasi semua item setiap kali dibaca, sekitar 1,5 detik
+# untuk satu seller. Hasilnya disimpan sekali sebagai tabel saat ETL, lalu view
+# dengan nama yang sama membaca tabel itu, sehingga agent SQL tidak berubah.
+MATERIALIZED_VIEWS = {
+    "v_ringkasan_kategori": "kategori",
+    "v_ringkasan_seller": "seller_id",
+}
 
 VIEWS_SQL = Path(__file__).with_name("views.sql")
 
@@ -76,6 +96,25 @@ def summarize_geolocation(geo: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+def add_missing_translations(translation: pd.DataFrame) -> pd.DataFrame:
+    known = set(translation["product_category_name"])
+    extra = [
+        {"product_category_name": pt, "product_category_name_english": en}
+        for pt, en in EXTRA_TRANSLATIONS.items()
+        if pt not in known
+    ]
+    return pd.concat([translation, pd.DataFrame(extra)], ignore_index=True)
+
+
+def materialize(conn: sqlite3.Connection, view: str, key: str) -> None:
+    """Ganti view dengan tabel berisi hasilnya, dan view baru yang membaca tabel itu."""
+    table = view.removeprefix("v_")
+    conn.execute(f"CREATE TABLE {table} AS SELECT * FROM {view}")
+    conn.execute(f"CREATE INDEX idx_{table} ON {table}({key})")
+    conn.execute(f"DROP VIEW {view}")
+    conn.execute(f"CREATE VIEW {view} AS SELECT * FROM {table}")
+
+
 def build_database(raw_dir: Path, db_path: Path) -> dict[str, int]:
     """Bangun ulang database dari nol. Kembalikan jumlah baris per tabel."""
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -89,11 +128,15 @@ def build_database(raw_dir: Path, db_path: Path) -> dict[str, int]:
             df = read_csv(raw_dir, table)
             if table == "geolocation":
                 df = summarize_geolocation(df)
+            if table == "category_translation":
+                df = add_missing_translations(df)
             df.to_sql(table, conn, index=False)
             counts[table] = len(df)
         for statement in INDEXES:
             conn.execute(statement)
         conn.executescript(VIEWS_SQL.read_text())
+        for view, key in MATERIALIZED_VIEWS.items():
+            materialize(conn, view, key)
         conn.commit()
         conn.execute("VACUUM")
     finally:

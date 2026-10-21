@@ -60,6 +60,34 @@ Hasilnya 42.687 dokumen review (satu review satu dokumen, tanpa chunking) dan 73
 
 Ingestion penuh ke Qdrant Cloud pada 18 Oktober 2026 memasukkan 42.760 titik ke koleksi `olist_rag_v1` dalam 61 menit. Progres dicetak setiap sekitar 3.200 dokumen.
 
+## Database SQL (ETL)
+
+Agent SQL dan endpoint analytics membaca SQLite `data/olist.db` yang dibangun dari 9 CSV yang sama di `data/raw/`.
+
+```sh
+uv sync --group ingest
+uv run python scripts/build_sqlite.py   # sekitar 10 detik, menulis olist.db dan olist.db.gz
+```
+
+| View | Satu baris per | Isi |
+|---|---|---|
+| `v_item_penjualan` | item pesanan | kategori (Inggris), harga, ongkir, status, lokasi seller dan pembeli |
+| `v_item_terjual` | item pesanan | `v_item_penjualan` tanpa pesanan `canceled` dan `unavailable` |
+| `v_pembayaran_per_order` | pesanan | total bayar, jumlah pembayaran, cicilan, metode |
+| `v_review_per_order` | pesanan | rata-rata skor dan jumlah review |
+| `v_order` | pesanan | status, terlambat atau tidak, lama kirim, skor |
+| `v_ringkasan_kategori` | kategori | order, penjualan, rata harga dan ongkir, skor, persen terlambat |
+| `v_ringkasan_seller` | seller | lokasi, kategori utama, order, penjualan, skor, lama kirim, persen terlambat |
+
+Keputusan yang perlu diketahui.
+
+- **Ringkas dulu, baru gabung.** Pembayaran dan review diringkas per `order_id` sebelum digabung. Join langsung item dengan pembayaran menaikkan total dari 16.008.872,12 BRL menjadi 20.308.134,71 BRL. Script build gagal bila total pembayaran tidak tepat.
+- **Penjualan tanpa pesanan batal.** 549 item dari pesanan `canceled` dan `unavailable` (97.242,96 BRL) tidak masuk ringkasan. Total penjualan di ringkasan 13.494.400,74 BRL.
+- **Ringkasan disimpan sebagai tabel.** Kedua view ringkasan dihitung sekali saat ETL, karena menghitungnya ulang butuh sekitar 1,5 detik per baca.
+- **Teks review tidak masuk SQL.** Teksnya sudah di Qdrant untuk agent RAG. SQL cukup memakai skornya.
+- **Geolocation** diringkas dari 1 juta baris menjadi 19.015 baris, satu per prefix kode pos.
+- **Database ikut di dalam image.** Database 87 MB terlalu dekat dengan batas 100 MB GitHub, jadi yang di-commit `data/olist.db.gz` (42 MB) dan dibongkar saat `docker build`. Gzip ditulis deterministik, sehingga membangun ulang tanpa perubahan kode tidak mengubah berkasnya. Tes di CI gagal bila `views.sql` atau `etl.py` berubah tetapi `olist.db.gz` belum dibangun ulang.
+
 ## Evaluasi
 
 ```sh
