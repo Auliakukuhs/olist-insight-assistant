@@ -2,7 +2,7 @@
 
 Chatbot multi-agent untuk customer dan seller di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status per 19 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, guard prompt injection, riwayat per sesi, dan tracing Langfuse sudah berjalan di AWS. Agent SQL dan antarmuka Streamlit masih dikerjakan, jadi pertanyaan angka sementara dijawab bahwa datanya belum tersedia.
+Status per 21 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, guard prompt injection, riwayat per sesi, tracing Langfuse, login tiga peran, dan panel proses sudah ada. Agent SQL dan antarmuka Streamlit dikerjakan Starletto (#7, #2).
 
 ## Link
 
@@ -14,19 +14,53 @@ Status per 19 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, gua
 ## Arsitektur
 
 ```
-Streamlit  --HTTPS-->  FastAPI di AWS (satu container)
-                          |
-                          v
-                Supervisor LangGraph + chat history per session
-                   |                         |
-                   v                         v
-              Agent RAG                  Agent SQL
-           (Qdrant Cloud)          (SQLite read-only, view terkurasi)
+Streamlit Cloud  --HTTPS, X-API-Key, token login-->  FastAPI di AWS ECS (satu container)
+                                                         |
+                                                         v
+                                   Supervisor LangGraph, riwayat per akun dan session_id
+                                                         |
+    guard --(serangan)--> tolak tanpa LLM
+      |
+    router ONNX fine-tuned (yakin >= 0,8), cadangan router LLM
+      |
+      +-- rag ------+--> periksa kecukupan --(kurang)--> agent kedua, lalu sintesis
+      +-- sql ------+
+      +-- hybrid --> rencana filter bersama --+--> agent SQL --+--> sintesis
+      |                                       +--> agent RAG --+    (paralel)
+      +-- di luar topik --> supervisor menjawab sendiri atau menolak sesuai peran
+
+    Agent RAG  -> Qdrant Cloud, 42.760 titik (ulasan dan profil kategori)
+    Agent SQL  -> SQLite read-only di dalam image, view per peran
 ```
 
-- **Agent RAG** menjawab dari teks review dan profil kategori.
-- **Agent SQL** menjawab angka, harga, dan lokasi dari SQLite.
-- **Supervisor** memilih RAG, SQL, atau keduanya, dan menyimpan riwayat percakapan di server per `session_id`.
+- **Supervisor** memilih jalur, menjawab sendiri sapaan dan pertanyaan tanggal, dan menolak pertanyaan di luar topik dengan contoh pertanyaan sesuai peran.
+- **Pertanyaan dua agent** ditangani dua cara. Jalur hybrid memanggil agent SQL dan agent RAG bersamaan dengan filter lokasi yang sama, ditafsir kode (`tafsir_lokasi`), bukan ditebak LLM. Jalur tunggal diperiksa pemeriksa kecukupan, dan bila jawabannya belum lengkap, agent kedua dipanggil sekali dengan alasan yang tercatat.
+- **Agent RAG** menjawab dari teks ulasan dan profil kategori. **Agent SQL** menjawab angka, harga, dan lokasi dari SQLite, hanya dari view yang boleh dibaca peran pengguna.
+- **Panel proses** di setiap jawaban mencatat agent, tool, alasan rute, token, biaya, dan lama tiap langkah.
+
+### Alur data
+
+```
+9 CSV OLIST --ETL (pandas)--> data/olist.db --gzip--> data/olist.db.gz (di-commit)
+                                                       --docker build--> /app/data/olist.db
+9 CSV OLIST --dokumen ulasan dan kategori--> text-embedding-3-small --> Qdrant Cloud
+Pertanyaan --> Streamlit --> POST /chat --> supervisor --> agent --> jawaban + proses --> Streamlit
+```
+
+### Uji skenario mentoring 1 (21 Oktober 2026, LLM asli)
+
+| Skenario | Peran | Jalur | Lama | Hasil |
+|---|---|---|---|---|
+| "Halo apa kabar?" | customer | umum | 2,7 detik | Dijawab supervisor tanpa agent |
+| "Hari ini hari apa?" dan "Besok hari apa?" | customer | umum | 2,8 detik | Rabu 21 dan Kamis 22 Oktober 2026 |
+| "Resep nasi goreng paling enak" | seller | out_of_scope | 2,5 detik | Ditolak, diberi dua contoh pertanyaan seller |
+| "Apa yang perlu ditingkatkan untuk produk bayi, dan berapa rata-rata penjualannya?" | seller | hybrid paralel | 19,7 detik | 134,84 BRL dan saran yang menyebut ID ulasan |
+| Lanjutan "Kalau yang di RJ?" | seller | sql | 5,5 detik | 195,20 BRL, filter seller di RJ |
+| "Rata-rata harga furniture di Sao Paulo, keluhan, dan cara menanganinya" | customer | hybrid paralel | 17,0 detik | 84,88 BRL (pembeli di SP) dan saran beralasan |
+| "Tolong analisis performa seller di daerah Sao Paulo" | seller | sql | 1,2 detik | Ditolak tanpa query, data internal hanya untuk admin |
+| Pertanyaan yang sama | admin | sql | 11,8 detik | Ringkasan 1.849 seller dan lima seller teratas |
+
+Pada jalur hybrid, agent SQL (sekitar 3 detik) dan agent RAG (10 sampai 14 detik) berjalan bersamaan, jadi lama totalnya mengikuti agent RAG, bukan jumlah keduanya.
 
 ## Menjalankan lokal
 
