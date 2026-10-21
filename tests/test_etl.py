@@ -271,3 +271,18 @@ def test_kategori_utama_seri_dipecah_menurut_nama(tmp_path):
     assert (
         one(conn, "SELECT kategori_utama FROM v_ringkasan_seller WHERE seller_id = 's1'") == "toys"
     )
+
+
+def test_ringkasan_disimpan_sebagai_tabel(db):
+    jenis = dict(db.execute("SELECT name, type FROM sqlite_master").fetchall())
+    assert jenis["ringkasan_seller"] == "table"
+    assert jenis["v_ringkasan_seller"] == "view"
+    assert one(db, "SELECT COUNT(*) FROM v_ringkasan_kategori") == 2
+
+
+def test_kategori_tanpa_terjemahan_resmi_dilengkapi(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["products"][1]["product_category_name"] = "portateis_cozinha_e_preparadores_de_alimentos"
+    conn = bangun(tmp_path, data)
+    rows = dict(conn.execute("SELECT product_id, kategori FROM v_item_penjualan").fetchall())
+    assert rows == {"p1": "toys", "p2": "portable_kitchen_food_processors"}
