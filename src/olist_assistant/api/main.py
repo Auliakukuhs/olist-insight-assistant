@@ -28,7 +28,12 @@ per_client = RateLimiter(int(os.getenv("RATE_LIMIT_PER_CLIENT", "60")))
 
 
 def _warm_up() -> None:
-    """Bangun supervisor dan muat model router sebelum request pertama datang."""
+    """Bangun supervisor, muat model router, dan hitung ringkasan analytics."""
+    try:
+        if analytics.warm_up():
+            logger.info("Ringkasan analytics siap")
+    except Exception:
+        logger.exception("Pemanasan analytics gagal")
     try:
         get_supervisor()
         logger.info("Supervisor siap")

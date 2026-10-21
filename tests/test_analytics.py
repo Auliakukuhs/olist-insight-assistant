@@ -3,6 +3,7 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 
+from olist_assistant.api import analytics
 from olist_assistant.api.analytics import VIEW_CONTRACT, db_path
 from olist_assistant.api.main import app
 
@@ -97,3 +98,21 @@ def test_view_hasil_etl_sesuai_kontrak():
             assert set(cols) <= actual, f"{view} kurang kolom {set(cols) - actual}"
     finally:
         conn.close()
+
+
+def test_ringkasan_dibaca_sekali_lalu_dari_memori(sqlite_kecil):
+    analytics._view_utuh.cache_clear()
+    client.get("/analytics/kategori")
+    client.get("/analytics/kategori", params={"urut": "rata_skor"})
+    client.get("/analytics/seller/s1")
+    info = analytics._view_utuh.cache_info()
+    assert (info.misses, info.hits) == (2, 1)
+
+
+def test_urut_menaruh_nilai_kosong_di_bawah(sqlite_kecil):
+    conn = sqlite3.connect(sqlite_kecil)
+    conn.execute("INSERT INTO v_ringkasan_kategori VALUES ('baru', 1, 10.0, 10.0, 5.0, NULL, NULL)")
+    conn.commit()
+    conn.close()
+    data = client.get("/analytics/kategori", params={"urut": "rata_skor"}).json()["data"]
+    assert [r["kategori"] for r in data] == ["toys", "baby", "baru"]
