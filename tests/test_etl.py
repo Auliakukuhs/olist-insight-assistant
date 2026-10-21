@@ -1,3 +1,4 @@
+import copy
 import sqlite3
 
 import pandas as pd
@@ -173,15 +174,19 @@ MINI = {
 }
 
 
-@pytest.fixture
-def db(tmp_path):
+def bangun(tmp_path, data) -> sqlite3.Connection:
     raw = tmp_path / "raw"
     raw.mkdir()
-    for table, rows in MINI.items():
+    for table, rows in data.items():
         pd.DataFrame(rows).to_csv(raw / CSV_FILES[table], index=False)
     path = tmp_path / "olist.db"
     build_database(raw, path)
-    conn = sqlite3.connect(path)
+    return sqlite3.connect(path)
+
+
+@pytest.fixture
+def db(tmp_path):
+    conn = bangun(tmp_path, MINI)
     yield conn
     conn.close()
 
@@ -236,3 +241,33 @@ def test_view_sesuai_kontrak_analytics(db):
     for view, columns in VIEW_CONTRACT.items():
         actual = {row[1] for row in db.execute(f"PRAGMA table_info({view})")}
         assert set(columns) <= actual, f"{view} kurang kolom {set(columns) - actual}"
+
+
+def test_pesanan_batal_tidak_dihitung_penjualan(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["orders"].append(
+        {
+            **data["orders"][0],
+            "order_id": "o3",
+            "order_status": "canceled",
+            "order_delivered_customer_date": "",
+        }
+    )
+    data["order_items"].append({**data["order_items"][0], "order_id": "o3", "price": "500.0"})
+    conn = bangun(tmp_path, data)
+    # Item tetap terlihat di v_item_penjualan, tetapi tidak masuk ringkasan.
+    assert one(conn, "SELECT COUNT(*) FROM v_item_penjualan") == 4
+    toys = conn.execute(
+        "SELECT jumlah_order, total_penjualan_brl FROM v_ringkasan_kategori WHERE kategori = 'toys'"
+    ).fetchone()
+    assert toys == (1, 90.0)
+    assert one(conn, "SELECT jumlah_order FROM v_ringkasan_seller WHERE seller_id = 's1'") == 2
+
+
+def test_kategori_utama_seri_dipecah_menurut_nama(tmp_path):
+    data = copy.deepcopy(MINI)
+    data["order_items"][2]["price"] = "90.0"  # toys 90 dan unknown 90, seri
+    conn = bangun(tmp_path, data)
+    assert (
+        one(conn, "SELECT kategori_utama FROM v_ringkasan_seller WHERE seller_id = 's1'") == "toys"
+    )
