@@ -184,11 +184,11 @@ Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan 
 
 | Endpoint | Isi |
 |---|---|
-| `GET /analytics/kategori?urut=total_penjualan_brl&limit=10` | Ringkasan per kategori. `urut` salah satu dari `total_penjualan_brl`, `jumlah_order`, `rata_skor`, `persen_terlambat` |
+| `GET /analytics/kategori?urut=total_penjualan_brl&limit=10&min_order=1` | Ringkasan per kategori. `urut` salah satu dari `total_penjualan_brl`, `jumlah_order`, `rata_skor`, `persen_terlambat`. `min_order` menyaring kategori kecil, misalnya 30, supaya urutan skor dan keterlambatan tidak dikuasai kategori dengan belasan order |
 | `GET /analytics/seller/{seller_id}` | Ringkasan satu seller |
-| `GET /analytics/tren?kategori=toys&seller_id=...` | Penjualan per bulan, filter opsional |
+| `GET /analytics/tren?kategori=toys&seller_id=...` | Penjualan per bulan tanpa pesanan batal, filter opsional |
 
-Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assistant/api/analytics.py`). Bila `data/olist.db` belum ada, endpoint menjawab 503.
+Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assistant/api/analytics.py`). Database ikut di dalam image Docker (`SQLITE_PATH=/app/data/olist.db`). Bila berkasnya tidak ada, endpoint menjawab 503.
 
 ## Tim dan pembagian
 

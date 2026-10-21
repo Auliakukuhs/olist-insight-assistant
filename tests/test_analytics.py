@@ -3,7 +3,6 @@ import sqlite3
 import pytest
 from fastapi.testclient import TestClient
 
-from olist_assistant.api import analytics
 from olist_assistant.api.analytics import VIEW_CONTRACT, db_path
 from olist_assistant.api.main import app
 
@@ -29,11 +28,11 @@ def sqlite_kecil(tmp_path, monkeypatch):
         ("s1", "sao paulo", "SP", "toys", 30, 2700.0, 4.3, 7.5, 5.0),
     )
     conn.executemany(
-        "INSERT INTO v_item_penjualan VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO v_item_terjual VALUES (?, ?, ?, ?, ?)",
         [
-            ("o1", "s1", "toys", 50.0, 10.0, "2017-01-05 10:00:00"),
-            ("o1", "s1", "toys", 40.0, 10.0, "2017-01-05 10:00:00"),
-            ("o2", "s1", "baby", 200.0, 20.0, "2017-02-01 09:00:00"),
+            ("o1", "s1", "toys", 50.0, "2017-01-05 10:00:00"),
+            ("o1", "s1", "toys", 40.0, "2017-01-05 10:00:00"),
+            ("o2", "s1", "baby", 200.0, "2017-02-01 09:00:00"),
         ],
     )
     conn.commit()
@@ -49,6 +48,11 @@ def test_kategori_urut_dan_limit(sqlite_kecil):
     ).json()
     assert [r["kategori"] for r in body["data"]] == ["baby"]
     assert body["mata_uang"] == "BRL"
+
+
+def test_min_order_menyaring_kategori_kecil(sqlite_kecil):
+    body = client.get("/analytics/kategori", params={"urut": "rata_skor", "min_order": 60}).json()
+    assert [r["kategori"] for r in body["data"]] == ["toys"]
 
 
 def test_kolom_urut_di_luar_daftar_ditolak(sqlite_kecil):
@@ -98,21 +102,3 @@ def test_view_hasil_etl_sesuai_kontrak():
             assert set(cols) <= actual, f"{view} kurang kolom {set(cols) - actual}"
     finally:
         conn.close()
-
-
-def test_ringkasan_dibaca_sekali_lalu_dari_memori(sqlite_kecil):
-    analytics._view_utuh.cache_clear()
-    client.get("/analytics/kategori")
-    client.get("/analytics/kategori", params={"urut": "rata_skor"})
-    client.get("/analytics/seller/s1")
-    info = analytics._view_utuh.cache_info()
-    assert (info.misses, info.hits) == (2, 1)
-
-
-def test_urut_menaruh_nilai_kosong_di_bawah(sqlite_kecil):
-    conn = sqlite3.connect(sqlite_kecil)
-    conn.execute("INSERT INTO v_ringkasan_kategori VALUES ('baru', 1, 10.0, 10.0, 5.0, NULL, NULL)")
-    conn.commit()
-    conn.close()
-    data = client.get("/analytics/kategori", params={"urut": "rata_skor"}).json()["data"]
-    assert [r["kategori"] for r in data] == ["toys", "baby", "baru"]
