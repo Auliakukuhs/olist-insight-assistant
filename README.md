@@ -172,11 +172,48 @@ Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan
 | Endpoint | Request | Response |
 |---|---|---|
 | `GET /health` | | `{"status": "ok", "version": "0.1.0"}` |
-| `POST /chat` | `{"message": "...", "session_id": "abc123", "role": "customer"}` | `{"answer", "route", "sources", "table", "request_id"}` |
+| `POST /auth/login` | `{"username": "...", "password": "..."}` | `{"token", "pengguna": {"username", "peran", "seller_id"}}` |
+| `GET /auth/me` | header `Authorization: Bearer <token>` | `{"username", "peran", "seller_id"}` |
+| `POST /chat` | `{"message": "...", "session_id": "abc123"}` dan header `Authorization: Bearer <token>` | `{"answer", "route", "sources", "table", "proses", "request_id"}` |
 
-`route` bernilai `rag`, `sql`, `hybrid`, atau `out_of_scope`.
+`route` bernilai `rag`, `sql`, `hybrid`, `umum`, atau `out_of_scope`.
 
-Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, `POST /chat` mewajibkan header `X-API-Key`.
+### Login dan peran
+
+Ada tiga peran. Peran selalu dibaca dari token yang ditandatangani server, bukan dari body request, karena siapa pun yang memegang API key bisa menulis "admin" di body.
+
+| Peran | Boleh | Tidak boleh |
+|---|---|---|
+| `customer` | Ulasan pembeli, data pasar (harga, ongkir, kategori, lokasi, lama kirim) | Performa per seller |
+| `seller` | Semua milik customer, ditambah penjualan dan ringkasan tokonya sendiri | Performa seller lain atau performa seller secara keseluruhan |
+| `admin` | Semua data, termasuk performa seluruh seller | |
+
+Penegakannya berlapis. Supervisor menyebut peran dan aturannya di prompt, agent SQL hanya bisa membaca view di `VIEW_PER_PERAN` (`src/olist_assistant/agents/sql_contract.py`), dan endpoint analytics menjawab 403 bila seller meminta data seller lain. `seller_id` seller selalu diambil dari token, tidak pernah dari teks pertanyaan.
+
+Akun demo dibaca dari `DEMO_USERS` (JSON) dan token ditandatangani dengan `AUTH_SECRET`. Di AWS keduanya ada di SSM, tidak di repo. Token berlaku 12 jam. Login dibatasi 10 percobaan per menit per klien. Riwayat percakapan dipisah per akun, sehingga `session_id` yang sama dari dua akun tidak berbagi riwayat. Bila `AUTH_SECRET` kosong (lokal dan tes), login mati dan peran diambil dari field `role` di body.
+
+### Panel proses
+
+Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu.
+
+```json
+{
+  "agent": ["supervisor", "rag"],
+  "tools": ["cari_kategori", "cari_ulasan"],
+  "alasan": "Router ONNX yakin 0.95 bahwa ini jalur rag.",
+  "langkah": [
+    {"nama": "Guard", "durasi_ms": 1, "token_input": 0, "token_output": 0},
+    {"nama": "Router", "durasi_ms": 8, "token_input": 0, "token_output": 0},
+    {"nama": "Agent RAG", "durasi_ms": 12767, "token_input": 2445, "token_output": 377}
+  ],
+  "token_input": 2445, "token_output": 377, "biaya_usd": 0.000593,
+  "durasi_ms": 12780, "model": "gpt-4o-mini"
+}
+```
+
+Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21 Oktober 2026. Token dihitung oleh callback LangChain (`src/olist_assistant/agents/proses.py`) yang mengaitkan setiap pemanggilan LLM dan tool ke langkah terdekat di graph, termasuk pemanggilan di dalam sub-agent. Biaya memakai harga gpt-4o-mini, 0,15 USD per 1 juta token input dan 0,60 USD per 1 juta token output. Embedding query ke Qdrant tidak ikut dihitung. Langkah yang sama juga tercatat sebagai span di Langfuse.
+
+Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, semua endpoint kecuali `/health` mewajibkan header `X-API-Key`.
 
 ## Endpoint analytics
 
@@ -185,8 +222,8 @@ Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan 
 | Endpoint | Isi |
 |---|---|
 | `GET /analytics/kategori?urut=total_penjualan_brl&limit=10&min_order=1` | Ringkasan per kategori. `urut` salah satu dari `total_penjualan_brl`, `jumlah_order`, `rata_skor`, `persen_terlambat`. `min_order` menyaring kategori kecil, misalnya 30, supaya urutan skor dan keterlambatan tidak dikuasai kategori dengan belasan order |
-| `GET /analytics/seller/{seller_id}` | Ringkasan satu seller |
-| `GET /analytics/tren?kategori=toys&seller_id=...` | Penjualan per bulan tanpa pesanan batal, filter opsional |
+| `GET /analytics/seller/{seller_id}` | Ringkasan satu seller. Seller hanya untuk miliknya sendiri, customer ditolak, admin bebas |
+| `GET /analytics/tren?kategori=toys&seller_id=...` | Penjualan per bulan tanpa pesanan batal, filter opsional. Filter `seller_id` mengikuti aturan yang sama dengan endpoint seller |
 
 Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assistant/api/analytics.py`). Database ikut di dalam image Docker (`SQLITE_PATH=/app/data/olist.db`). Bila berkasnya tidak ada, endpoint menjawab 503.
 
