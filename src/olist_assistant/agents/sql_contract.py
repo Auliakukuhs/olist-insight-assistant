@@ -56,6 +56,7 @@ VIEW_PER_PERAN: dict[Peran, set[str]] = {
     },
 }
 
+
 def jawab_sql(
     pertanyaan: str,
     riwayat: list[Message],
@@ -63,4 +64,5 @@ def jawab_sql(
     seller_id: str | None = None,
 ) -> SqlResult:
     from olist_assistant.agents.sql_agent import jawab
+
     return jawab(pertanyaan, riwayat, peran, seller_id)
