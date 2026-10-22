@@ -13,9 +13,17 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
-from olist_assistant.api import analytics
+from olist_assistant.api import analytics, auth
+from olist_assistant.api.auth import current_user
 from olist_assistant.api.ratelimit import RateLimiter
-from olist_assistant.api.schemas import ChatRequest, ChatResponse, HealthResponse, Source
+from olist_assistant.api.schemas import (
+    ChatRequest,
+    ChatResponse,
+    HealthResponse,
+    Pengguna,
+    Proses,
+    Source,
+)
 from olist_assistant.config import Settings, get_settings, load_dotenv
 
 REQUIRED_ENV = ("OPENAI_API_KEY", "QDRANT_URL", "QDRANT_API_KEY")
@@ -75,6 +83,7 @@ def get_supervisor() -> Supervisor:
     return default_supervisor()
 
 
+app.include_router(auth.router, dependencies=[Depends(require_api_key)])
 app.include_router(analytics.router, dependencies=[Depends(require_api_key)])
 
 
@@ -107,13 +116,21 @@ def chat(
     request: ChatRequest,
     http_request: Request,
     supervisor: Annotated[Supervisor, Depends(get_supervisor)],
+    user: Annotated[Pengguna | None, Depends(current_user)],
 ) -> ChatResponse:
     # Fungsi sinkron sengaja dipakai supaya pemanggilan LLM yang blocking
     # dijalankan FastAPI di threadpool, tidak menahan event loop.
     enforce_rate_limit(request.session_id, http_request)
     request_id = uuid.uuid4().hex
+    # Login aktif berarti peran dari token, dan riwayat dipisah per akun supaya
+    # session_id milik akun lain tidak bisa dipakai membaca percakapannya.
+    if user is None:
+        role, seller_id, thread = request.role, None, request.session_id
+    else:
+        role, seller_id = user.peran, user.seller_id
+        thread = f"{user.username}:{request.session_id}"
     try:
-        state = supervisor.ask(request.message, request.session_id, request.role)
+        state = supervisor.ask(request.message, thread, role, seller_id)
     except Exception:
         logger.exception("chat gagal, request_id=%s", request_id)
         raise HTTPException(
@@ -125,5 +142,6 @@ def chat(
         route=state["route"],
         sources=[Source(**s) for s in state.get("sources", [])],
         table=state.get("table"),
+        proses=Proses(**state["proses"]) if state.get("proses") else None,
         request_id=request_id,
     )
