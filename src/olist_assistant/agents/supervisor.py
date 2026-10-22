@@ -663,7 +663,10 @@ pertanyaan pengguna menjadi dua.
 - JANGAN menulis lokasi apa pun di kedua pertanyaan, termasuk "seluruh Brasil".
   Sistem yang menambahkan filter lokasi.
 - Jangan menambah syarat yang tidak disebut pengguna.
-- "Rata-rata penjualan" tanpa keterangan berarti rata-rata harga per item.
+- Pertahankan ukuran yang diminta pengguna persis, misalnya skor ulasan, ongkir,
+  persen terlambat, atau jumlah pesanan. Jangan menggantinya dengan ukuran lain.
+- Hanya bila pengguna menulis "rata-rata penjualan" tanpa keterangan, artinya
+  rata-rata harga per item.
 - Tulis sebagai kalimat bahasa Indonesia biasa, BUKAN query SQL. Jangan menebak nama
   tabel, kolom, atau nama kategori di database. Pakai kata pengguna, misalnya
   "produk bayi" atau "furniture".
