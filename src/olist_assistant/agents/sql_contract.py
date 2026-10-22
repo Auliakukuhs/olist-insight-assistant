@@ -41,6 +41,7 @@ class SqlResult(TypedDict):
 # Data pasar (tanpa seller_id) boleh untuk semua peran. Performa per seller
 # adalah data internal perusahaan, hanya admin yang boleh membaca semuanya.
 DATA_PASAR = {"v_pasar", "v_ringkasan_kategori"}
+
 VIEW_PER_PERAN: dict[Peran, set[str]] = {
     "customer": DATA_PASAR,
     "seller": DATA_PASAR | {"v_penjualan_saya", "v_ringkasan_saya"},
@@ -62,4 +63,6 @@ def jawab_sql(
     peran: Peran = "customer",
     seller_id: str | None = None,
 ) -> SqlResult:
-    raise NotImplementedError("Agent SQL dikerjakan di F3 oleh Starletto")
+    from olist_assistant.agents.sql_agent import jawab
+
+    return jawab(pertanyaan, riwayat, peran, seller_id)
