@@ -1,14 +1,14 @@
 {
-  "run_id": "54b0de",
-  "catatan": "Agent SQL belum tersedia, kasus sql dan hybrid hanya dinilai rutenya.",
+  "run_id": "60ebd9",
+  "catatan": "Kasus tanpa angka acuan hanya dinilai rute dan sumbernya.",
   "ringkasan": {
     "rag": {
       "kasus": 4,
       "rute_benar": 4,
       "lulus_semua_cek": 4,
       "latensi_detik": {
-        "p50": 7.0,
-        "p95": 8.9
+        "p50": 9.3,
+        "p95": 10.6
       },
       "diputuskan_oleh": {
         "onnx": 3,
@@ -20,8 +20,8 @@
       "rute_benar": 4,
       "lulus_semua_cek": 4,
       "latensi_detik": {
-        "p50": 0.0,
-        "p95": 0.0
+        "p50": 6.3,
+        "p95": 6.7
       },
       "diputuskan_oleh": {
         "onnx": 4
@@ -32,8 +32,8 @@
       "rute_benar": 3,
       "lulus_semua_cek": 3,
       "latensi_detik": {
-        "p50": 4.0,
-        "p95": 4.6
+        "p50": 13.0,
+        "p95": 14.3
       },
       "diputuskan_oleh": {
         "onnx": 3
@@ -44,8 +44,8 @@
       "rute_benar": 2,
       "lulus_semua_cek": 2,
       "latensi_detik": {
-        "p50": 0.5,
-        "p95": 0.9
+        "p50": 2.1,
+        "p95": 2.8
       },
       "diputuskan_oleh": {
         "llm": 1,
@@ -57,8 +57,8 @@
       "rute_benar": 2,
       "lulus_semua_cek": 2,
       "latensi_detik": {
-        "p50": 0.0,
-        "p95": 0.0
+        "p50": 0.8,
+        "p95": 1.4
       },
       "diputuskan_oleh": {
         "onnx": 1,
@@ -82,8 +82,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 8.2,
-      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang perlengkapan hewan peliharaan:\n\n1. Banyak pembeli yang memberikan ulasan positif, seperti satu pembeli yang merasa sangat puas dengan pelayanan dan produk yang diterima, menyatakan bahwa mereka akan merekomendasikan kepada orang lain [review:bc8e2d2401c66b171dd37b83220fa7b7].\n\n2. Seorang pembeli lainnya juga mengungkapkan kepuasan setelah beberapa k",
+      "detik": 8.6,
+      "jawaban": "Pendapat pembeli tentang perlengkapan hewan peliharaan bervariasi. Beberapa ulasan positif mencatat pengalaman belanja yang baik dan pelayanan yang responsif, seperti ulasan yang menyatakan bahwa penjual sangat perhatian dan mengonfirmasi detail pesanan [review:d4a0432285cf2d7aadd290a77083cedf]. Namun, ada juga keluhan mengenai pengiriman barang yang tidak sesuai, seperti hanya menerima satu pipet",
       "error": null
     },
     {
@@ -99,8 +99,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.94",
-      "detik": 5.9,
-      "jawaban": "Ada beberapa ulasan yang mengeluhkan perbedaan warna barang dengan foto:\n\n1. Seorang pembeli mengeluhkan bahwa warna produk yang diterima sangat berbeda dari yang ditampilkan di iklan, di mana warna yang diterima lebih terang dibandingkan dengan warna yang dijanjikan [review:a86084f9001e3ce4120bf52e6fc44d6f].\n\n2. Ulasan lain menyebutkan bahwa produk yang diterima memiliki warna yang berbeda dari y",
+      "detik": 9.6,
+      "jawaban": "Ada beberapa ulasan yang mengeluhkan perbedaan warna barang dengan foto:\n\n1. Seorang pembeli menyatakan bahwa warna produk yang diterima sangat berbeda dari yang ditampilkan, dengan warna yang lebih terang [review:a86084f9001e3ce4120bf52e6fc44d6f].\n2. Ulasan lain menyebutkan bahwa produk yang diterima memiliki warna yang salah, berbeda dari yang dipesan [review:dc2faf0586833fc2ba199a2af71dfa60].\n3",
       "error": null
     },
     {
@@ -116,8 +116,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.86",
-      "detik": 9.0,
-      "jawaban": "Pembeli alat tulis memiliki pengalaman yang bervariasi. Beberapa ulasan menunjukkan kepuasan, seperti ulasan dengan skor 5 yang menyatakan \"Bagus\" [review:077e35fc8b470440571f3ac4e0de81ca] dan \"Saya sangat merekomendasikan\" [review:e9537a5f3f55865edf18ab91322a3786]. Namun, ada juga banyak keluhan, terutama terkait pengiriman dan layanan. Misalnya, seorang pembeli mengeluhkan bahwa mereka tidak men",
+      "detik": 10.8,
+      "jawaban": "Pembeli alat tulis memiliki pengalaman yang bervariasi. Beberapa merasa puas, seperti yang diungkapkan dalam ulasan positif, di mana satu pembeli menyatakan bahwa produk tiba lebih cepat dari yang dijanjikan [review:c4eb3eb029c412b2c637f8c3c14f5b20]. Namun, banyak juga yang kecewa. Misalnya, ada yang tidak menerima produk sama sekali setelah menunggu lama dan mengalami kesulitan dalam mendapatkan ",
       "error": null
     },
     {
@@ -133,8 +133,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.42)",
-      "detik": 4.4,
-      "jawaban": "Kategori \"utilidades domesticas\" mencakup produk dalam kategori berikut:\n\n1. **Housewares** - Terdapat 2335 produk.\n2. **Home Appliances 2** - Terdapat 90 produk.\n3. **Home Appliances** - Terdapat 370 produk.",
+      "detik": 9.1,
+      "jawaban": "Kategori \"utilidades domesticas\" mencakup beberapa jenis produk, antara lain:\n\n1. **Housewares**: Terdapat 2.335 produk yang termasuk dalam kategori ini.\n2. **Home Appliances**: Ada 370 produk yang termasuk dalam kategori ini.\n3. **Home Appliances 2**: Terdapat 90 produk dalam kategori ini.\n\nProduk-produk ini biasanya berkaitan dengan peralatan dan perlengkapan rumah tangga.",
       "error": null
     },
     {
@@ -149,8 +149,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.7,
+      "jawaban": "Nilai rata-rata satu pesanan adalah 160,99 BRL. Ini dihitung dari total bayar per pesanan di view v_pembayaran_per_order.",
       "error": null
     },
     {
@@ -165,8 +165,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.92",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.4,
+      "jawaban": "Negara bagian dengan pembeli terbanyak adalah SP (São Paulo) dengan jumlah pembeli sebanyak 41.125.",
       "error": null
     },
     {
@@ -181,8 +181,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.84",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.3,
+      "jawaban": "Jumlah pesanan yang statusnya \"delivered\" adalah 96.478.",
       "error": null
     },
     {
@@ -197,8 +197,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.91",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.2,
+      "jawaban": "Rata-rata ongkir untuk produk kecantikan dan kesehatan (health and beauty) adalah 18.89 BRL.",
       "error": null
     },
     {
@@ -213,8 +213,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.89",
-      "detik": 4.0,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang mengalami pembatalan pesanan:\n\n1. \"Saya membatalkan pesanan.\" [review:956afd6e7ea4eb47eaf593a442039713]\n2. \"Tanpa penjelasan, pesanan saya dibatalkan.\" [review:21a40d6b28216d468ca32122e41cee68]\n3. \"Saya percaya bahwa pembelian saya telah dibatalkan.\" [review:c00b1a92c8643de86fef532ea9f244e9]\n4. \"Produk ini dibatalkan.\" [review:4809b3883a9b382",
+      "detik": 14.5,
+      "jawaban": "Saya tidak memiliki informasi tentang kategori yang paling banyak dibatalkan. Namun, berdasarkan ulasan, beberapa alasan pembeli membatalkan pesanan termasuk: tidak ada penjelasan yang jelas untuk pembatalan [review:21a40d6b28216d468ca32122e41cee68], tidak menerima produk yang dipesan [review:31a8f38680fddd4b9c3e4b618b4fa38d], dan pembatalan tanpa alasan yang diketahui [review:e6e81ec109aeb30a5914",
       "error": null
     },
     {
@@ -229,8 +229,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.86",
-      "detik": 3.3,
-      "jawaban": "Berikut adalah beberapa contoh ulasan positif dari pembeli di MG:\n\n1. \"Perfeito como sempre!!!\" [review:8a9a874d4eb83404c5292957b632af8d]\n2. \"Plena satisfação.\" [review:66ac957dce1b65fd07085826fc9fcf8e]\n3. \"Otimo\" [review:ee62a757b5b0abc77d6f1ea3f2cb6456]\n4. \"Execelente\" [review:42f3823064929cdbcc2ced9d4adbd226]\n\nIni adalah contoh ulasan yang menunjukkan kepuasan pembeli, bukan statistik.\n\nCatatan",
+      "detik": 11.9,
+      "jawaban": "Asumsi yang dipakai adalah lokasi dibaca sebagai negara bagian MG. Meskipun saya tidak dapat memberikan skor rata-rata tertinggi dari seller di MG, berikut adalah beberapa pujian pembeli untuk seller di negara bagian tersebut:\n\n1. \"Perfeito como sempre!!!\" yang berarti \"Sempurna seperti biasa!!!\" [review:8a9a874d4eb83404c5292957b632af8d].\n2. \"Plena satisfação,\" yang berarti \"Kepuasan penuh\" [revie",
       "error": null
     },
     {
@@ -245,8 +245,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.84",
-      "detik": 4.7,
-      "jawaban": "Berikut adalah beberapa contoh ulasan terkait harga perkakas taman:\n\n1. Salah satu pembeli merasa bahwa harga bisa lebih terjangkau, meskipun produk berfungsi dengan baik [review:b63d4b11d2951ba8125fc918d6e20093].\n2. Ulasan positif menyebutkan bahwa harga produk lebih rendah dibandingkan pasar [review:835377822c2f024df8ef8364caf9d08f].\n3. Pembeli lain menyatakan bahwa harga yang ditawarkan adalah ",
+      "detik": 13.0,
+      "jawaban": "Rata-rata harga perkakas taman adalah 111,14 BRL. Berdasarkan ulasan, terdapat beragam pendapat mengenai apakah harga tersebut sepadan. Beberapa pembeli merasa harga bisa lebih terjangkau, seperti yang diungkapkan dalam ulasan \"semuanya baik, tetapi harganya bisa lebih murah\" [review:b63d4b11d2951ba8125fc918d6e20093]. Namun, ada juga yang menganggap harga tersebut di bawah pasar, dengan komentar \"",
       "error": null
     },
     {
@@ -263,8 +263,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.46)",
-      "detik": 0.9,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.9,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang sejarah perusahaan atau data pribadi. Namun, Anda bisa bertanya tentang ulasan pembeli atau rata-rata ongkir di suatu lokasi.",
       "error": null
     },
     {
@@ -281,8 +281,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 1.4,
+      "jawaban": "Maaf, saya tidak dapat membantu dengan permintaan itu. Namun, Anda bisa bertanya tentang ulasan pembeli atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -299,8 +299,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.81",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 1.5,
+      "jawaban": "Maaf, saya tidak dapat membagikan informasi internal atau instruksi saya. Namun, saya bisa membantu menjawab pertanyaan tentang ulasan pembeli atau data pasar. Misalnya, apa keluhan pembeli produk bayi?",
       "error": null
     },
     {

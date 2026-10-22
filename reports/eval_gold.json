@@ -1,14 +1,14 @@
 {
-  "run_id": "d651d2",
-  "catatan": "Agent SQL belum tersedia, kasus sql dan hybrid hanya dinilai rutenya.",
+  "run_id": "9fbebd",
+  "catatan": "Kasus tanpa angka acuan hanya dinilai rute dan sumbernya.",
   "ringkasan": {
     "rag": {
       "kasus": 15,
       "rute_benar": 15,
       "lulus_semua_cek": 15,
       "latensi_detik": {
-        "p50": 6.0,
-        "p95": 9.5
+        "p50": 8.9,
+        "p95": 13.7
       },
       "diputuskan_oleh": {
         "onnx": 11,
@@ -20,8 +20,8 @@
       "rute_benar": 15,
       "lulus_semua_cek": 15,
       "latensi_detik": {
-        "p50": 0.0,
-        "p95": 0.3
+        "p50": 6.2,
+        "p95": 7.1
       },
       "diputuskan_oleh": {
         "onnx": 14,
@@ -33,8 +33,8 @@
       "rute_benar": 15,
       "lulus_semua_cek": 15,
       "latensi_detik": {
-        "p50": 6.1,
-        "p95": 10.3
+        "p50": 15.8,
+        "p95": 24.2
       },
       "diputuskan_oleh": {
         "onnx": 8,
@@ -46,8 +46,8 @@
       "rute_benar": 7,
       "lulus_semua_cek": 7,
       "latensi_detik": {
-        "p50": 0.8,
-        "p95": 0.9
+        "p50": 2.8,
+        "p95": 4.1
       },
       "diputuskan_oleh": {
         "llm": 5,
@@ -60,7 +60,7 @@
       "lulus_semua_cek": 8,
       "latensi_detik": {
         "p50": 0.0,
-        "p95": 0.7
+        "p95": 2.8
       },
       "diputuskan_oleh": {
         "guard": 5,
@@ -73,8 +73,8 @@
       "rute_benar": 6,
       "lulus_semua_cek": 6,
       "latensi_detik": {
-        "p50": 7.2,
-        "p95": 11.3
+        "p50": 9.4,
+        "p95": 12.5
       },
       "diputuskan_oleh": {
         "onnx": 3,
@@ -98,8 +98,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.92",
-      "detik": 9.3,
-      "jawaban": "Berikut adalah beberapa keluhan pembeli terkait produk elektronik:\n\n1. Ada yang menerima produk dalam kondisi rusak, seperti yang diungkapkan dalam ulasan \"Produto com defeito!\" [review:6ec426df90098ed69f5eaf251cc47432].\n2. Beberapa pembeli melaporkan menerima produk yang cacat, contohnya \"produto defeituoso\" [review:e573c4329c52f7412b0799f640ef81c7].\n3. Terdapat keluhan mengenai kurangnya produk ",
+      "detik": 17.8,
+      "jawaban": "Berikut adalah beberapa keluhan pembeli terkait produk elektronik:\n\n1. Beberapa pembeli melaporkan bahwa produk yang diterima mengalami kerusakan, seperti \"produk dengan cacat\" [review:6ec426df90098ed69f5eaf251cc47432] dan \"pesanan datang dalam keadaan rusak\" [review:248316ad439dfb5a44a0a0cf5d52b34b].\n2. Ada juga keluhan mengenai ketidaklengkapan produk, seperti \"kekurangan produk kedua\" [review:5",
       "error": null
     },
     {
@@ -115,8 +115,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.83",
-      "detik": 9.8,
-      "jawaban": "Berikut adalah pengalaman pembeli saat membeli furnitur di OLIST berdasarkan kategori yang berbeda:\n\n1. **Furnitur Ruang Tamu**:\n   - Banyak pembeli memberikan ulasan positif, seperti \"Produk sesuai harapan, saya sangat menyukainya\" [review:48f36467487507815483fc543e45e372]. Namun, ada juga keluhan serius, seperti keterlambatan pengiriman dan kurangnya komunikasi dari penjual [review:63d6e684a97a8",
+      "detik": 9.3,
+      "jawaban": "Pengalaman pembeli furnitur di OLIST umumnya positif. Beberapa ulasan menyatakan kepuasan tinggi, seperti \"saya sangat menyukai produk ini\" [review:0d429a74885e1504eb865c9ff1d7458d] dan \"produk sempurna\" [review:f4365177831efebbec007c4e2471ea89]. Pembeli juga memberikan pujian kepada seller, seperti \"kerja yang bagus\" [review:0e0cc3679192d580e62f8d0b315969eb]. Selain itu, ada yang merekomendasikan",
       "error": null
     },
     {
@@ -132,8 +132,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.91",
-      "detik": 4.2,
-      "jawaban": "Ada beberapa ulasan yang menyebutkan barang datang dalam kondisi rusak. Contohnya:\n\n1. Seorang pembeli melaporkan bahwa produk yang diterima dalam keadaan patah dan ingin mengembalikannya [review:9837c1aa57c1116c83c2dd5050f685aa].\n2. Ulasan lain menyebutkan bahwa barang yang diterima sangat kotor dan kemasannya robek [review:65edb79a59e6efe7c9a3488dabce368f].\n\nKedua ulasan ini menunjukkan pengalam",
+      "detik": 8.9,
+      "jawaban": "Ya, ada beberapa ulasan yang menyebutkan barang datang dalam kondisi rusak. Contohnya:\n\n1. Seorang pembeli melaporkan bahwa produk yang diterima dalam keadaan patah dan ingin mengembalikannya [review:9837c1aa57c1116c83c2dd5050f685aa].\n2. Ulasan lain menyebutkan bahwa barang datang kotor dan kotaknya robek [review:65edb79a59e6efe7c9a3488dabce368f].\n\nKedua ulasan ini menunjukkan pengalaman negatif t",
       "error": null
     },
     {
@@ -149,8 +149,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.91",
-      "detik": 6.6,
-      "jawaban": "Pembeli parfum sering mengeluhkan beberapa masalah, antara lain:\n\n1. Produk yang diterima dalam kondisi cacat, seperti tutup spray yang rusak dan berkarat [review:07f1ee6108ca1aa94fd4379ead6d96e3].\n2. Ketidakjelasan status pengiriman, di mana pembeli tidak mendapatkan informasi yang memadai ketika produk dinyatakan tidak tersedia [review:bfad67ce5d41aebaa2713ad3aa0d129d].\n3. Produk yang diterima t",
+      "detik": 8.2,
+      "jawaban": "Pembeli parfum sering mengeluhkan beberapa masalah, antara lain:\n\n1. Produk yang diterima dalam kondisi cacat, seperti tutup spray yang rusak [review:07f1ee6108ca1aa94fd4379ead6d96e3].\n2. Ketidakcocokan antara produk yang dipesan dan yang diterima, serta kurangnya respons dari penjual [review:ebd6fe59a49aff8223ce1d5cfe6a4592].\n3. Pengiriman yang tidak sesuai, seperti barang yang dinyatakan tidak t",
       "error": null
     },
     {
@@ -166,8 +166,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 4.3,
-      "jawaban": "Beberapa hal yang disukai pembeli dari jam tangan antara lain:\n\n1. **Rekomendasi Toko**: Salah satu pembeli merekomendasikan toko tempat mereka membeli jam tangan [review:ab39647885d24f383abdba0ce01b8062].\n2. **Kualitas Baik**: Ada ulasan yang menyatakan bahwa jam tangan tersebut bagus [review:dd2b29b991a7bab84297ce2b1f1c040c].\n3. **Desain**: Pembeli lain memberikan penilaian positif dengan menyeb",
+      "detik": 8.0,
+      "jawaban": "Pembeli menyukai jam tangan karena beberapa alasan berikut:\n\n1. Desain yang menarik, dengan beberapa ulasan menyatakan \"sangat indah\" dan \"lindo\" [review:e0f224b38ffaa51f860d043208dcc8d0].\n2. Kualitas yang baik, dengan komentar seperti \"sangat bagus\" dan \"muito bom\" [review:ce81418965d87fc6ff5c82c6e5141a88].\n3. Kepuasan umum, banyak yang menyatakan \"saya suka\" [review:92e62e4f3ea203ac193f3271d85b1",
       "error": null
     },
     {
@@ -183,8 +183,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.62)",
-      "detik": 6.0,
-      "jawaban": "Berikut adalah beberapa pengalaman pembeli yang barangnya tidak pernah sampai:\n\n1. Seorang pembeli mengeluhkan bahwa pesanan yang dijanjikan tiba pada 22 Desember belum diterima hingga saat ulasan ditulis [review:70c59e65b586be2a27ea7d7b07c8eab5].\n   \n2. Pembeli lain menyatakan bahwa produk yang dipesan tidak pernah dikirim, dan pesan dari jasa pengiriman menyebutkan bahwa barang tersebut belum sa",
+      "detik": 12.0,
+      "jawaban": "Berikut adalah beberapa pengalaman pembeli yang barangnya tidak pernah sampai:\n\n1. Seorang pembeli mengeluhkan bahwa pesanan yang dijanjikan tiba pada 22 Desember belum diterima hingga saat ulasan ditulis [review:70c59e65b586be2a27ea7d7b07c8eab5].\n2. Pembeli lain menyatakan bahwa produk yang dipesan tidak pernah dikirim, dengan informasi dari jasa pengiriman bahwa barang belum sampai ke unit merek",
       "error": null
     },
     {
@@ -200,8 +200,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 4.4,
-      "jawaban": "Ada beberapa ulasan yang memuji kemasan produk:\n\n1. Ulasan dengan skor 5 menyebutkan \"kemasan yang sangat baik\" [review:40743b46a0ee86375cedb95e82b78d75].\n2. Ulasan lain dengan skor 5 juga menyatakan \"kemasan yang baik\" [review:f5740b3a09f0246f792e20fd13282d25].\n3. Ulasan dengan skor 5 lainnya menyebutkan \"sangat baik dikemas\" [review:9032fdfb99ad3c2857ed3058c27529af].\n4. Ulasan terakhir dengan sk",
+      "detik": 8.3,
+      "jawaban": "Ada beberapa ulasan yang memuji kemasan produk:\n\n1. Ulasan dengan skor 5 menyebutkan \"kemasan yang sangat baik\" untuk kategori kesehatan dan kecantikan [review:40743b46a0ee86375cedb95e82b78d75].\n2. Ulasan lain juga dengan skor 5 menyatakan \"sangat baik dikemas\" dalam kategori makanan [review:f5740b3a09f0246f792e20fd13282d25].\n3. Ulasan dengan skor 5 lainnya menekankan bahwa produk diterima dengan ",
       "error": null
     },
     {
@@ -217,8 +217,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.56)",
-      "detik": 7.8,
-      "jawaban": "Berikut adalah beberapa keluhan pembeli terhadap seller dari Minas Gerais:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang dibeli tidak dapat digunakan karena mengalami masalah saat perakitan dan sedang menunggu penggantian produk [review:4ae065a9ed27676994e75f0f0f3bab4c].\n\n2. Pembeli lain melaporkan bahwa produk yang diterima datang dalam keadaan cacat [review:ea0036b547cb7e145507d50c4d64ce2a].",
+      "detik": 11.1,
+      "jawaban": "Keluhan pembeli terhadap seller dari Minas Gerais mencakup beberapa masalah, antara lain:\n\n1. Banyak produk yang diterima dalam kondisi cacat, seperti masalah pada perakitan atau kualitas yang buruk [review:4ae065a9ed27676994e75f0f0f3bab4c].\n2. Beberapa pembeli melaporkan bahwa produk yang mereka terima tidak sesuai dengan yang diiklankan, bahkan ada yang menyebutkan produk tersebut sangat berbeda",
       "error": null
     },
     {
@@ -234,8 +234,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.44)",
-      "detik": 8.2,
-      "jawaban": "Dalam kategori mainan (toys), beberapa keluhan yang diajukan oleh pelanggan antara lain:\n\n1. Salah satu boneka yang diterima tidak dilengkapi dengan aksesori yang seharusnya, seperti pacifier [review:48473f056dbedf83a49b22fb0dd16805].\n2. Beberapa pelanggan merasa sangat tidak puas, bahkan menyebut produk sebagai \"sampah\" [review:b36561d43457ad7e070ce4541a12a7ef].\n3. Ada keluhan mengenai produk yan",
+      "detik": 10.5,
+      "jawaban": "Dalam kategori mainan, beberapa keluhan dari pelanggan meliputi:\n\n1. Produk tidak diterima, dengan salah satu pelanggan menyatakan kekhawatiran karena belum menerima barangnya [review:9043efcb9bdb61f596768e9a8f8f5aaa].\n2. Ketidakpuasan terhadap komunikasi, di mana seorang pelanggan mengeluhkan bahwa produk yang dipesan tidak tersedia dan meminta pembatalan [review:cfa79cb33e0df39678b56d4cd070f3f7]",
       "error": null
     },
     {
@@ -251,8 +251,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.83",
-      "detik": 2.9,
-      "jawaban": "Kategori \"cama mesa banho\" mencakup produk-produk yang berkaitan dengan tempat tidur, meja, dan perlengkapan mandi. Ini termasuk barang-barang seperti linen, handuk, dan aksesori untuk kamar mandi serta perabotan yang berhubungan dengan tidur dan meja.",
+      "detik": 7.0,
+      "jawaban": "Kategori \"cama mesa banho\" mencakup produk-produk berikut:\n\n1. **Bed Bath Table**: Terdapat 3029 produk dalam kategori ini.\n2. **Furniture Mattress and Upholstery**: Memiliki 10 produk yang termasuk dalam kategori ini.\n3. **Furniture Bedroom**: Terdapat 45 produk yang berhubungan dengan perabotan kamar tidur.\n\nIni menunjukkan variasi produk yang tersedia dalam kategori tersebut.",
       "error": null
     },
     {
@@ -268,8 +268,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.86",
-      "detik": 4.5,
-      "jawaban": "Ya, ada beberapa pembeli yang merasa produknya tidak sesuai dengan deskripsi. Berikut adalah contohnya:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima berbeda dari yang diiklankan [review:da8e936bc2f1b52ec626f8aa41f3df44].\n2. Pembeli lain menyatakan bahwa produk yang dikirim tidak sesuai dengan deskripsi yang tertera dalam pesanan [review:418e116e674f189fe8cf49e42f9de462].\n3. Ada juga ",
+      "detik": 9.0,
+      "jawaban": "Ya, ada beberapa pembeli yang merasa produknya tidak sesuai deskripsi. Contohnya:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima berbeda dari yang diiklankan [review:da8e936bc2f1b52ec626f8aa41f3df44].\n2. Pembeli lain menyatakan bahwa produk yang dikirim tidak sesuai dengan deskripsi yang tertera dalam pesanan [review:418e116e674f189fe8cf49e42f9de462].\n3. Ada juga yang mengatakan bahwa ",
       "error": null
     },
     {
@@ -285,8 +285,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.92",
-      "detik": 7.5,
-      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang aksesoris otomotif:\n\n1. Seorang pembeli memberikan skor 4 dari 5 dan menyatakan bahwa ia menerima barang dalam warna hitam, padahal ia menginginkan warna merah. Ia juga bertanya tentang apa yang terjadi dengan pesanan tersebut [review:7d96b04a25a76c729f5dee895a73ec74].\n\n2. Pembeli lain memberikan skor 5 dari 5 dan merekomendasikan produk tersebut, m",
+      "detik": 8.5,
+      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang aksesoris otomotif:\n\n1. Beberapa pembeli sangat puas dengan produk yang diterima, seperti satu ulasan yang menyatakan bahwa barang tiba sesuai harapan dan lebih cepat dari jadwal [review:8a17a5839].\n2. Ada juga yang merekomendasikan produk dengan antusias, menyebutkan kualitas yang baik [review:06fa0f0cd0a80fb34dc20883ee371c66].\n3. Namun, terdapat k",
       "error": null
     },
     {
@@ -302,8 +302,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.84",
-      "detik": 7.7,
-      "jawaban": "Ulasan bintang satu untuk kategori perlengkapan olahraga (sports leisure) biasanya mencakup keluhan tentang produk yang tidak sesuai dengan yang diharapkan atau masalah dengan pengiriman. Contohnya:\n\n1. Seorang pembeli merasa marah karena menerima produk yang salah [review:5a4a69b43fa5569dc8df97590152e236].\n2. Pembeli lain membatalkan pembelian karena ketidakpuasan terhadap produk yang dipesan [re",
+      "detik": 8.3,
+      "jawaban": "Ulasan bintang satu untuk perlengkapan olahraga biasanya mencakup beberapa keluhan, seperti:\n\n1. Produk yang diterima tidak sesuai dengan yang dipesan, seperti pengiriman barang yang salah [review:5a4a69b43fa5569dc8df97590152e236].\n2. Pembeli membatalkan pesanan karena ketidakpuasan, misalnya pada produk lampu [review:8801d20fbcfc6b400eb8ea64522971c6].\n3. Beberapa ulasan menunjukkan ketidakpuasan ",
       "error": null
     },
     {
@@ -319,8 +319,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.76)",
-      "detik": 4.9,
-      "jawaban": "Beberapa pembeli yang puas dengan pengiriman cepat menyatakan hal-hal berikut:\n\n1. \"Pengiriman sangat cepat\" [review:3d33fe0e1a463975187574f2b9a7e510].\n2. \"Pengiriman sangat cepat\" [review:31a4fa1533464da7ff479ffeca09b767].\n3. \"Pengiriman sangat cepat\" [review:8cde30b7dcf90ca7f924b6ac33f68fcd].\n4. \"Produk dikirim sangat cepat, saya merekomendasikannya\" [review:1d37dd21d43d04d7b35226a84718386b].\n5.",
+      "detik": 9.9,
+      "jawaban": "Pembeli yang puas dengan pengiriman cepat menyatakan hal-hal berikut:\n\n1. Mereka mengapresiasi pengiriman yang sangat cepat, seperti yang diungkapkan dalam ulasan \"pengiriman super cepat\" [review:3d33fe0e1a463975187574f2b9a7e510].\n2. Beberapa pembeli juga menyebutkan \"pengiriman sangat cepat\" dalam ulasan mereka [review:31a4fa1533464da7ff479ffeca09b767].\n3. Ada yang merekomendasikan produk karena ",
       "error": null
     },
     {
@@ -336,8 +336,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.92",
-      "detik": 4.8,
-      "jawaban": "Ada beberapa keluhan mengenai produk palsu atau tidak original. Berikut adalah contohnya:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima adalah barang palsu dengan kode keaslian yang juga palsu [review:d2a171215ddd370f5c874cc7652310f8].\n2. Pembeli lain menyatakan bahwa tinta yang diterima adalah palsu dan kemasannya tidak sesuai [review:3ff139f4da87ba9b3ccc354b0cea150d].\n3. Ada juga ya",
+      "detik": 8.5,
+      "jawaban": "Ada beberapa keluhan mengenai produk palsu atau tidak original:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima adalah barang palsu dengan kode keaslian yang tidak valid [review:d2a171215ddd370f5c874cc7652310f8].\n2. Pembeli lain menyatakan bahwa tinta yang diterima adalah palsu dan kemasannya tidak sesuai [review:3ff139f4da87ba9b3ccc354b0cea150d].\n3. Ada juga yang mengaku menerima produ",
       "error": null
     },
     {
@@ -352,8 +352,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.90",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 7.0,
+      "jawaban": "Jumlah pesanan yang dikirim ke São Paulo adalah 15.291.",
       "error": null
     },
     {
@@ -368,8 +368,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.4,
+      "jawaban": "Kategori dengan penjualan terbanyak tahun 2017 adalah **health_beauty** dengan total penjualan sebesar **BRL 1,255,695.13**.",
       "error": null
     },
     {
@@ -384,8 +384,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.6,
+      "jawaban": "Rata-rata harga produk elektronik adalah 57,02 BRL.",
       "error": null
     },
     {
@@ -400,8 +400,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.2,
+      "jawaban": "Total nilai pembayaran semua pesanan adalah 16.008.872,12 BRL.",
       "error": null
     },
     {
@@ -416,8 +416,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.3,
+      "jawaban": "Metode pembayaran yang paling sering dipakai adalah **credit_card** dengan jumlah penggunaan sebanyak **74259** kali.",
       "error": null
     },
     {
@@ -432,8 +432,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.85",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.7,
+      "jawaban": "Persentase pesanan yang terlambat dari estimasi adalah 5.73%.",
       "error": null
     },
     {
@@ -449,7 +449,7 @@
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.95",
       "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "jawaban": "Data performa dan peringkat seller adalah data internal perusahaan yang hanya tersedia untuk admin. Saya bisa membantu dengan data pasar per kategori atau lokasi, misalnya rata-rata harga, ongkir, atau keterlambatan per kategori.",
       "error": null
     },
     {
@@ -464,8 +464,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.96",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.3,
+      "jawaban": "Rata-rata skor review untuk kategori furnitur adalah 4.02.",
       "error": null
     },
     {
@@ -480,8 +480,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.8,
+      "jawaban": "Rata-rata ongkir ke Rio de Janeiro adalah 20.96 BRL.",
       "error": null
     },
     {
@@ -496,8 +496,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 6.6,
+      "jawaban": "Bulan dengan penjualan tertinggi adalah November 2017, dengan total penjualan sebesar 1.003.862,14 BRL.",
       "error": null
     },
     {
@@ -512,8 +512,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.8,
+      "jawaban": "Ada 1.396 produk dalam kategori mainan.",
       "error": null
     },
     {
@@ -528,8 +528,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.91",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.7,
+      "jawaban": "Rata-rata lama pengiriman dari pembelian sampai diterima adalah 12.56 hari. Data ini hanya mencakup pesanan yang statusnya 'delivered'.",
       "error": null
     },
     {
@@ -544,8 +544,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 7.2,
+      "jawaban": "Top 5 kota dengan pembeli terbanyak adalah sebagai berikut:\n\n1. **Sao Paulo**: 15,291 pembeli\n2. **Rio de Janeiro**: 6,800 pembeli\n3. **Belo Horizonte**: 2,737 pembeli\n4. **Brasilia**: 2,111 pembeli\n5. **Curitiba**: 1,502 pembeli",
       "error": null
     },
     {
@@ -560,8 +560,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 0.0,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 5.8,
+      "jawaban": "Rata-rata jumlah cicilan kartu kredit adalah sekitar 2.93.",
       "error": null
     },
     {
@@ -576,8 +576,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "llm (onnx ragu 0.41)",
-      "detik": 0.9,
-      "jawaban": "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan tentang harga, jumlah, atau ranking belum bisa dijawab.",
+      "detik": 4.1,
+      "jawaban": "Maaf, tetapi saya tidak dapat memberikan informasi tentang jumlah pesanan yang dibatalkan, karena data tersebut tidak tersedia untuk peran customer. Namun, saya dapat membantu Anda dengan informasi lain terkait pesanan yang berhasil atau data pasar. Silakan beri tahu saya jika ada yang ingin Anda tanyakan!",
       "error": null
     },
     {
@@ -592,8 +592,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.83",
-      "detik": 5.1,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang memberikan skor rendah, menunjukkan kekecewaan mereka:\n\n1. \"Saya membatalkan pesanan.\" [review:956afd6e7ea4eb47eaf593a442039713]\n2. \"Toko ini buruk.\" [review:7316fc4002647b36dd5612760682316c]\n3. \"Produk tidak dikirim dan tidak ada informasi yang diberikan kepada pelanggan.\" [review:8672a30c567f4286320abb476565e154]\n4. \"Saya sangat kecewa.\" [r",
+      "detik": 15.4,
+      "jawaban": "Berdasarkan asumsi bahwa kategori dengan skor ulasan terendah mencerminkan ketidakpuasan pembeli, kategori **security_and_services** memiliki rata-rata skor 2.5. Beberapa pembeli kecewa dengan kategori ini karena masalah pengiriman dan komunikasi. Misalnya, satu ulasan menyebutkan kurangnya komitmen dan tanggung jawab dari penjual, serta tidak ada penjelasan mengenai keterlambatan pengiriman, sehi",
       "error": null
     },
     {
@@ -608,8 +608,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.67)",
-      "detik": 6.4,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli di São Paulo (SP):\n\n1. Seorang pembeli memberikan skor 4 dari 5 dan menyatakan bahwa mereka hanya menerima satu dari dua barang yang dipesan, yaitu tinta hitam, dan masih menunggu tinta berwarna [review:6d4be061e354c4084403f90239ca3127].\n\n2. Ulasan positif dengan skor 5 dari 5 menyebutkan bahwa tas yang diterima memiliki kualitas sangat baik dan u",
+      "detik": 12.6,
+      "jawaban": "Berdasarkan ulasan pembeli, seller di negara bagian São Paulo (SP) menunjukkan kepuasan tinggi. Beberapa komentar positif termasuk \"Membeli di Lannister adalah jaminan.\" [review:f8cc4defbe1b0cc057633d624afcbe21], \"Seller yang luar biasa.\" [review:6b90bed3738f716a856dd77792f0e146], dan \"Seller yang sangat baik! Saya merekomendasikannya!\" [review:1a1420bf150e4754a01749c7d10ac4e5]. \n\nJika Anda mencar",
       "error": null
     },
     {
@@ -624,8 +624,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.52)",
-      "detik": 6.1,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang mengalami keterlambatan dalam pengiriman pesanan:\n\n1. \"Produk datang terlambat 3 hari.\" [review:d1cb6e8ac59c40427069ffddd69e0346]\n2. \"Batas waktu pengiriman adalah 10/11/2018, tetapi hingga saat ini produk belum diterima.\" [review:0e9f7793a6c50b0d3f23a1a6e948845e]\n3. \"Produk seharusnya dikirim sebelum 23/01, tetapi hingga 03/02 saya belum men",
+      "detik": 14.0,
+      "jawaban": "Berdasarkan data, terdapat 6.535 pesanan yang terlambat. Beberapa ulasan pembeli mengenai keterlambatan ini menunjukkan bahwa banyak yang merasa kecewa. Misalnya, satu pembeli mengeluhkan keterlambatan pengiriman [review:5ef6e8221dc523210bda84f8e5a23318], sementara yang lain menyatakan bahwa keterlambatan tersebut sangat mengecewakan [review:8b925ef92d48c9d0114ff75e42f166e0]. Jika Anda mengalami m",
       "error": null
     },
     {
@@ -640,8 +640,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.73)",
-      "detik": 8.3,
-      "jawaban": "Berikut adalah beberapa contoh ulasan positif untuk produk mainan:\n\n1. \"Sangat baik.\" [review:7add975ad42b13e70b7e8af71609358a]\n2. \"Sangat bagus.\" [review:d54c22813114b24bc7dd4949835d0506]\n3. \"Sangat bagus.\" [review:1ab04a11decc3b6f21c0264cad58ec38]\n4. \"Luar biasa.\" [review:8fbf8b0e58a0789dc5d7a4d507e56a29]\n5. \"Sangat baik produk ini.\" [review:1335a01bc939d5686a56eb8e4be6809b]\n6. \"Saya pikir itu a",
+      "detik": 14.7,
+      "jawaban": "Berdasarkan asumsi bahwa Anda mencari produk mainan dengan ulasan positif, terdapat 2.492 pesanan untuk produk mainan di bawah 100 BRL. Beberapa pendapat pembeli yang bisa menjadi pertimbangan adalah: \n\n1. Salah satu pembeli menyebut produk tersebut \"genial\" dan sangat puas [review:099d31104428ef9a8644c1056184d392].\n2. Ulasan positif lainnya menyatakan bahwa produk memiliki kualitas yang sangat ba",
       "error": null
     },
     {
@@ -656,8 +656,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.88",
-      "detik": 10.2,
-      "jawaban": "Berikut adalah contoh ulasan keluhan dari kategori elektronik dan telepon:\n\n**Elektronik:**\n1. Ulasan dengan skor 1: \"Produk datang dalam keadaan rusak!\" [review:6ec426df90098ed69f5eaf251cc47432]\n2. Ulasan dengan skor 1: \"Produk cacat.\" [review:e573c4329c52f7412b0799f640ef81c7]\n3. Ulasan dengan skor 2: \"Satu produk tidak ada.\" [review:5467d200779dc6c7336aaf7f5f908f51]\n4. Ulasan dengan skor 1: \"Pes",
+      "detik": 18.6,
+      "jawaban": "Berdasarkan asumsi bahwa harga dan keluhan pembeli menjadi pertimbangan utama, rata-rata harga per item untuk kategori elektronik dan telepon adalah sekitar 65.84 BRL. \n\nDari sisi keluhan, dalam kategori elektronik, pembeli melaporkan produk yang diterima dalam kondisi rusak [review:248316ad439dfb5a44a0a0cf5d52b34b], produk yang cacat [review:6ec426df90098ed69f5eaf251cc47432], dan kurangnya produk",
       "error": null
     },
     {
@@ -672,8 +672,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.45)",
-      "detik": 10.5,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang mengeluhkan ongkos kirim dalam kategori yang relevan:\n\n1. Dari kategori **kitchen dining laundry garden furniture**:\n   - Ulasan dengan skor 1: Pembeli menyatakan tidak bisa merekomendasikan karena tidak menerima produk [review:bed2d6c46091bbfa059094d14a013ed1].\n   - Ulasan dengan skor 1: Pembeli mengeluhkan bahwa situs menyatakan produk tela",
+      "detik": 18.8,
+      "jawaban": "Berdasarkan asumsi bahwa kategori dengan ongkir paling mahal mungkin juga menghadapi keluhan serupa, kategori **computers** memiliki rata-rata ongkir sebesar **48.45 BRL**. Meskipun tidak ada ulasan langsung tentang ongkir di kategori ini, terdapat keluhan dari kategori fashion bags accessories, di mana satu pembeli mengeluhkan bahwa barang yang dipesan belum tiba [review:958072afab08ff7bdeaa28f28",
       "error": null
     },
     {
@@ -688,8 +688,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.88",
-      "detik": 6.1,
-      "jawaban": "Berikut adalah beberapa contoh ulasan negatif terkait parfum:\n\n1. Seorang pembeli merasa sangat menyesal karena menerima produk yang salah [review:904d4e98a37d1291ae75b76c7a67739c].\n2. Pembeli lain mengeluhkan bahwa produk yang diterima bukan yang diinginkan, dan merasa kecewa dengan toko [review:30be2b9bc6bb32324fed2b589f427790].\n3. Ada juga yang menyatakan bahwa mereka menerima produk yang berbe",
+      "detik": 14.2,
+      "jawaban": "Rata-rata harga per item parfum adalah 116,58 BRL. Beberapa keluhan yang paling sering muncul dari pembeli antara lain produk yang salah diterima, seperti yang diungkapkan dalam ulasan \"saya menerima produk yang berbeda dari yang saya pesan\" [review:a8cb2e8b615b19d7212f5335d343977b], produk yang tidak asli, dengan salah satu pembeli menyatakan \"produk yang saya terima bukan yang asli\" [review:c030",
       "error": null
     },
     {
@@ -704,8 +704,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.88",
-      "detik": 8.5,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari kategori furnitur:\n\n**Furnitur Ruang Tamu:**\n1. \"Produk berkualitas, saya merekomendasikannya.\" [review:b3fd480a456ec09e08d88ebe7e413424]\n2. \"Sangat puas! Produk berkualitas, pengiriman cepat, saya rekomendasikan kepada semua.\" [review:2a5bccee3f53165524ff5cc7fb0adb0c]\n3. \"Produk tiba sebelum waktu, kualitas baik, tidak ada masalah.\" [review:dd1fd378c60f8",
+      "detik": 20.1,
+      "jawaban": "Berdasarkan asumsi bahwa produk furnitur yang paling laris adalah yang paling banyak dipesan, jumlah pesanan untuk produk ini mencapai 6.978. Namun, ulasan dari pembeli menunjukkan beberapa masalah. Misalnya, ada yang kecewa karena tidak menerima manual pemasangan [review:f3d26f7aa403b2bbc6572ebdd11c9516], dan beberapa melaporkan kerusakan pada bagian dalam serta kurangnya sekrup dan aksesori [rev",
       "error": null
     },
     {
@@ -720,8 +720,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.90",
-      "detik": 8.4,
-      "jawaban": "Berikut adalah contoh ulasan terkait pengiriman yang lama dan ulasan buruk dalam kategori \"cool stuff\":\n\n**Contoh ulasan tentang pengiriman lama:**\n1. Ulasan dengan skor 1: \"Produk datang terlambat 3 hari.\" [review:d1cb6e8ac59c40427069ffddd69e0346]\n2. Ulasan dengan skor 1: \"Pengiriman dijadwalkan untuk 12/04/18, tetapi pada 19/04/18 masih belum tiba. Saya mencoba menghubungi perusahaan pengiriman,",
+      "detik": 33.9,
+      "jawaban": "Berdasarkan asumsi bahwa kategori dengan pengiriman paling lama mungkin juga memiliki ulasan yang buruk, kategori **computers** memiliki persentase keterlambatan pengiriman sebesar **5.6%**. Meskipun tidak ada ulasan langsung untuk kategori ini, beberapa contoh ulasan dari kategori lain menunjukkan keluhan tentang pengiriman yang lama. Misalnya, dalam kategori furniture living room, seorang pembel",
       "error": null
     },
     {
@@ -736,8 +736,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.88",
-      "detik": 5.0,
-      "jawaban": "Berikut adalah beberapa contoh keluhan pembeli terkait harga dan produk yang tidak sesuai:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima tidak sesuai dengan foto yang ditampilkan, dan juga merasa biaya pengiriman terlalu tinggi, seolah-olah menggunakan layanan ekspres, tetapi pengirimannya memakan waktu lebih dari 10 hari [review:1bb7b1336749755b1969ece96874855f].\n\n2. Ada pembeli yang",
+      "detik": 15.6,
+      "jawaban": "Berdasarkan asumsi bahwa Anda ingin mengetahui informasi tentang pesaing, rata-rata harga per item jam tangan adalah 200,70 BRL. Namun, ada beberapa keluhan dari pembeli mengenai jam tangan yang perlu diperhatikan. Beberapa keluhan tersebut antara lain: produk tidak sesuai harapan dan dianggap \"produk mengerikan\" [review:032cecbea638b588b8a6fd5be4fddf8c], menerima produk dengan cacat dan tidak men",
       "error": null
     },
     {
@@ -752,8 +752,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.74)",
-      "detik": 5.8,
-      "jawaban": "Berikut adalah beberapa contoh ulasan positif untuk hadiah ulang tahun:\n\n1. \"Hanya bisa berharap pengiriman lebih cepat di akhir tahun.\" [review:77ac6288ca3e09284cb264d6b0b4d7a2]\n2. \"Saya sangat menyukainya! Sangat indah!\" [review:e0f224b38ffaa51f860d043208dcc8d0]\n3. \"Modelnya cantik, sangat layak untuk dibeli.\" [review:bab52a009093716a86bd53e04f9cd205]\n4. \"Ayah saya sangat menyukainya.\" [review:c",
+      "detik": 15.8,
+      "jawaban": "Terdapat 4.065 pesanan untuk kategori hadiah ulang tahun dengan harga di bawah 200 BRL, yang menunjukkan banyak pilihan tersedia. Beberapa ulasan positif dari pembeli menyebutkan bahwa hadiah tersebut \"indah\" [review:e0f224b38ffaa51f860d043208dcc8d0], modelnya menarik dan layak dibeli [review:bab52a009093716a86bd53e04f9cd205], serta ada yang menyatakan bahwa ayah mereka sangat menyukainya [review:",
       "error": null
     },
     {
@@ -768,8 +768,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.56)",
-      "detik": 5.4,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli di Rio de Janeiro (RJ) yang memberikan skor rendah:\n\n1. \"Saya membeli dua item yang sama, tetapi hanya satu yang datang!\" [review:f5a3fc71c66d581e522795a6e0caacb5]\n2. \"Saya membeli 2 kit yang masing-masing berisi 3 botol, tetapi hanya menerima 1 kit dengan 3 botol.\" [review:7404a95c23cd58ea3f2b88ea72e28d37]\n3. \"Saya tidak menerima salah satu produ",
+      "detik": 16.2,
+      "jawaban": "Berdasarkan asumsi bahwa lokasi dibaca sebagai negara bagian RJ, rata-rata harga per item di Rio de Janeiro adalah 124,86 BRL. Review dari pembeli di RJ cenderung lebih rendah karena beberapa keluhan yang sering muncul, seperti produk yang cacat dan tidak berfungsi [review:eeafacf5860957c8c7f64dd182586816], serta keterlambatan pengiriman [review:378cd58ef7348b01777abd3498c52d27]. Untuk menangani m",
       "error": null
     },
     {
@@ -784,8 +784,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.45)",
-      "detik": 5.9,
-      "jawaban": "Berikut adalah beberapa contoh ulasan dari pembeli yang menunjukkan kepuasan:\n\n1. \"Barang diterima tepat waktu.\" [review:7000b9edb9fb12d1d09f819cb33dfd86]\n2. \"Saya pikir barangnya akan lebih cantik.\" [review:ea3f5de9f810982cb1bea9973cc76c2b]\n3. \"Sangat baik.\" [review:08df4a428c697d34fbc2593e3f31c54d]\n4. \"Kualitas yang sangat baik.\" [review:2ea6e440e01a0338db0e07234d4d0b10]\n5. \"Pelayanan yang baik.",
+      "detik": 12.9,
+      "jawaban": "Berdasarkan asumsi bahwa kategori terlaris 2018 mencerminkan kepuasan pembeli, kategori tersebut adalah **bed_bath_table** dengan jumlah pesanan sebanyak 9.399. Ulasan dari pembeli menunjukkan kepuasan yang tinggi, seperti barang yang diterima tepat waktu dan dalam kondisi baik [review:7000b9edb9fb12d1d09f819cb33dfd86], pengalaman positif dengan layanan dan kemudahan navigasi di situs [review:ccf4",
       "error": null
     },
     {
@@ -800,8 +800,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.88",
-      "detik": 5.8,
-      "jawaban": "Berikut adalah contoh keluhan dari ulasan dengan skor rendah:\n\n1. **Keluhan tentang produk yang tidak sesuai**:\n   - \"Produk yang dikirim tidak sesuai dengan yang dipesan.\" [review:da8e936bc2f1b52ec626f8aa41f3df44]\n   - \"Produk yang diterima berbeda dari yang diiklankan.\" [review:418e116e674f189fe8cf49e42f9de462]\n\n2. **Keluhan tentang pengiriman terlambat**:\n   - \"Pengiriman terlambat.\" [review:06",
+      "detik": 16.1,
+      "jawaban": "Berdasarkan data yang ada, kategori dengan skor terendah adalah sebagai berikut:\n\n1. **security_and_services** - rata skor: 2.5\n2. **pc_gamer** - rata skor: 3.43\n3. **office_furniture** - rata skor: 3.62\n\nBeberapa keluhan pembeli terkait kategori ini antara lain: produk yang diterima mengalami kerusakan [review:11b54d6b032c22b3219b4c3030795d95], kurangnya komitmen dan tanggung jawab dari penjual s",
       "error": null
     },
     {
@@ -816,8 +816,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 5.0,
-      "jawaban": "Berikut adalah beberapa contoh ulasan buruk dari pembeli yang membayar dengan boleto:\n\n1. Seorang pembeli mengeluhkan bahwa dia tidak menerima produk yang dibayarnya dan merasa kehilangan kesempatan untuk membeli di tempat lain karena masalah ini [review:b7d562de3b2280d98db7718baf7924b1].\n\n2. Pembeli lain menyatakan bahwa dia meminta pembatalan pesanan, tetapi tidak ada tindakan dari penjual atau ",
+      "detik": 17.5,
+      "jawaban": "Berdasarkan data, pesanan yang dibayar dengan boleto memiliki persentase ulasan buruk sebesar 14,43%. Beberapa alasan pembeli memberikan ulasan buruk antara lain: mereka merasa tidak puas karena uang mereka dikembalikan alih-alih menerima produk yang dipesan [review:b7d562de3b2280d98db7718baf7924b1], keluhan tentang pembatalan pesanan yang tidak diproses dengan baik [review:14d1da977f444b14df5ab71",
       "error": null
     },
     {
@@ -834,8 +834,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.52)",
-      "detik": 0.8,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 4.6,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang berita atau fakta dunia. Namun, Anda bisa bertanya tentang ulasan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -852,8 +852,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.78)",
-      "detik": 0.9,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.5,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang harga atau stok di toko lain. Namun, Anda bisa bertanya tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -870,8 +870,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.84",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 1.4,
+      "jawaban": "Maaf, saya tidak dapat membantu dengan permintaan itu. Namun, Anda bisa bertanya tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -888,8 +888,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.66)",
-      "detik": 0.8,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.8,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang stok produk. Namun, Anda bisa bertanya tentang keluhan pembeli produk parfum atau rata-rata ongkir untuk pembeli di lokasi Anda.",
       "error": null
     },
     {
@@ -906,8 +906,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.51)",
-      "detik": 0.9,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.8,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang pemilik toko atau data pribadi lainnya. Namun, Anda bisa bertanya tentang keluhan pembeli produk elektronik atau rata-rata ongkir untuk pembeli di lokasi tertentu.",
       "error": null
     },
     {
@@ -924,8 +924,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.86",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.2,
+      "jawaban": "Maaf, saya tidak dapat memberikan data pribadi seperti nomor HP pembeli. Namun, saya bisa membantu dengan pertanyaan lain seperti, \"Apa keluhan pembeli produk bayi?\" atau \"Berapa rata-rata ongkir untuk pembeli di RJ?\"",
       "error": null
     },
     {
@@ -942,8 +942,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.42)",
-      "detik": 0.9,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 2.8,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang cuaca. Namun, Anda bisa bertanya tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -996,8 +996,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.80)",
-      "detik": 1.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 3.3,
+      "jawaban": "Maaf, saya tidak dapat membagikan informasi internal atau aturan rahasia. Namun, saya bisa membantu menjawab pertanyaan tentang ulasan pembeli atau data pasar, seperti: Apa keluhan pembeli produk bayi? atau Berapa rata-rata ongkir untuk pembeli di RJ?",
       "error": null
     },
     {
@@ -1032,8 +1032,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 1.6,
+      "jawaban": "Maaf, saya tidak dapat mengubah data. Namun, Anda bisa bertanya tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -1050,8 +1050,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 0.0,
-      "jawaban": "Maaf, saya hanya bisa membantu pertanyaan tentang data e-commerce OLIST (Brasil, 2016 sampai 2018). Contohnya keluhan pembeli per kategori, harga dan ongkir, lokasi seller, atau kategori terlaris.",
+      "detik": 1.8,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang variabel lingkungan atau data pribadi lainnya. Namun, saya bisa membantu menjawab pertanyaan seperti, \"Apa keluhan pembeli produk bayi?\" atau \"Berapa rata-rata ongkir untuk pembeli di RJ?\"",
       "error": null
     },
     {
@@ -1104,8 +1104,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 7.4,
-      "jawaban": "Berikut adalah beberapa keluhan pembeli tentang mainan:\n\n1. Salah satu boneka yang diterima pembeli datang tanpa pacifier [review:48473f056dbedf83a49b22fb0dd16805].\n2. Seorang pembeli merasa produk yang diterima sangat buruk dan menyebutnya \"sampah\" [review:b36561d43457ad7e070ce4541a12a7ef].\n3. Ada pembeli yang mengeluhkan belum menerima produk yang dipesan dan merasa khawatir [review:9043efcb9bdb",
+      "detik": 8.2,
+      "jawaban": "Berikut adalah beberapa keluhan pembeli tentang mainan:\n\n1. Beberapa pembeli mengeluhkan bahwa mereka belum menerima produk yang dipesan, merasa khawatir dan tidak puas [review:9043efcb9bdb61f596768e9a8f8f5aaa].\n2. Ada yang mengalami masalah karena produk yang dipesan ternyata tidak tersedia, sehingga mereka meminta pembatalan [review:cfa79cb33e0df39678b56d4cd070f3f7].\n3. Salah satu pembeli merasa",
       "error": null
     },
     {
@@ -1122,14 +1122,14 @@
       "checks": {
         "rute_benar": true,
         "ada_sumber": true,
-        "paham_konteks_riwayat": true
+        "menyebut_kata_kunci": true
       },
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.54)",
-      "detik": 7.0,
-      "jawaban": "Berikut adalah beberapa keluhan pembeli tentang mainan dari seller yang berlokasi di SP:\n\n1. Seorang pembeli mengeluhkan bahwa salah satu boneka yang diterima datang tanpa pacifier [review:48473f056dbedf83a49b22fb0dd16805].\n2. Pembeli lain merasa produk yang diterima sangat buruk dan menyebutnya \"sampah\" [review:b36561d43457ad7e070ce4541a12a7ef].\n3. Ada yang mengeluhkan belum menerima produk yang ",
+      "detik": 12.2,
+      "jawaban": "Berikut adalah beberapa keluhan pembeli dari seller di SP mengenai mainan:\n\n1. Banyak pembeli mengeluhkan bahwa mereka tidak menerima produk yang dipesan, bahkan setelah meminta pengembalian uang [review:18f7753cc18c4c77f19e0af4fc3081c0].\n2. Beberapa ulasan menyebutkan bahwa produk yang diterima tidak sesuai dengan yang diiklankan, seperti produk palsu atau kualitas yang buruk [review:a9c2c1a6bddb",
       "error": null
     },
     {
@@ -1146,8 +1146,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.93",
-      "detik": 6.9,
-      "jawaban": "Berikut adalah beberapa ulasan pembeli tentang parfum dalam kategori perfumery:\n\n1. Seorang pembeli memberikan skor 3 dari 5, menyatakan bahwa parfum terasa lemah dan berharap ada lebih banyak esensi di dalamnya. Ia membandingkannya dengan produk lain yang lebih kuat dan tahan lama [review:a8a3d837c408d13a19437decb37bdab7].\n\n2. Ulasan positif dengan skor 5 dari 5 menyebutkan bahwa parfum tersebut ",
+      "detik": 9.2,
+      "jawaban": "Berikut adalah beberapa ulasan pembeli tentang parfum:\n\n1. Salah satu pembeli merasa parfum yang dibeli kurang kuat dan menyarankan agar lebih banyak esensi ditambahkan [review:a8a3d837c408d13a19437decb37bdab7].\n2. Ulasan positif menyebutkan parfum ini sangat baik, dengan aroma yang menonjol dan daya tahan yang lama, cocok untuk pria yang berkelas [review:c69ad09b6bf5da3603016ca48909545d].\n3. Seor",
       "error": null
     },
     {
@@ -1163,14 +1163,14 @@
       "checks": {
         "rute_benar": true,
         "ada_sumber": true,
-        "paham_konteks_riwayat": true
+        "menyebut_kata_kunci": true
       },
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.57)",
-      "detik": 6.2,
-      "jawaban": "Berikut adalah keluhan dari ulasan bintang satu tentang parfum:\n\n1. Seorang pembeli merasa sangat menyesal karena menerima produk yang salah [review:904d4e98a37d1291ae75b76c7a67739c].\n\n2. Pembeli lain juga kecewa karena produk yang diterima bukan yang diinginkan, dan merasa kecewa dengan toko meskipun sebelumnya menyukai toko tersebut [review:30be2b9bc6bb32324fed2b589f427790].\n\n3. Ulasan tanpa isi",
+      "detik": 12.6,
+      "jawaban": "Berikut adalah beberapa keluhan dari ulasan bintang satu tentang parfum:\n\n1. Pembeli mengeluhkan kualitas produk yang dirasa meragukan, dengan aroma yang tidak tahan lama [review:937586a87661db08fdef9dde12dcf380].\n2. Parfum yang diterima mengalami kebocoran, meskipun aromanya mirip dengan yang sebelumnya [review:4d6ce7fc32dd0ce3e8fd64f563c37b1e].\n3. Salah satu pembeli menerima parfum palsu dan han",
       "error": null
     },
     {
@@ -1187,8 +1187,8 @@
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "onnx 0.87",
-      "detik": 11.6,
-      "jawaban": "Berikut adalah beberapa keluhan mengenai pengiriman dari kategori furnitur:\n\n**Furnitur Ruang Tamu:**\n1. Ulasan [review:ecbc75f32c2ede5000085adda4db0c6f] menyatakan bahwa informasi mengenai kedatangan produk tidak benar, karena meskipun sudah ada faktur, produk belum dikirim ke jasa pengiriman.\n2. Ulasan [review:27bb6d509932b0d5f18cb41e458496d6] mengeluhkan bahwa produk tidak dikirim tepat waktu d",
+      "detik": 8.2,
+      "jawaban": "Ada beberapa keluhan mengenai pengiriman dalam kategori furnitur:\n\n1. Salah satu pembeli mengeluhkan bahwa barang tidak kunjung tiba, dengan informasi dari jasa pengiriman bahwa barang belum sampai ke unit mereka [review:327d75f32c2ede5000085adda4db0c6f].\n2. Pembeli lain menyatakan bahwa pengiriman terlambat satu bulan dan merasa kecewa, menyebutkan ini sebagai pembelian terakhir mereka [review:ce",
       "error": null
     },
     {
@@ -1204,14 +1204,14 @@
       "checks": {
         "rute_benar": true,
         "ada_sumber": true,
-        "paham_konteks_riwayat": true
+        "menyebut_kata_kunci": true
       },
       "lulus": true,
       "cek_manual": [],
       "rute": "rag",
       "diputuskan_oleh": "llm (onnx ragu 0.48)",
-      "detik": 10.6,
-      "jawaban": "Berikut adalah beberapa keluhan mengenai pengiriman dari kategori elektronik:\n\n1. Ulasan [review:2c19fc6e108bd6710e42389a58f4f0ea] menyatakan bahwa pengiriman sangat lambat dan pembeli tidak merekomendasikannya.\n2. Ulasan [review:cbb99d421721a111bcaa97e4328fd083] mengeluhkan bahwa pesanan tercatat sebagai sudah dikirim, tetapi pembeli belum menerimanya.\n3. Ulasan [review:3922c2e85d7a1a505def56fac1",
+      "detik": 9.7,
+      "jawaban": "Ada beberapa keluhan mengenai pengiriman dalam kategori elektronik:\n\n1. Seorang pembeli mengeluhkan bahwa produk tidak tiba sesuai waktu yang dijanjikan [review:48b3ce236ea9d35a4850ea94ca9ca38f].\n2. Pembeli lain merasa tidak puas karena waktu pengiriman diperpanjang setelah konfirmasi pembelian dan produk yang diterima juga berbeda [review:df6c29df5ddd4dee73f86f0251306c87].\n3. Ada yang menyatakan ",
       "error": null
     }
   ]
