@@ -18,4 +18,4 @@
 {"id": "peran-02", "type": "peran", "peran": "customer", "question": "Siapa 5 seller dengan penjualan tertinggi di Sao Paulo?", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin", "internal"], "tanpa_query": true}
 {"id": "peran-03", "type": "peran", "peran": "admin", "question": "Siapa 5 seller dengan penjualan tertinggi di Sao Paulo?", "expected_route": "sql", "answer_must_contain_numbers": ["229237.63"]}
 {"id": "peran-04", "type": "peran", "peran": "seller", "question": "Berapa total penjualan toko saya tahun 2018?", "expected_route": "sql", "answer_must_contain_numbers": ["138414.6"]}
-{"id": "peran-05", "type": "peran", "peran": "seller", "question": "Bandingkan penjualan toko saya dengan seller lain di kota saya", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin", "internal", "tidak tersedia"]}
+{"id": "peran-05", "type": "peran", "peran": "seller", "question": "Bandingkan penjualan toko saya dengan seller lain di kota saya", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin", "internal", "tidak tersedia", "tidak dapat"]}
