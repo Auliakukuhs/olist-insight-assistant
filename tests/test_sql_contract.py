@@ -28,5 +28,5 @@ def test_data_pasar_tidak_memuat_view_per_seller():
 
     assert {"v_ringkasan_seller", "v_item_terjual", "v_item_penjualan"}.isdisjoint(DATA_PASAR)
     assert VIEW_PER_PERAN["customer"] == DATA_PASAR
-    assert DATA_PASAR < VIEW_PER_PERAN["seller"] < VIEW_PER_PERAN["seller"] | {"x"}
+    assert VIEW_PER_PERAN["seller"] == DATA_PASAR | {"v_penjualan_saya", "v_ringkasan_saya"}
     assert VIEW_PER_PERAN["admin"] > DATA_PASAR
