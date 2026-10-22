@@ -44,6 +44,14 @@ VIEW_CONTRACT: dict[str, list[str]] = {
         "ongkir_brl",
         "tanggal_beli",
     ],
+    # Sama dengan v_item_penjualan tanpa pesanan canceled dan unavailable.
+    "v_item_terjual": [
+        "order_id",
+        "seller_id",
+        "kategori",
+        "harga_brl",
+        "tanggal_beli",
+    ],
 }
 
 Urutan = Literal["total_penjualan_brl", "jumlah_order", "rata_skor", "persen_terlambat"]
@@ -115,12 +123,17 @@ def query(sql: str, params: tuple = ()) -> list[dict]:
 def kategori(
     urut: Urutan = "total_penjualan_brl",
     limit: Annotated[int, Query(ge=1, le=100)] = 10,
+    min_order: Annotated[int, Query(ge=1)] = 1,
 ) -> KategoriResponse:
-    """Ringkasan per kategori, diurutkan menurun."""
+    """Ringkasan per kategori, diurutkan menurun.
+
+    min_order menyaring kategori kecil. Tanpa itu urutan rata_skor dan
+    persen_terlambat dikuasai kategori dengan belasan order saja.
+    """
     # Nama kolom tidak bisa jadi parameter terikat. Aman karena urut dibatasi Literal.
     rows = query(
-        f"SELECT * FROM v_ringkasan_kategori ORDER BY {urut} DESC LIMIT ?",
-        (limit,),
+        f"SELECT * FROM v_ringkasan_kategori WHERE jumlah_order >= ? ORDER BY {urut} DESC LIMIT ?",
+        (min_order, limit),
     )
     return KategoriResponse(data=[KategoriRow(**r) for r in rows])
 
@@ -135,13 +148,13 @@ def seller(seller_id: str) -> SellerRow:
 
 @router.get("/tren")
 def tren(kategori: str | None = None, seller_id: str | None = None) -> TrenResponse:
-    """Penjualan per bulan, bisa difilter kategori atau seller."""
+    """Penjualan per bulan tanpa pesanan batal, bisa difilter kategori atau seller."""
     rows = query(
         """
         SELECT strftime('%Y-%m', tanggal_beli) AS bulan,
                COUNT(DISTINCT order_id) AS jumlah_order,
                ROUND(SUM(harga_brl), 2) AS total_penjualan_brl
-        FROM v_item_penjualan
+        FROM v_item_terjual
         WHERE (? IS NULL OR kategori = ?) AND (? IS NULL OR seller_id = ?)
         GROUP BY bulan
         ORDER BY bulan

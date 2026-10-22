@@ -28,11 +28,11 @@ def sqlite_kecil(tmp_path, monkeypatch):
         ("s1", "sao paulo", "SP", "toys", 30, 2700.0, 4.3, 7.5, 5.0),
     )
     conn.executemany(
-        "INSERT INTO v_item_penjualan VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO v_item_terjual VALUES (?, ?, ?, ?, ?)",
         [
-            ("o1", "s1", "toys", 50.0, 10.0, "2017-01-05 10:00:00"),
-            ("o1", "s1", "toys", 40.0, 10.0, "2017-01-05 10:00:00"),
-            ("o2", "s1", "baby", 200.0, 20.0, "2017-02-01 09:00:00"),
+            ("o1", "s1", "toys", 50.0, "2017-01-05 10:00:00"),
+            ("o1", "s1", "toys", 40.0, "2017-01-05 10:00:00"),
+            ("o2", "s1", "baby", 200.0, "2017-02-01 09:00:00"),
         ],
     )
     conn.commit()
@@ -48,6 +48,11 @@ def test_kategori_urut_dan_limit(sqlite_kecil):
     ).json()
     assert [r["kategori"] for r in body["data"]] == ["baby"]
     assert body["mata_uang"] == "BRL"
+
+
+def test_min_order_menyaring_kategori_kecil(sqlite_kecil):
+    body = client.get("/analytics/kategori", params={"urut": "rata_skor", "min_order": 60}).json()
+    assert [r["kategori"] for r in body["data"]] == ["toys"]
 
 
 def test_kolom_urut_di_luar_daftar_ditolak(sqlite_kecil):
