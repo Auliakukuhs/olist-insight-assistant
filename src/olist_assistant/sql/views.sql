@@ -143,3 +143,25 @@ FROM sellers AS s
 LEFT JOIN angka_item AS a ON a.seller_id = s.seller_id
 LEFT JOIN kategori_utama AS k ON k.seller_id = s.seller_id
 LEFT JOIN angka_order AS b ON b.seller_id = s.seller_id;
+
+
+-- Data pasar untuk semua peran. Satu baris per item terjual, tanpa seller_id,
+-- supaya performa per seller (data internal perusahaan) tidak bisa dihitung
+-- dari sini. Disimpan sebagai tabel oleh ETL karena dibaca agent SQL.
+CREATE VIEW v_pasar AS
+SELECT
+    i.order_id,
+    i.product_id,
+    i.kategori,
+    i.harga_brl,
+    i.ongkir_brl,
+    i.tanggal_beli,
+    i.kota_seller,
+    i.negara_bagian_seller,
+    i.kota_pembeli,
+    i.negara_bagian_pembeli,
+    o.terlambat,
+    ROUND(o.hari_kirim, 1) AS hari_kirim,
+    o.skor AS skor_ulasan
+FROM v_item_terjual AS i
+LEFT JOIN v_order AS o ON o.order_id = i.order_id;
