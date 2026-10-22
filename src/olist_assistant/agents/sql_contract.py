@@ -16,7 +16,6 @@ memenuhi guardrail berikut.
 
 from typing import Literal, TypedDict
 
-
 Peran = Literal["customer", "seller", "admin"]
 
 
@@ -57,12 +56,11 @@ VIEW_PER_PERAN: dict[Peran, set[str]] = {
     },
 }
 
-from olist_assistant.agents.sql_agent import jawab
-
 def jawab_sql(
     pertanyaan: str,
     riwayat: list[Message],
     peran: Peran = "customer",
     seller_id: str | None = None,
 ) -> SqlResult:
+    from olist_assistant.agents.sql_agent import jawab
     return jawab(pertanyaan, riwayat, peran, seller_id)
