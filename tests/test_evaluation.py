@@ -49,3 +49,37 @@ def test_gold_set_lengkap_dan_tidak_kembar():
     questions = [r["question"] for r in rows if r["type"] != "riwayat"]
     assert len(questions) == len(set(questions)) == 60
     assert {r["expected_route"] for r in rows} == {"rag", "sql", "hybrid", "out_of_scope"}
+
+
+def test_angka_dibandingkan_tanpa_pemisah_ribuan():
+    from olist_assistant.evaluation import normalize_numbers
+
+    assert normalize_numbers("138.414,60 BRL") == normalize_numbers("138,414.60 BRL")
+    assert (
+        normalize_numbers("Rata-rata 134,84 BRL dari 1.849 seller")
+        == "Rata-rata 134.84 BRL dari 1849 seller"
+    )
+    assert normalize_numbers("seller abe42c5d03695b") == "seller abe42c5d03695b"
+
+
+def test_rute_boleh_beberapa_dan_cek_isi():
+    case = {
+        "type": "peran",
+        "expected_route": ["sql", "hybrid"],
+        "answer_must_mention_any": ["admin"],
+        "answer_must_contain_numbers": ["229237.63"],
+        "tanpa_query": True,
+    }
+    sources = [{"kind": "sql", "id": "query", "snippet": ""}]
+    ok = check_case(case, "hybrid", "Hanya admin. Total 229.237,63 BRL.", sources)
+    assert ok["lulus"]
+    queried = [{"kind": "sql", "id": "query", "snippet": "SELECT 1"}]
+    bad = check_case(case, "sql", "Hanya admin. Total 229.237,63 BRL.", queried)
+    assert bad["checks"]["tidak_menjalankan_query"] is False
+
+
+def test_jawaban_umum_tanpa_sumber_dan_butuh_ulasan():
+    umum = {"type": "umum", "expected_route": "umum", "answer_must_mention_any": ["Rabu"]}
+    assert check_case(umum, "umum", "Hari ini Rabu.", [])["lulus"]
+    hybrid = {"type": "hybrid", "expected_route": "hybrid", "butuh_ulasan": True}
+    assert not check_case(hybrid, "hybrid", "x", [{"kind": "sql", "id": "q"}])["lulus"]
