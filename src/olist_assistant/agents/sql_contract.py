@@ -16,7 +16,6 @@ memenuhi guardrail berikut.
 
 from typing import Literal, TypedDict
 
-from olist_assistant.agents.sql_agent import jawab
 
 Peran = Literal["customer", "seller", "admin"]
 
@@ -43,6 +42,7 @@ class SqlResult(TypedDict):
 # Data pasar (tanpa seller_id) boleh untuk semua peran. Performa per seller
 # adalah data internal perusahaan, hanya admin yang boleh membaca semuanya.
 DATA_PASAR = {"v_pasar", "v_ringkasan_kategori"}
+
 VIEW_PER_PERAN: dict[Peran, set[str]] = {
     "customer": DATA_PASAR,
     "seller": DATA_PASAR | {"v_penjualan_saya", "v_ringkasan_saya"},
@@ -57,6 +57,7 @@ VIEW_PER_PERAN: dict[Peran, set[str]] = {
     },
 }
 
+from olist_assistant.agents.sql_agent import jawab
 
 def jawab_sql(
     pertanyaan: str,
