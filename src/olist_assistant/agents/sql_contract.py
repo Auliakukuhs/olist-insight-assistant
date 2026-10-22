@@ -16,6 +16,8 @@ memenuhi guardrail berikut.
 
 from typing import Literal, TypedDict
 
+from olist_assistant.agents.sql_agent import jawab
+
 Peran = Literal["customer", "seller", "admin"]
 
 
@@ -62,4 +64,4 @@ def jawab_sql(
     peran: Peran = "customer",
     seller_id: str | None = None,
 ) -> SqlResult:
-    raise NotImplementedError("Agent SQL dikerjakan di F3 oleh Starletto")
+    return jawab(pertanyaan, riwayat, peran, seller_id)
