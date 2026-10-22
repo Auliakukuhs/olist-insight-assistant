@@ -202,3 +202,17 @@ def test_peringkat_seller_ditolak_tanpa_llm_untuk_selain_admin(pertanyaan):
 )
 def test_pertanyaan_sah_tentang_seller_tidak_ikut_ditolak(pertanyaan):
     assert not sql_agent.PERINGKAT_SELLER.search(pertanyaan)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    ["SELECT length(randomblob(500000000)) AS n", "SELECT length(zeroblob(900000000)) AS n"],
+)
+def test_blob_raksasa_ditolak_supaya_memori_aman(sql):
+    with pytest.raises(SqlDitolak, match="too big"):
+        jalankan(sql, "customer", None)
+
+
+def test_string_raksasa_dari_printf_tidak_memakan_memori():
+    _, rows = jalankan("SELECT length(printf('%.*c', 400000000, 'x')) AS n", "customer", None)
+    assert rows == [{"n": None}]
