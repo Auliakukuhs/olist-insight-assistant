@@ -160,3 +160,23 @@ def test_jawaban_dari_dokumen_kategori_bersumber_kategori(search):
     assert result["sources"] == [
         {"kind": "category", "id": "baby", "snippet": "Kategori produk baby"}
     ]
+
+
+def test_filter_beberapa_kategori_sekaligus(search):
+    hits = search.reviews("produto", category=["baby", "toys"], k=10)
+    assert review_ids(hits) == ["r1", "r2", "r3"]
+
+
+def test_daftar_kategori_resmi_ada_di_prompt_tanpa_putaran_cari_kategori(search):
+    model = ScriptedModel(
+        responses=[
+            tool_call("cari_ulasan", {"kueri": "atraso", "kategori": ["baby, palsu"]}),
+            AIMessage(content="Telat [review:r1]."),
+        ]
+    )
+    result = jawab_rag("Apa keluhan pembeli produk bayi?", [], search, model)
+    system = model._calls[0][0].content
+    assert "Daftar kategori resmi: baby" in system
+    tool_message = [m for m in model._calls[1] if isinstance(m, ToolMessage)][0]
+    assert "'palsu' tidak dikenal" in tool_message.content
+    assert "r1" in [s["id"] for s in result["sources"]]
