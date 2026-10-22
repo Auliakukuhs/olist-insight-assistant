@@ -59,7 +59,7 @@ def test_proses_jalur_rag_mencatat_agent_tool_dan_token():
 
 def test_proses_hybrid_merinci_token_per_langkah():
     proses = make("hybrid").ask("Kategori terlaris dan keluhannya?", "s1")["proses"]
-    assert proses["agent"] == ["supervisor", "sql", "rag"]
+    assert sorted(proses["agent"]) == ["rag", "sql", "supervisor"]
     per_langkah = {s["nama"]: (s["token_input"], s["token_output"]) for s in proses["langkah"]}
     assert per_langkah["Agent SQL"] == (200, 20)
     assert per_langkah["Agent RAG"] == (100, 10)

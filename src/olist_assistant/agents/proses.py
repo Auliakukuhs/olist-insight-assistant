@@ -23,6 +23,7 @@ STEP_LABELS = {
     "guard": "Guard",
     "route": "Router",
     "langsung": "Jawaban langsung supervisor",
+    "rencana": "Perencana filter bersama",
     "agent_rag": "Agent RAG",
     "agent_sql": "Agent SQL",
     "cek": "Pemeriksa kecukupan",

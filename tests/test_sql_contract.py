@@ -1,11 +1,16 @@
-import pytest
-
 from olist_assistant.agents.sql_contract import Message, SqlResult, jawab_sql
 
 
-def test_jawab_sql_belum_diimplementasikan():
-    with pytest.raises(NotImplementedError):
-        jawab_sql("Berapa rata-rata ongkir?", [])
+def test_jawab_sql_meneruskan_peran_dan_seller_id(monkeypatch):
+    calls = []
+
+    def fake_jawab(pertanyaan, riwayat, peran, seller_id):
+        calls.append((peran, seller_id))
+        return {"answer": "-", "sql": "", "rows": []}
+
+    monkeypatch.setattr("olist_assistant.agents.sql_agent.jawab", fake_jawab)
+    jawab_sql("Penjualan toko saya?", [], peran="seller", seller_id="a" * 32)
+    assert calls == [("seller", "a" * 32)]
 
 
 def fake_jawab_sql(pertanyaan: str, riwayat: list[Message]) -> SqlResult:

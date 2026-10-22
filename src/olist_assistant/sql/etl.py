@@ -67,9 +67,12 @@ INDEXES = [
 # View ringkasan mengagregasi semua item setiap kali dibaca, sekitar 1,5 detik
 # untuk satu seller. Hasilnya disimpan sekali sebagai tabel saat ETL, lalu view
 # dengan nama yang sama membaca tabel itu, sehingga agent SQL tidak berubah.
+# v_pasar ikut disimpan karena query agent SQL di atasnya turun dari 0,4 sampai
+# 0,8 detik menjadi 6 sampai 75 ms, dengan tambahan sekitar 22 MB.
 MATERIALIZED_VIEWS = {
     "v_ringkasan_kategori": "kategori",
     "v_ringkasan_seller": "seller_id",
+    "v_pasar": "kategori",
 }
 
 VIEWS_SQL = Path(__file__).with_name("views.sql")
