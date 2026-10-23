@@ -73,6 +73,9 @@ MATERIALIZED_VIEWS = {
     "v_ringkasan_kategori": "kategori",
     "v_ringkasan_seller": "seller_id",
     "v_pasar": "kategori",
+    # Terakhir, karena view lain dihitung dari v_order. Tanpa ini, setiap baca
+    # v_order meringkas ulang 99 ribu ulasan, dan view toko seller ikut lambat.
+    "v_order": "order_id",
 }
 
 VIEWS_SQL = Path(__file__).with_name("views.sql")
@@ -112,10 +115,11 @@ def add_missing_translations(translation: pd.DataFrame) -> pd.DataFrame:
 def materialize(conn: sqlite3.Connection, view: str, key: str) -> None:
     """Ganti view dengan tabel berisi hasilnya, dan view baru yang membaca tabel itu."""
     table = view.removeprefix("v_")
-    conn.execute(f"CREATE TABLE {table} AS SELECT * FROM {view}")
-    conn.execute(f"CREATE INDEX idx_{table} ON {table}({key})")
+    # Nama tabel dikutip karena "order" adalah kata kunci SQL.
+    conn.execute(f'CREATE TABLE "{table}" AS SELECT * FROM {view}')
+    conn.execute(f'CREATE INDEX idx_{table} ON "{table}"({key})')
     conn.execute(f"DROP VIEW {view}")
-    conn.execute(f"CREATE VIEW {view} AS SELECT * FROM {table}")
+    conn.execute(f'CREATE VIEW {view} AS SELECT * FROM "{table}"')
 
 
 def build_database(raw_dir: Path, db_path: Path) -> dict[str, int]:

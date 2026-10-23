@@ -260,7 +260,17 @@ def jalankan(sql: str, peran: Peran, seller_id: str | None) -> tuple[str, list[d
 
 
 def skema(peran: Peran, seller_id: str | None) -> str:
-    """Kolom setiap view yang boleh dibaca peran ini, ditambah dua baris contoh."""
+    """Kolom setiap view yang boleh dibaca peran ini, ditambah dua baris contoh.
+
+    Hasilnya disimpan di memori per peran dan seller, karena database tidak
+    berubah selama container hidup. Waktu ubah berkas ikut jadi kunci, jadi
+    database yang diganti terbaca ulang.
+    """
+    return _skema(peran, seller_id, str(db_path()), db_path().stat().st_mtime)
+
+
+@lru_cache(maxsize=64)
+def _skema(peran: Peran, seller_id: str | None, path: str, mtime: float) -> str:
     conn = buka_koneksi(peran, seller_id)
     conn.set_authorizer(None)  # koneksi internal, bukan query dari LLM
     parts = []
