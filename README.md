@@ -261,6 +261,26 @@ Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21
 
 Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, semua endpoint kecuali `/health` mewajibkan header `X-API-Key`.
 
+## Keamanan berlapis
+
+Setiap lapis menahan serangan yang lolos dari lapis sebelumnya. Lapis yang ditegakkan kode tidak bergantung pada kepatuhan LLM.
+
+| Lapis | Mekanisme | Menahan | Bukti |
+|---|---|---|---|
+| Akses API | `X-API-Key` untuk semua endpoint kecuali `/health`, rate limit 20 per menit per sesi dan 60 per menit per klien | Pemakaian API oleh pihak luar, ledakan biaya | `tests/test_api.py`, `tests/test_ratelimit.py` |
+| Identitas dan peran | Login dengan token HMAC 12 jam, peran dan `seller_id` hanya dari token, riwayat dipisah per akun, login dibatasi 10 percobaan per menit | Mengaku admin lewat body request, menebak password, membaca riwayat akun lain | `tests/test_auth.py` |
+| Guard sebelum LLM | Pola prompt injection, jailbreak bermain peran, permintaan kunci, dan perintah tulis SQL ditolak tanpa memanggil LLM | Serangan yang jelas, tanpa biaya token | `tests/test_supervisor.py`, holdout serangan 6/6 |
+| Router dan supervisor | Pertanyaan di luar topik ditolak, supervisor tidak menjawab fakta dunia, aturan peran di prompt | Penyalahgunaan chatbot untuk tugas lain | Gold set mentoring, 4 kasus tolak |
+| Agent RAG | Hasil retrieval dibungkus `<data_ulasan>` dan diperlakukan sebagai data, filter kategori divalidasi kode | Prompt injection yang disisipkan di teks ulasan | `tests/test_agent_rag.py` |
+| Agent SQL | Koneksi read-only dan `query_only`, sqlglot (satu SELECT, view sesuai peran), authorizer SQLite, LIMIT 200, batas 5 detik, batas string 10 MB, TEMP VIEW untuk seller, penolakan peringkat seller sebelum LLM | Perintah tulis, view terlarang, query berat, kehabisan memori, seller membaca seller lain | `tests/test_sql_agent.py`, 12/12 pertanyaan contoh |
+| Analytics | Query tetap dengan parameter terikat, 403 bila seller meminta data seller lain | SQL injection, kebocoran data internal | `tests/test_analytics.py`, `tests/test_auth.py` |
+| Rahasia | Kunci di AWS SSM SecureString, execution role hanya membaca `/olist/*`, image diperiksa tidak memuat `.env`, gitleaks memindai seluruh riwayat git di setiap PR | Kunci bocor ke repo publik atau image | Job CI `keamanan` dan `docker` |
+| Rantai pasok | pip-audit memeriksa library terhadap basis data kerentanan di setiap PR, Dependabot membuka PR pembaruan setiap minggu, ECR memindai image saat push, tag image immutable | Library dengan celah yang sudah diketahui | Job CI `keamanan`. Pertama kali dijalankan 22 Okt, langsung menemukan `certifi` 2026.7.22 (PYSEC-2026-4320) yang lalu diperbarui |
+| Container | Berjalan sebagai user non-root, 0,25 vCPU dan 1 GB | Dampak bila ada yang lolos | `Dockerfile` |
+| Pengamatan | Trace Langfuse per sesi, panel proses berisi agent, tool, alasan rute, token, dan biaya | Serangan yang tidak terlihat, biaya yang tidak terkendali | `tests/test_proses.py` |
+
+Contoh celah yang ditemukan lewat uji lalu ditambal. Agent SQL sempat mengakali larangan peringkat seller dengan menyajikan kota sebagai seller (ditambal pola sebelum LLM). `randomblob(500000000)` sempat lolos dan memakan sekitar 500 MB memori (ditambal `SQLITE_LIMIT_LENGTH`). API key yang tertempel di chat diganti bersama `AUTH_SECRET`, sehingga token lama langsung tidak berlaku.
+
 ## Endpoint analytics
 
 Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan query tetap dan parameter terikat, tidak lewat LLM.

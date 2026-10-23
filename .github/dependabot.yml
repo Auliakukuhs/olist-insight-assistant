@@ -1,0 +1,25 @@
+# PR otomatis bila ada versi baru library, GitHub Action, atau image dasar Docker.
+# Dibatasi dua PR terbuka per jenis supaya tidak membanjiri menjelang tenggat.
+version: 2
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(deps)"
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(ci)"
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 2
+    commit-message:
+      prefix: "chore(docker)"
