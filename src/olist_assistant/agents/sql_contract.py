@@ -38,22 +38,21 @@ class SqlResult(TypedDict):
     """Hasil query, paling banyak sebanyak LIMIT."""
 
 
-# Data pasar (tanpa seller_id) boleh untuk semua peran. Performa per seller
-# adalah data internal perusahaan, hanya admin yang boleh membaca semuanya.
-DATA_PASAR = {"v_pasar", "v_ringkasan_kategori"}
+# Data pasar (tanpa seller_id) boleh untuk semua peran, termasuk pembayaran,
+# skor, dan status per pesanan. Performa per seller adalah data internal
+# perusahaan, hanya admin yang boleh membaca semuanya.
+DATA_PASAR = {
+    "v_pasar",
+    "v_ringkasan_kategori",
+    "v_pembayaran_per_order",
+    "v_review_per_order",
+    "v_order",
+}
 
 VIEW_PER_PERAN: dict[Peran, set[str]] = {
     "customer": DATA_PASAR,
     "seller": DATA_PASAR | {"v_penjualan_saya", "v_ringkasan_saya"},
-    "admin": DATA_PASAR
-    | {
-        "v_item_penjualan",
-        "v_item_terjual",
-        "v_pembayaran_per_order",
-        "v_review_per_order",
-        "v_order",
-        "v_ringkasan_seller",
-    },
+    "admin": DATA_PASAR | {"v_item_penjualan", "v_item_terjual", "v_ringkasan_seller"},
 }
 
 
