@@ -144,7 +144,6 @@ LEFT JOIN angka_item AS a ON a.seller_id = s.seller_id
 LEFT JOIN kategori_utama AS k ON k.seller_id = s.seller_id
 LEFT JOIN angka_order AS b ON b.seller_id = s.seller_id;
 
-
 -- Data pasar untuk semua peran. Satu baris per item terjual, tanpa seller_id,
 -- supaya performa per seller (data internal perusahaan) tidak bisa dihitung
 -- dari sini. Disimpan sebagai tabel oleh ETL karena dibaca agent SQL.
