@@ -175,3 +175,16 @@ def test_performa_seller_menurut_peran(login_aktif, analytics_db, username, sell
 def test_ringkasan_kategori_boleh_semua_peran(login_aktif, analytics_db):
     for username in USERS:
         assert client.get("/analytics/kategori", headers=token_for(username)).status_code == 200
+
+
+def test_swagger_punya_tombol_authorize_untuk_api_key_dan_token():
+    schemes = client.get("/openapi.json").json()["components"]["securitySchemes"]
+    assert schemes["APIKeyHeader"] == {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API_ACCESS_KEY",
+    }
+    assert schemes["HTTPBearer"]["scheme"] == "bearer"
+    chat = client.get("/openapi.json").json()["paths"]["/chat"]["post"]
+    assert {"HTTPBearer": []} in chat["security"]

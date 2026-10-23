@@ -230,7 +230,7 @@ Ada tiga peran. Peran selalu dibaca dari token yang ditandatangani server, bukan
 
 | Peran | Boleh | Tidak boleh |
 |---|---|---|
-| `customer` | Ulasan pembeli, data pasar (harga, ongkir, kategori, lokasi, lama kirim) | Performa per seller |
+| `customer` | Ulasan pembeli, data pasar (harga, ongkir, kategori, lokasi, lama kirim, pembayaran, status pesanan) | Performa per seller |
 | `seller` | Semua milik customer, ditambah penjualan dan ringkasan tokonya sendiri | Performa seller lain atau performa seller secara keseluruhan |
 | `admin` | Semua data, termasuk performa seluruh seller | |
 

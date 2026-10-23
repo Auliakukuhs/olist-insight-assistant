@@ -9,7 +9,8 @@ from contextlib import asynccontextmanager
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, Security, status
+from fastapi.security import APIKeyHeader
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
@@ -57,9 +58,13 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="OLIST Insight Assistant", version=__version__, lifespan=lifespan)
 
 
+# Didaftarkan sebagai skema keamanan supaya tombol Authorize di /docs mengirimnya.
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False, description="API_ACCESS_KEY")
+
+
 def require_api_key(
     settings: Annotated[Settings, Depends(get_settings)],
-    x_api_key: Annotated[str | None, Header()] = None,
+    x_api_key: Annotated[str | None, Security(api_key_header)] = None,
 ) -> None:
     """Wajibkan header X-API-Key bila API_ACCESS_KEY diisi."""
     if settings.api_access_key is None:

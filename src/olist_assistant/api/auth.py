@@ -18,7 +18,8 @@ import secrets
 import time
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
 from olist_assistant.api.ratelimit import RateLimiter
@@ -83,15 +84,19 @@ def read_token(token: str, secret: str, now: float | None = None) -> Pengguna | 
     return Pengguna(**data)
 
 
+# Skema Bearer, supaya Swagger mengirim header Authorization lewat tombol Authorize.
+# Header bernama Authorization yang ditulis sebagai parameter biasa dibuang Swagger.
+bearer = HTTPBearer(auto_error=False, description="Token dari POST /auth/login")
+
+
 def current_user(
     settings: Annotated[Settings, Depends(get_settings)],
-    authorization: Annotated[str | None, Header()] = None,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Security(bearer)] = None,
 ) -> Pengguna | None:
     """Pengguna dari header Authorization. None berarti login tidak diaktifkan."""
     if settings.auth_secret is None:
         return None
-    scheme, _, token = (authorization or "").partition(" ")
-    user = read_token(token, settings.auth_secret) if scheme.lower() == "bearer" else None
+    user = read_token(credentials.credentials, settings.auth_secret) if credentials else None
     if user is None:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
