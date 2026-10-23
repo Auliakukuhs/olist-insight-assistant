@@ -1,11 +1,14 @@
 """Jalankan gold set ke supervisor sungguhan (OpenAI, Qdrant Cloud) dan simpan laporan.
 
-Setiap kasus memakai sesi baru, kecuali kasus `riwayat` yang berpasangan
-dalam satu sesi untuk menguji pertanyaan lanjutan.
+Setiap kasus memakai sesi baru, kecuali kasus yang berbagi `session` untuk
+menguji pertanyaan lanjutan. Kasus boleh menulis `peran` (customer, seller,
+admin). Seller memakai toko akun demo. Kata kunci `{hari_ini}` dan `{besok}`
+di answer_must_mention_any diganti nama hari menurut waktu WIB saat dijalankan.
 
 Contoh:
     uv run python scripts/evaluate_gold.py                                  # gold set diagnosis
     uv run python scripts/evaluate_gold.py data/eval/gold_holdout.jsonl     # holdout buta
+    uv run python scripts/evaluate_gold.py data/eval/gold_mentoring.jsonl   # skenario mentoring 1
 """
 
 import json
@@ -13,13 +16,28 @@ import sys
 import time
 import uuid
 from collections import Counter, defaultdict
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from olist_assistant.agents.supervisor import default_supervisor
+from olist_assistant.agents.supervisor import HARI, WIB, default_supervisor
 from olist_assistant.config import load_dotenv
 from olist_assistant.evaluation import check_case, latency_summary
 
 DEFAULT_GOLD = Path("data/eval/gold.jsonl")
+# Seller dengan penjualan terbesar, sama dengan akun demo seller.
+DEMO_SELLER = "4869f7a5dfa277a7dca6462dcf3b52b2"
+
+
+def resolve_dates(case: dict) -> dict:
+    today = datetime.now(UTC).astimezone(WIB)
+    names = {
+        "{hari_ini}": HARI[today.weekday()],
+        "{besok}": HARI[(today + timedelta(days=1)).weekday()],
+    }
+    words = case.get("answer_must_mention_any")
+    if not words:
+        return case
+    return case | {"answer_must_mention_any": [names.get(w, w) for w in words]}
 
 
 def main() -> None:
@@ -31,10 +49,14 @@ def main() -> None:
     run_id = uuid.uuid4().hex[:6]
     results = []
     for case in cases:
+        case = resolve_dates(case)
         session = f"eval-{run_id}-{case.get('session', case['id'])}"
+        peran = case.get("peran", "customer")
         started = time.monotonic()
         try:
-            state = supervisor.ask(case["question"], session)
+            state = supervisor.ask(
+                case["question"], session, peran, DEMO_SELLER if peran == "seller" else None
+            )
             route, answer, sources = state["route"], state["answer"], state.get("sources", [])
             route_by, error = state.get("route_by"), None
         except Exception as exc:  # dicatat sebagai gagal, evaluasi tetap lanjut
@@ -78,7 +100,7 @@ def main() -> None:
         json.dumps(
             {
                 "run_id": run_id,
-                "catatan": "Agent SQL belum tersedia, kasus sql dan hybrid hanya dinilai rutenya.",
+                "catatan": "Kasus tanpa angka acuan hanya dinilai rute dan sumbernya.",
                 "ringkasan": summary,
                 "gagal": [r for r in results if not r["lulus"]],
                 "cek_manual": [r for r in results if r["cek_manual"]],

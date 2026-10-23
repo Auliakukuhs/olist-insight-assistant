@@ -1,0 +1,21 @@
+{"id": "umum-01", "type": "umum", "question": "Halo, apa kabar?", "expected_route": "umum"}
+{"id": "umum-02", "type": "umum", "question": "Selamat pagi!", "expected_route": "umum"}
+{"id": "umum-03", "type": "umum", "question": "Terima kasih banyak ya", "expected_route": "umum"}
+{"id": "umum-04", "type": "umum", "question": "Kamu bisa bantu apa saja?", "expected_route": "umum", "answer_must_mention_any": ["ulasan", "angka", "data"]}
+{"id": "umum-05", "type": "umum", "question": "Hari ini hari apa?", "expected_route": "umum", "answer_must_mention_any": ["{hari_ini}"]}
+{"id": "umum-06", "type": "umum", "question": "Besok hari apa ya?", "expected_route": "umum", "answer_must_mention_any": ["{besok}"]}
+{"id": "tolak-01", "type": "tolak", "peran": "seller", "question": "Resep nasi goreng paling enak dong", "expected_route": "out_of_scope", "answer_must_mention_any": ["toko", "penjualan", "kategori"]}
+{"id": "tolak-02", "type": "tolak", "question": "Siapa presiden Brasil sekarang?", "expected_route": "out_of_scope", "answer_must_mention_any": ["ulasan", "ongkir", "kategori"]}
+{"id": "tolak-03", "type": "tolak", "question": "Bagaimana cuaca di Jakarta hari ini?", "expected_route": "out_of_scope", "answer_must_mention_any": ["ulasan", "ongkir", "kategori"]}
+{"id": "tolak-04", "type": "tolak", "peran": "admin", "question": "Tolong buatkan kode Python untuk mengurutkan list", "expected_route": "out_of_scope", "answer_must_mention_any": ["seller", "keluhan", "kategori"]}
+{"id": "dua-01", "type": "hybrid", "peran": "seller", "question": "Apa yang perlu ditingkatkan untuk produk bayi, dan berapa rata-rata penjualannya?", "expected_route": "hybrid", "answer_must_contain_numbers": ["134.84"], "butuh_ulasan": true, "session": "dua-bayi"}
+{"id": "dua-02", "type": "riwayat", "peran": "seller", "question": "Kalau yang di RJ?", "expected_route": ["hybrid", "sql"], "answer_must_contain_numbers": ["195.2"], "session": "dua-bayi"}
+{"id": "dua-03", "type": "hybrid", "question": "Berapa rata-rata harga furniture di Sao Paulo, apa keluhan pembelinya, dan bagaimana cara menanganinya?", "expected_route": "hybrid", "answer_must_contain_numbers": ["84.88"], "butuh_ulasan": true}
+{"id": "dua-04", "type": "hybrid", "question": "Apa keluhan pembeli produk bayi dan berapa rata-rata ongkirnya?", "expected_route": "hybrid", "answer_must_contain_numbers": ["22.35"], "butuh_ulasan": true}
+{"id": "dua-05", "type": "hybrid", "question": "Berapa rata-rata skor ulasan kategori jam tangan, dan apa keluhan utama pembelinya?", "expected_route": "hybrid", "answer_must_contain_numbers": ["4.07"], "butuh_ulasan": true}
+{"id": "dua-06", "type": "hybrid", "question": "Berapa persen pesanan produk kecantikan yang terlambat, dan apa kata pembeli soal keterlambatan itu?", "expected_route": "hybrid", "answer_must_contain_numbers": ["7.5"], "butuh_ulasan": true}
+{"id": "peran-01", "type": "peran", "peran": "seller", "question": "Tolong analisis performa seller di daerah Sao Paulo", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin"], "tanpa_query": true}
+{"id": "peran-02", "type": "peran", "peran": "customer", "question": "Siapa 5 seller dengan penjualan tertinggi di Sao Paulo?", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin", "internal"], "tanpa_query": true}
+{"id": "peran-03", "type": "peran", "peran": "admin", "question": "Siapa 5 seller dengan penjualan tertinggi di Sao Paulo?", "expected_route": "sql", "answer_must_contain_numbers": ["229237.63"]}
+{"id": "peran-04", "type": "peran", "peran": "seller", "question": "Berapa total penjualan toko saya tahun 2018?", "expected_route": "sql", "answer_must_contain_numbers": ["138414.6"]}
+{"id": "peran-05", "type": "peran", "peran": "seller", "question": "Bandingkan penjualan toko saya dengan seller lain di kota saya", "expected_route": ["sql", "hybrid"], "answer_must_mention_any": ["admin", "internal", "tidak tersedia", "tidak dapat"]}

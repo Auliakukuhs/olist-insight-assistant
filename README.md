@@ -127,6 +127,7 @@ Keputusan yang perlu diketahui.
 ```sh
 uv run python scripts/evaluate_gold.py                               # gold set, 66 kasus
 uv run python scripts/evaluate_gold.py data/eval/gold_holdout.jsonl  # holdout buta, 15 kasus
+uv run python scripts/evaluate_gold.py data/eval/gold_mentoring.jsonl # skenario mentoring 1, 21 kasus
 ```
 
 Gold set berisi 66 pertanyaan tulisan tangan (`data/eval/gold.jsonl`), berbeda gaya dari templat router. Isinya 15 RAG, 15 SQL, 15 hybrid, 7 di luar cakupan, 8 serangan (prompt injection, perintah tulis SQL, permintaan kunci), dan 3 pasang pertanyaan lanjutan dalam satu sesi. Setiap kasus dinilai rutenya, lalu dicek sesuai jenis. RAG harus punya sumber, serangan tidak boleh punya sumber dan tidak boleh membocorkan prompt, pertanyaan lanjutan harus menyebut konteks dari giliran sebelumnya.
@@ -136,6 +137,17 @@ Gold set berisi 66 pertanyaan tulisan tangan (`data/eval/gold.jsonl`), berbeda g
 | Gold set, sebelum perbaikan | 63/66 | Gagal di jawaban kategori tanpa sumber, "cicilan" ditolak, "paling laris" masuk RAG |
 | Gold set, setelah perbaikan | 66/66 | Perbaikan umum di prompt router dan sumber kategori. Gold set tidak lagi buta |
 | Holdout buta | 15/15 | Ditulis sebelum melihat hasil perbaikan, tidak pernah dipakai untuk mengubah sistem |
+
+Gold set mentoring (`data/eval/gold_mentoring.jsonl`) menambah 21 kasus dari saran mentoring 1. Isinya 6 sapaan dan tanggal yang dijawab supervisor, 4 pertanyaan di luar topik yang ditolak dengan contoh sesuai peran, 6 pertanyaan dua agent dengan angka acuan dari database, dan 5 kasus peran. Angka dibandingkan tanpa pemisah ribuan, jadi 138.414,60 dan 138,414.60 dianggap sama. Kasus peran memeriksa bahwa penolakan tidak menjalankan query sama sekali.
+
+| Run (22 Oktober 2026) | Lulus | p50 | Catatan |
+|---|---|---|---|
+| Gold set mentoring | 21/21 | 2,5 detik (umum), 13,8 detik (dua agent) | Contoh Nadif 134,84 BRL, lanjutan RJ 195,20 BRL, seller ditolak tanpa query, admin dijawab 229.237,63 BRL |
+| Gold set | 66/66 | 6,2 detik (sql), 8,9 detik (rag), 15,8 detik (hybrid) | Jawaban SQL kini berisi angka sungguhan, misalnya total pembayaran 16.008.872,12 BRL |
+| Holdout buta | 15/15 | | Tetap tidak dipakai untuk mengubah sistem |
+| Holdout serangan | 6/6 | | |
+
+Run 22 Oktober memakai agent SQL rujukan yang sedang diimplementasikan di #7, PR #41 (RAG lebih cepat), dan PR #42 (data pasar lengkap). Dua temuan dari run ini sudah diperbaiki sebelum angka di atas dicatat. Pertama, perencana mengubah "rata-rata skor ulasan" menjadi rata-rata harga. Kedua, customer ditolak untuk pertanyaan pembayaran. Satu kasus peran sempat gagal karena kata kuncinya terlalu sempit, padahal penolakannya benar, dan kata kuncinya diperluas dengan alasan tercatat di riwayat commit. Run pertama sempat terputus karena koneksi internet laptop, dan hasilnya tidak dipakai.
 
 Latensi p50 dan p95 per jenis, jawaban lengkap, dan kasus gagal ada di `reports/eval_gold*.json`.
 
