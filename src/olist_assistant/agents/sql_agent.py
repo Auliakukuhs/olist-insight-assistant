@@ -30,6 +30,7 @@ from sqlglot import exp
 from olist_assistant.agents.sql_contract import VIEW_PER_PERAN, Message, Peran, SqlResult
 
 MAX_ROWS = 200
+MAX_LENGTH = 10_000_000
 ROWS_TO_LLM = 30
 MAX_SECONDS = 5.0
 HISTORY_TURNS = 6
@@ -210,6 +211,9 @@ def _authorizer(action, arg1, arg2, dbname, source):
 def buka_koneksi(peran: Peran, seller_id: str | None) -> sqlite3.Connection:
     """Koneksi baca saja. Untuk seller, buat dulu TEMP VIEW berisi data tokonya."""
     conn = sqlite3.connect(f"file:{db_path()}?mode=ro", uri=True)
+    # Batasi ukuran string atau blob hasil query. Tanpa ini randomblob(500000000)
+    # memakan sekitar 500 MB, dan container 1 GB bisa mati untuk semua pengguna.
+    conn.setlimit(sqlite3.SQLITE_LIMIT_LENGTH, MAX_LENGTH)
     if peran == "seller":
         if not SELLER_ID.fullmatch(seller_id or ""):
             conn.close()
