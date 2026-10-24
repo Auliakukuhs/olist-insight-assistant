@@ -241,6 +241,49 @@ def halaman_chat() -> None:
         kirim(pertanyaan)
 
 
+def halaman_market() -> None:
+    pengguna = st.session_state.pengguna
+    st.subheader("Ringkasan kategori")
+    kolom = st.columns(2)
+    urut = kolom[0].selectbox(
+        "Urutkan menurut",
+        ["total_penjualan_brl", "jumlah_order", "rata_skor", "persen_terlambat"],
+    )
+    min_order = kolom[1].number_input("Minimal pesanan", min_value=1, value=30, step=10)
+    data, error = api("GET", "/analytics/kategori", params={"urut": urut, "min_order": min_order})
+    if error:
+        st.error(error)
+    else:
+        st.dataframe(data["data"], hide_index=True, width="stretch")
+        st.caption(data["catatan"])
+
+    if pengguna["peran"] == "seller":
+        seller_id = pengguna["seller_id"]
+        st.subheader("Toko saya")
+    else:
+        st.subheader("Performa seller")
+        seller_id = st.text_input("seller_id", value="4869f7a5dfa277a7dca6462dcf3b52b2")
+    if not seller_id:
+        return
+    ringkasan, error = api("GET", f"/analytics/seller/{seller_id}")
+    if error:
+        st.error(error)
+        return
+    kolom = st.columns(4)
+    kolom[0].metric("Pesanan", f"{ringkasan['jumlah_order']:,}")
+    kolom[1].metric("Penjualan", f"R$ {ringkasan['total_penjualan_brl']:,.0f}")
+    kolom[2].metric("Skor ulasan", ringkasan["rata_skor"] or "-")
+    kolom[3].metric("Terlambat", f"{ringkasan['persen_terlambat'] or 0}%")
+    st.caption(
+        f"{ringkasan['kota']}, {ringkasan['negara_bagian']}. "
+        f"Kategori utama {ringkasan['kategori_utama']}."
+    )
+    tren, error = api("GET", "/analytics/tren", params={"seller_id": seller_id})
+    if not error and tren["data"]:
+        st.markdown("**Penjualan per bulan (BRL)**")
+        st.bar_chart(tren["data"], x="bulan", y="total_penjualan_brl")
+
+
 # ---------- Sidebar dan alur utama ----------
 
 
@@ -270,7 +313,14 @@ def main() -> None:
     if not st.session_state.token:
         halaman_login()
         return
-    halaman_chat()
+    if st.session_state.pengguna["peran"] == "customer":
+        halaman_chat()
+    else:
+        chat, market = st.tabs(["Chat", "Market analysis"])
+        with chat:
+            halaman_chat()
+        with market:
+            halaman_market()
     # Sidebar digambar terakhir supaya total token sudah termasuk jawaban terbaru.
     sidebar()
 
