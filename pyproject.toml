@@ -37,6 +37,10 @@ train = [
 ingest = [
     "pandas>=3.0.6",
 ]
+frontend = [
+    "requests==2.34.2",
+    "streamlit==1.66.1",
+]
 
 [build-system]
 requires = ["hatchling"]
