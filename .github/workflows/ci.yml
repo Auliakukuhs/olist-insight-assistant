@@ -41,7 +41,7 @@ jobs:
           ./gitleaks git . --redact --no-banner
       - name: Periksa library dengan celah keamanan yang sudah diketahui (pip-audit)
         run: |
-          uv export --frozen --no-hashes --no-emit-project --group dev --group ingest --group router -o /tmp/requirements.txt
+          uv export --frozen --no-hashes --no-emit-project --group dev --group ingest --group router --group frontend -o /tmp/requirements.txt
           uvx pip-audit==2.10.1 -r /tmp/requirements.txt --disable-pip --no-deps --progress-spinner off
 
   docker:

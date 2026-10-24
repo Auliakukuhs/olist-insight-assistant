@@ -39,7 +39,7 @@ ingest = [
 ]
 frontend = [
     "requests==2.34.2",
-    "streamlit==1.60.0",
+    "streamlit==1.66.1",
 ]
 
 [build-system]

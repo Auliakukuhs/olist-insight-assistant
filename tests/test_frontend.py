@@ -1,5 +1,7 @@
 """Tes antarmuka Streamlit dengan API palsu, tanpa LLM dan tanpa jaringan."""
 
+from pathlib import Path
+
 import pytest
 
 pytest.importorskip("streamlit")
@@ -7,6 +9,8 @@ pytest.importorskip("streamlit")
 import requests  # noqa: E402
 from streamlit.testing.v1 import AppTest  # noqa: E402
 
+# Path absolut, karena AppTest 1.66 membaca path relatif dari letak berkas tes.
+APP = Path(__file__).resolve().parents[1] / "frontend" / "app.py"
 SELLER = "4869f7a5dfa277a7dca6462dcf3b52b2"
 PROSES = {
     "agent": ["supervisor", "sql", "rag"],
@@ -91,7 +95,7 @@ def api(monkeypatch):
 
 
 def start():
-    at = AppTest.from_file("frontend/app.py", default_timeout=30)
+    at = AppTest.from_file(str(APP), default_timeout=30)
     at.secrets["API_URL"] = "http://api.uji"
     at.secrets["API_ACCESS_KEY"] = "kunci"
     return at.run()
