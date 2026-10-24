@@ -128,6 +128,17 @@ def test_chat_mengirim_token_dan_menampilkan_panel_proses(api):
     assert metrics["Total token"] == "950"
 
 
+def test_customer_tidak_melihat_market_analysis(api):
+    at = login(start(), "customer")
+    assert len(at.tabs) == 0
+
+
+def test_seller_melihat_tokonya_sendiri(api):
+    at = login(start(), "seller")
+    assert [t.label for t in at.tabs] == ["Chat", "Market analysis"]
+    assert ("GET", f"/analytics/seller/{SELLER}") in [(c[0], c[1]) for c in api.calls]
+
+
 def test_logout_kembali_ke_halaman_login(api):
     at = login(start(), "admin")
     at.sidebar.button[1].click().run()
