@@ -216,3 +216,35 @@ def test_blob_raksasa_ditolak_supaya_memori_aman(sql):
 def test_string_raksasa_dari_printf_tidak_memakan_memori():
     _, rows = jalankan("SELECT length(printf('%.*c', 400000000, 'x')) AS n", "customer", None)
     assert rows == [{"n": None}]
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT seller_id, persen_terlambat FROM v_ringkasan_seller "
+        "WHERE negara_bagian = 'RJ' ORDER BY persen_terlambat DESC",
+        "SELECT seller_id, rata_skor AS skor FROM v_ringkasan_seller ORDER BY skor DESC",
+        "SELECT kategori, rata_skor FROM v_ringkasan_kategori ORDER BY 2",
+    ],
+)
+def test_peringkat_rasio_tanpa_batas_diberi_batas_pesanan(sql):
+    # Tanpa batas, seller dengan 3 pesanan menang 100 persen terlambat.
+    safe, rows = jalankan(sql, "admin", None)
+    assert "jumlah_order >= 30" in safe
+    assert rows
+    if "negara_bagian = 'RJ'" in sql:
+        assert "negara_bagian = 'RJ'" in safe
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "SELECT seller_id FROM v_ringkasan_seller WHERE jumlah_order >= 50 "
+        "ORDER BY persen_terlambat DESC",
+        "SELECT seller_id FROM v_ringkasan_seller ORDER BY total_penjualan_brl DESC",
+        "SELECT kategori, AVG(harga_brl) AS r FROM v_pasar GROUP BY kategori ORDER BY r",
+    ],
+)
+def test_batas_pengguna_dan_peringkat_bukan_rasio_tidak_diubah(sql):
+    safe, _ = jalankan(sql, "admin", None)
+    assert "jumlah_order >= 30" not in safe
