@@ -33,11 +33,24 @@ docker build --platform linux/arm64 -t "${IMAGE}" .
 
 aws ecr get-login-password --region "${REGION}" \
   | docker login --username AWS --password-stdin "${REGISTRY}"
+# `docker push ... && break` di dalam loop tidak dihentikan `set -e`, jadi status
+# berhasil dicatat sendiri. Tanpa ini, tiga push gagal tetap lanjut ke update
+# service, ECS gagal menarik image, lalu diam-diam kembali ke versi lama.
+pushed=0
 for attempt in 1 2 3; do
-  docker push "${IMAGE}" && break
+  if docker push "${IMAGE}"; then
+    pushed=1
+    break
+  fi
   echo "Push gagal (percobaan ${attempt}), ulangi" >&2
   sleep 5
 done
+if [[ "${pushed}" != 1 ]]; then
+  echo "Push ${TAG} gagal tiga kali. Service tidak diubah." >&2
+  exit 1
+fi
+aws ecr describe-images --region "${REGION}" --repository-name "${REPO}" \
+  --image-ids "imageTag=${TAG}" --query 'imageDetails[0].imageDigest' --output text >/dev/null
 
 # Kunci layanan dibaca ECS dari SSM Parameter Store (SecureString) saat task
 # start, lalu disuntik sebagai environment. Nilainya tidak pernah masuk image
@@ -65,5 +78,27 @@ aws ecs update-express-gateway-service \
   --primary-container "${CONTAINER}" \
   --query 'service.status.statusCode' --output text
 
-echo "Deploy ${TAG} dikirim. Pantau dengan:"
-echo "  aws ecs describe-services --cluster default --services ${SERVICE} --query 'services[0].events[:3].message'"
+# Tunggu rollout selesai, lalu pastikan task yang berjalan memakai image ini.
+# Rollout yang gagal di-rollback otomatis oleh ECS, jadi "COMPLETED" saja belum
+# cukup sebagai bukti. Tepat sesudah update, status yang terbaca juga bisa masih
+# milik deployment lama, jadi image task ikut dicek di setiap putaran.
+echo "Menunggu rollout ${TAG}"
+for _ in $(seq 1 60); do
+  sleep 15
+  state="$(aws ecs describe-services --region "${REGION}" --cluster default --services "${SERVICE}" \
+    --query 'services[0].deployments[?status==`PRIMARY`]|[0].rolloutState' --output text)"
+  tasks="$(aws ecs list-tasks --region "${REGION}" --cluster default --service-name "${SERVICE}" \
+    --desired-status RUNNING --query 'taskArns' --output text)"
+  [[ -z "${tasks}" || "${tasks}" == "None" ]] && continue
+  running="$(aws ecs describe-tasks --region "${REGION}" --cluster default --tasks ${tasks} \
+    --query 'tasks[].containers[0].image' --output text)"
+  if [[ "${state}" == "COMPLETED" && "${running}" == "${IMAGE}" ]]; then
+    echo "Deploy ${TAG} aktif."
+    exit 0
+  fi
+  [[ "${state}" == "FAILED" ]] && break
+done
+echo "Deploy ${TAG} GAGAL. Rollout ${state:-?}, task berjalan memakai: ${running:-?}" >&2
+aws ecs describe-services --region "${REGION}" --cluster default --services "${SERVICE}" \
+  --query 'services[0].events[:5].message' --output text >&2
+exit 1
