@@ -12,6 +12,11 @@ melewati lima lapis pengaman sebelum menyentuh data.
 4. LIMIT dipaksa dan query dihentikan bila lebih dari batas waktu.
 5. Seller hanya melihat datanya lewat TEMP VIEW yang difilter `seller_id` dari
    token login. LLM tidak pernah menentukan `seller_id`.
+
+Selain pengaman, ada satu koreksi kualitas. Peringkat rasio (skor, persen
+terlambat, lama kirim) dari view ringkasan tanpa batas pesanan diberi
+`jumlah_order >= 30`, supaya seller dengan 3 pesanan tidak tampil sebagai yang
+paling sering terlambat.
 """
 
 import os
@@ -33,6 +38,10 @@ MAX_ROWS = 200
 MAX_LENGTH = 10_000_000
 ROWS_TO_LLM = 30
 MAX_SECONDS = 5.0
+# Peringkat rasio dari view ringkasan butuh batas pesanan, sama dengan default
+# halaman market. Tanpa ini seller dengan 1 pesanan selalu menang skor 5,0.
+MIN_ORDER = 30
+RINGKASAN_PERINGKAT = {"v_ringkasan_seller", "v_ringkasan_kategori"}
 HISTORY_TURNS = 6
 SELLER_ID = re.compile(r"^[0-9a-f]{32}$")
 
@@ -195,11 +204,53 @@ def periksa_sql(sql: str, allowed: set[str]) -> str:
             f"View {', '.join(sorted(outside))} tidak boleh dibaca peran ini. "
             f"Pakai salah satu dari {', '.join(sorted(allowed))}."
         )
+    tree = batas_pesanan(tree)
     limit = tree.args.get("limit")
     current = limit.expression if limit is not None else None
     if not (isinstance(current, exp.Literal) and int(current.this) <= MAX_ROWS):
         tree = tree.limit(MAX_ROWS)
     return tree.sql(dialect="sqlite")
+
+
+def _diurutkan_menurut_rasio(tree: exp.Select) -> bool:
+    order = tree.args.get("order")
+    if order is None:
+        return False
+    # ORDER BY bisa memakai alias, jadi alias diterjemahkan ke ekspresi aslinya.
+    alias = {e.alias: e.this for e in tree.expressions if isinstance(e, exp.Alias)}
+    for ordered in order.expressions:
+        target = ordered.this
+        if isinstance(target, exp.Column) and target.name in alias:
+            target = alias[target.name]
+        elif isinstance(target, exp.Literal) and target.is_int:
+            position = int(target.this) - 1
+            if 0 <= position < len(tree.expressions):
+                target = tree.expressions[position]
+        names = [c.name for c in target.find_all(exp.Column)]
+        if any(n.startswith(("rata_", "persen_")) for n in names):
+            return True
+    return False
+
+
+def batas_pesanan(tree: exp.Query) -> exp.Query:
+    """Tambahkan jumlah_order >= MIN_ORDER pada peringkat rasio tanpa batas.
+
+    Di uji dengan LLM asli, aturan di prompt diabaikan. "Seller paling sering
+    terlambat di RJ" terjawab seller dengan 3 pesanan dan 100 persen terlambat.
+    Batas yang ditulis pengguna atau LLM sendiri tidak diubah.
+    """
+    if not isinstance(tree, exp.Select) or tree.args.get("joins"):
+        return tree
+    source = tree.args.get("from_")
+    table = source.this if source is not None else None
+    if not (isinstance(table, exp.Table) and table.name in RINGKASAN_PERINGKAT):
+        return tree
+    if not _diurutkan_menurut_rasio(tree):
+        return tree
+    where = tree.args.get("where")
+    if where is not None and any(c.name == "jumlah_order" for c in where.find_all(exp.Column)):
+        return tree
+    return tree.where(f"jumlah_order >= {MIN_ORDER}", append=True)
 
 
 def _authorizer(action, arg1, arg2, dbname, source):
@@ -307,13 +358,18 @@ def _tools(peran: Peran, seller_id: str | None, catatan: _Catatan):
         except SqlDitolak as error:
             return f"DITOLAK: {error}"
         catatan.sql, catatan.rows = safe_sql, rows
+        batas = (
+            f" Batas minimal {MIN_ORDER} pesanan ditambahkan otomatis, sebut di jawaban."
+            if f"jumlah_order >= {MIN_ORDER}" in safe_sql and "jumlah_order" not in query
+            else ""
+        )
         shown = rows[:ROWS_TO_LLM]
         more = (
             f"\n({len(rows) - len(shown)} baris lain tidak ditampilkan)"
             if len(rows) > len(shown)
             else ""
         )
-        return f"{len(rows)} baris. {shown}{more}"
+        return f"{len(rows)} baris.{batas} {shown}{more}"
 
     return [jalankan_sql]
 

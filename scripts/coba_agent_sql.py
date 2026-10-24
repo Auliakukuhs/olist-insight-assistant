@@ -10,32 +10,17 @@ jawaban (angka dibandingkan tanpa pemisah ribuan).
 """
 
 import json
-import re
 import sys
 import time
 from pathlib import Path
 
 from olist_assistant.agents.sql_contract import jawab_sql
 from olist_assistant.config import load_dotenv
+from olist_assistant.evaluation import normalize_numbers as normalize
 
 CASES = Path("data/eval/sql_contoh.jsonl")
 # Seller dengan penjualan terbesar, sama dengan akun demo seller.
 DEMO_SELLER = "4869f7a5dfa277a7dca6462dcf3b52b2"
-
-
-def normalize(text: str) -> str:
-    """Samakan 138,414.60 dan 138.414,60 menjadi 138414.6, supaya mudah dicocokkan."""
-
-    def number(match: re.Match) -> str:
-        raw = match.group(0)
-        if re.fullmatch(r"\d{1,3}(\.\d{3})+(,\d+)?", raw):
-            raw = raw.replace(".", "").replace(",", ".")
-        else:
-            raw = raw.replace(",", "")
-        return str(float(raw)).removesuffix(".0")
-
-    # Hanya angka yang berdiri sendiri, bukan potongan ID seperti abe42c5d0369...
-    return re.sub(r"(?<![A-Za-z0-9_])(\d[\d.,]*\d|\d)(?![A-Za-z0-9_])", number, text)
 
 
 def main() -> None:
