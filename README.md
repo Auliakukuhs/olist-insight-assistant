@@ -1,15 +1,27 @@
 # OLIST Insight Assistant
 
-Chatbot multi-agent untuk customer dan seller di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
+Chatbot multi-agent untuk customer, seller, dan admin di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status per 21 Oktober 2026. Supervisor LangGraph, agent RAG ke Qdrant Cloud, guard prompt injection, riwayat per sesi, tracing Langfuse, login tiga peran, dan panel proses sudah ada. Agent SQL dan antarmuka Streamlit dikerjakan Starletto (#7, #2).
+Status per 23 Oktober 2026. Supervisor LangGraph dengan jawaban langsung, dua agent paralel, dan pemeriksa kecukupan. Agent RAG ke Qdrant Cloud, agent SQL ke SQLite dengan aturan per peran, login tiga peran, panel proses, tracing Langfuse, dan CI keamanan. Semuanya berjalan di AWS. Antarmuka Streamlit sedang dikerjakan (#2).
 
 ## Link
 
 | Bagian | URL |
 |---|---|
 | Backend (REST API di AWS ECS Express Mode) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws |
+| Dokumentasi API interaktif (Swagger) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws/docs |
 | Frontend (Streamlit Community Cloud) | menyusul |
+
+### Mencoba API tanpa menulis kode
+
+API key dan akun demo (admin, seller, customer) diberikan terpisah kepada penilai, tidak ditulis di repo publik ini.
+
+1. Buka `/docs`, klik **Authorize**, isi `APIKeyHeader` dengan API key.
+2. Jalankan `POST /auth/login` dengan `{"username": "seller", "password": "..."}`, salin `token`.
+3. Klik **Authorize** lagi, isi `HTTPBearer` dengan token itu (tanpa kata Bearer).
+4. Jalankan `POST /chat` dengan `{"message": "Apa yang perlu ditingkatkan untuk produk bayi, dan berapa rata-rata penjualannya?", "session_id": "coba1"}`. Untuk pertanyaan lanjutan, pakai `session_id` yang sama.
+
+Jawaban membawa `proses`, yaitu agent dan tool yang dipakai, alasan rute, token, biaya, dan lama tiap langkah.
 
 ## Arsitektur
 
@@ -67,9 +79,14 @@ Pada jalur hybrid, agent SQL (sekitar 3 detik) dan agent RAG (10 sampai 14 detik
 Butuh [uv](https://docs.astral.sh/uv/) dan Python 3.12.
 
 ```sh
-uv sync
+uv sync --group dev --group ingest --group router
+cp .env.example .env            # isi kunci OpenAI, Qdrant, dan (opsional) AUTH_SECRET serta DEMO_USERS
+uv run python -c "import gzip, shutil; shutil.copyfileobj(gzip.open('data/olist.db.gz'), open('data/olist.db', 'wb'))"
 uv run uvicorn olist_assistant.api.main:app --reload
+uv run pytest
 ```
+
+Baris ketiga membongkar database yang di-commit. Untuk membangunnya ulang dari CSV, lihat bagian Database SQL (ETL). Tanpa `AUTH_SECRET`, login mati dan peran diambil dari field `role` di body, cocok untuk percobaan lokal.
 
 Atau dengan Docker.
 
@@ -79,6 +96,23 @@ docker compose up --build
 ```
 
 API terbuka di `http://localhost:8000`, dokumentasi interaktif di `http://localhost:8000/docs`.
+
+### Struktur repo
+
+```
+src/olist_assistant/
+  api/          FastAPI: main, auth (login dan peran), analytics, schemas, rate limit
+  agents/       supervisor (graph LangGraph), rag, sql_agent, sql_contract, proses (panel)
+  rag/          dokumen dan ingestion Qdrant
+  router/       dataset, baseline, dan router ONNX
+  sql/          ETL CSV ke SQLite dan views.sql
+frontend/       Streamlit (#2)
+scripts/        build_sqlite, ingest_qdrant, evaluate_gold, coba_agent_sql, deploy_aws, training router
+data/eval/      gold set, holdout, skenario mentoring, pertanyaan contoh SQL
+reports/        hasil evaluasi dan training router
+models/router/  model ONNX int8 dan tokenizer
+tests/          sekitar 190 tes, dijalankan CI di setiap PR
+```
 
 ## Ingestion RAG
 
@@ -297,8 +331,8 @@ Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assi
 
 | Anggota | Jalur |
 |---|---|
-| Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)) | Kerangka, kontrak API, Docker, CI, deploy AWS, agent RAG, supervisor, router intent |
-| Starletto ([@Starletto](https://github.com/Starletto)) | ETL ke SQLite, agent SQL dan guardrail, Streamlit |
+| Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)) | Kerangka dan kontrak API, Docker, CI dan job keamanan, deploy AWS, agent RAG, supervisor (jawaban langsung, dua agent paralel, pemeriksa kecukupan), router intent fine-tuned, login dan peran, panel proses, evaluasi gold set |
+| Starletto ([@Starletto](https://github.com/Starletto)) | ETL 9 CSV ke SQLite dan view terkurasi, agent SQL dengan pengaman berlapis dan aturan per peran, Streamlit, halaman market analysis, data dictionary |
 
 ## Deploy ke AWS
 
@@ -313,7 +347,7 @@ Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR 
 ## Alur kerja
 
 1. Buat branch dari `main` per tugas, misalnya `f2/etl-sqlite`.
-2. Buka pull request. CI (lint, test, build Docker, smoke test `/health`) harus hijau.
+2. Buka pull request. CI (lint, format, test, build Docker, smoke test `/health`, gitleaks, pip-audit) harus hijau.
 3. Anggota lain me-review sebelum merge.
 4. Jangan commit `.env`, API key, atau identitas akun cloud.
 
