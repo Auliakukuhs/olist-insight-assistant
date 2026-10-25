@@ -27,3 +27,4 @@ mlflow.db
 
 # Database hasil ETL terlalu besar untuk GitHub. Yang di-commit versi .gz
 data/olist.db
+reports/*.progres.jsonl

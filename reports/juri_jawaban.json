@@ -1,0 +1,830 @@
+{
+  "juri": "gpt-4o",
+  "penjawab": "gpt-4o-mini",
+  "total": {
+    "kasus": 59,
+    "setia": 50,
+    "relevan_rata": 4.54
+  },
+  "per_rute": {
+    "hybrid": {
+      "kasus": 24,
+      "setia": 18,
+      "relevan_rata": 4.08
+    },
+    "rag": {
+      "kasus": 18,
+      "setia": 15,
+      "relevan_rata": 4.72
+    },
+    "sql": {
+      "kasus": 17,
+      "setia": 17,
+      "relevan_rata": 5.0
+    }
+  },
+  "tidak_setia": [
+    {
+      "id": "rag-01",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Apa saja keluhan pembeli soal produk elektronik?",
+      "jawaban": "Beberapa keluhan pembeli mengenai produk elektronik meliputi:\n\n1. Produk yang diterima dalam kondisi rusak atau cacat, seperti yang diungkapkan dalam ulasan \"Produto com defeito!\" [review:6ec426df90098ed69f5eaf251cc47432].\n2. Ada juga keluhan tentang produk yang tidak lengkap, misalnya \"falta o segundo produto\" [review:5467d200779dc6c7336aaf7f5f908f51].\n3. Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan \"Não gostei\" [review:e9096d0d59b585d14ff336482e5d25b].\n4. Ulasan lain menyebutkan bahwa barang datang dalam keadaan pecah, contohnya \"Pedido veio quebrado\" [review:248316ad439dfb5a44a0a0cf5d52b34b].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan \"Não gostei\" [review:e9096d0d59b585d14ff336482e5d25b]."
+      ],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot sebagian besar didukung oleh bukti yang ada, namun terdapat satu klaim yang tidak didukung oleh bukti yang diberikan. Berikut adalah penilaian berdasarkan bukti yang tersedia:\n\n1. **Setia**: \n   - **Klaim Fakta Didukung**:\n     - Produk rusak atau cacat: \"Produto com defeito!\" [review:6ec426df90098ed69f5eaf251cc47432].\n     - Produk tidak lengkap: \"falta o segundo produto\" [review:5467d200779dc6c7336aaf7f5f908f51].\n     - Barang datang pecah: \"Pedido veio quebrado\" [review:248316ad439dfb5a44a0a0cf5d52b34b].\n   - **Klaim Fakta Tidak Didukung**:\n     - \"Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan 'Não gostei' [review:e9096d0d59b585d14ff336482e5d25b].\" Tidak ada bukti ulasan dengan ID tersebut dalam data yang diberikan.\n\n2. **Relevan**: \n   - Jawaban chatbot cukup relevan dengan pertanyaan pengguna mengenai keluhan pembeli soal produk elektronik. Namun, karena ada satu klaim yang tidak didukung, relevansi sedikit berkurang. Oleh karena itu, nilai relevansi adalah 4."
+    },
+    {
+      "id": "rag-06",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Ceritakan pengalaman pembeli yang barangnya tidak pernah sampai.",
+      "jawaban": "Berikut adalah beberapa pengalaman pembeli yang barangnya tidak pernah sampai:\n\n1. Seorang pembeli mengeluhkan bahwa pesanan yang dijanjikan tiba pada 22 Desember belum diterima hingga saat ulasan ditulis [review:70c59e65b586be2a27ea7d7b07c8eab5].\n2. Pembeli lain menyatakan bahwa produk yang dipesan tidak pernah dikirim, dan pesan dari jasa pengiriman menyebutkan bahwa barang belum sampai ke unit mereka [review:327d75c4d6dd076a7892dc910205f2e1].\n3. Ada juga yang menunggu barang yang seharusnya tiba sebelum 13 Maret, namun hingga saat itu barang belum diterima [review:73b022300fec142e9939aba068921a79].\n4. Seorang pembeli lainnya mengeluhkan bahwa barangnya sangat lama sampai dan belum tiba [review:47f3961ddbc91e07bd55fc4cdd11f9af].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Seorang pembeli lainnya mengeluhkan bahwa barangnya sangat lama sampai dan belum tiba [review:47f3961ddbc91e07bd55fc4cdd11f9af]."
+      ],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot sebagian besar setia pada bukti yang diberikan, namun terdapat satu klaim yang tidak sepenuhnya didukung oleh bukti. Berikut adalah penilaian lebih rinci:\n\n1. **Setia:**\n   - **Klaim 1:** Didukung oleh ulasan 70c59e65b586be2a27ea7d7b07c8eab5.\n   - **Klaim 2:** Didukung oleh ulasan 327d75c4d6dd076a7892dc910205f2e1.\n   - **Klaim 3:** Didukung oleh ulasan 73b022300fec142e9939aba068921a79.\n   - **Klaim 4:** Tidak sepenuhnya didukung. Ulasan 47f3961ddbc91e07bd55fc4cdd11f9af menyebutkan \"Demorou muito pra chegar\" yang berarti \"sangat lama untuk sampai\", tetapi tidak menyatakan bahwa barang belum tiba.\n\n2. **Relevan:**\n   - Jawaban chatbot relevan dengan pertanyaan pengguna, yaitu pengalaman pembeli yang barangnya tidak pernah sampai. Namun, satu klaim tidak sepenuhnya sesuai dengan bukti, sehingga relevansi dinilai 4 dari 5."
+    },
+    {
+      "id": "rag-10",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori cama mesa banho itu isinya barang apa?",
+      "jawaban": "Asumsi saya adalah Anda ingin mengetahui lebih lanjut tentang kategori \"cama mesa banho\". Kategori ini mencakup produk-produk seperti Bed Bath Table, Furniture Mattress and Upholstery, serta Furniture Bedroom, yang semuanya berfokus pada kenyamanan di ruang tidur dan mandi. \n\nJika Anda mencari saran, Anda bisa mempertimbangkan untuk mengeksplorasi produk dari kategori ini yang memiliki ulasan positif, seperti yang disebutkan dalam ulasan [review:...]. Selain itu, perhatikan juga statistik penjualan untuk memahami produk mana yang paling diminati. Jika Anda memerlukan data lebih lanjut, silakan beri tahu saya!",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Kategori ini mencakup produk-produk seperti Bed Bath Table, Furniture Mattress and Upholstery, serta Furniture Bedroom, yang semuanya berfokus pada kenyamanan di ruang tidur dan mandi."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot tidak sepenuhnya setia pada bukti yang ada. Klaim bahwa kategori \"cama mesa banho\" mencakup produk dari kategori lain seperti \"Furniture Mattress and Upholstery\" dan \"Furniture Bedroom\" tidak didukung oleh bukti yang diberikan. \n\nNamun, jawaban tersebut relevan sebagian karena menyebutkan \"Bed Bath Table\" yang sesuai dengan bukti bahwa \"cama mesa banho\" adalah nama Portugis untuk kategori tersebut. \n\nUntuk meningkatkan relevansi, jawaban seharusnya lebih fokus pada informasi yang didukung oleh bukti, yaitu bahwa \"cama mesa banho\" adalah kategori \"Bed Bath Table\" dengan 3029 produk di katalog OLIST."
+    },
+    {
+      "id": "hybrid-01",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori apa yang skor reviewnya paling jelek dan kenapa pembeli kecewa?",
+      "jawaban": "Berdasarkan data, kategori dengan skor review terendah adalah **office_furniture** dengan rata-rata skor 3.62, dan kategori ini memiliki minimal 30 pesanan. Beberapa pembeli kecewa dengan kategori ini, terutama karena masalah pengiriman dan komunikasi. Misalnya, satu pembeli mengeluhkan kurangnya komitmen dan tanggung jawab dari penjual terkait keterlambatan pengiriman [review:6285fe9d1457d9d4b0694f04f46f9699]. Untuk menangani masalah ini, Anda bisa: 1) Meningkatkan komunikasi dengan pembeli mengenai status pengiriman, seperti yang diharapkan oleh pembeli yang kecewa [review:6285fe9d1457d9d4b0694f04f46f9699]; 2) Memastikan komitmen terhadap waktu pengiriman agar sesuai dengan harapan pembeli; 3) Mengumpulkan umpan balik lebih lanjut dari pembeli yang tidak puas untuk memahami masalah yang lebih spesifik [review:f1ef6631203466229ef1710a73b49674].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Beberapa pembeli kecewa dengan kategori ini, terutama karena masalah pengiriman dan komunikasi.",
+        "Misalnya, satu pembeli mengeluhkan kurangnya komitmen dan tanggung jawab dari penjual terkait keterlambatan pengiriman [review:6285fe9d1457d9d4b0694f04f46f9699]."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot menyebutkan kategori dengan skor review terendah berdasarkan data yang diberikan, yaitu 'office_furniture'. Namun, klaim mengenai alasan kekecewaan pembeli tidak didukung oleh bukti yang ada, karena ulasan yang disediakan terkait dengan kategori 'home appliances', bukan 'office_furniture'. Oleh karena itu, jawaban tidak sepenuhnya setia pada bukti yang diberikan. \n\nRelevansi jawaban dinilai 3 karena meskipun chatbot berhasil mengidentifikasi kategori dengan skor terendah, alasan kekecewaan yang disebutkan tidak relevan dengan bukti yang ada."
+    },
+    {
+      "id": "hybrid-06",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori dengan ongkir paling mahal, apakah pembeli mengeluhkan ongkirnya?",
+      "jawaban": "Berdasarkan asumsi bahwa pengguna ingin mengetahui keluhan terkait ongkir, kategori dengan ongkir paling mahal adalah **computers** dengan rata-rata ongkir sebesar **48.45 BRL**. Meskipun tidak ada keluhan spesifik mengenai ongkir di kategori fashion, beberapa ulasan menyebutkan keterlambatan pengiriman, seperti pada ulasan dengan skor 1 yang menyatakan \"barang datang terlambat\" [review:47f3961ddbc91e07bd55fc4cdd11f9af]. \n\nSaran untuk menangani masalah ini adalah: \n1. Memastikan estimasi waktu pengiriman yang akurat untuk menghindari keterlambatan, seperti yang dikeluhkan dalam ulasan tersebut.\n2. Menyediakan informasi yang jelas mengenai ongkir di halaman produk untuk mengurangi kebingungan pembeli.\n3. Meningkatkan komunikasi dengan pembeli mengenai status pengiriman agar mereka tidak merasa khawatir jika terjadi keterlambatan.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Meskipun tidak ada keluhan spesifik mengenai ongkir di kategori fashion, beberapa ulasan menyebutkan keterlambatan pengiriman, seperti pada ulasan dengan skor 1 yang menyatakan \"barang datang terlambat\""
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot mengidentifikasi kategori dengan ongkir paling mahal berdasarkan data yang diberikan, yaitu 'computers' dengan rata-rata ongkir 48.45 BRL. Namun, klaim mengenai keluhan keterlambatan pengiriman tidak didukung oleh bukti yang relevan dengan kategori 'computers'. Ulasan yang disebutkan terkait dengan kategori 'cool stuff', bukan 'computers'. Oleh karena itu, klaim tersebut tidak setia terhadap bukti yang ada.\n\nRelevansi jawaban dinilai 3 karena:\n- Jawaban memberikan informasi yang relevan mengenai kategori dengan ongkir paling mahal, yang merupakan bagian dari pertanyaan pengguna.\n- Namun, jawaban tidak sepenuhnya menjawab pertanyaan mengenai keluhan pembeli terkait ongkir di kategori tersebut, karena tidak ada bukti keluhan spesifik yang disediakan untuk kategori 'computers'.\n\nUntuk meningkatkan relevansi, jawaban seharusnya fokus pada bukti yang tersedia dan tidak membuat asumsi atau klaim yang tidak didukung oleh data yang diberikan."
+    },
+    {
+      "id": "hybrid-09",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Apakah kategori dengan pengiriman paling lama juga punya review paling buruk? Beri angka dan contohnya.",
+      "jawaban": "Berdasarkan data, kategori dengan pengiriman paling lama adalah **computers**, dengan rata-rata lama kirim **13.51 hari** dan rata-rata skor ulasan **4.18**. Meskipun pengiriman lama, skor ulasan tidak tergolong buruk. Namun, ada beberapa ulasan negatif terkait pengiriman, seperti: \"Produk baik, tetapi pengirimannya sangat lambat.\" [review:bf609ea17aac99a384b50139d562c26a] dan \"Meskipun produk sesuai, pengirimannya memakan waktu yang lama.\" [review:1ae18fbab2ce7a7631d5f5b450974a79].\n\nJika Anda mengalami masalah serupa, berikut beberapa saran yang bisa dipertimbangkan:\n1. Periksa estimasi waktu pengiriman sebelum membeli, mengingat rata-rata lama kirim di kategori ini adalah **13.51 hari**.\n2. Siapkan alternatif pengambilan barang jika pengiriman memerlukan waktu lama, seperti yang disebutkan dalam ulasan \"Saya harus pergi ke kantor pos untuk mengambil barang, sangat merepotkan.\" [review:f6a856dbc72d2a8bb09d860da9215545].\n3. Pertimbangkan untuk membaca ulasan lain untuk mendapatkan gambaran lebih baik tentang pengalaman pembeli lain terkait pengiriman.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Kategori dengan pengiriman paling lama adalah computers.",
+        "Skor ulasan tidak tergolong buruk."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot sebagian besar didukung oleh bukti yang ada, namun terdapat klaim yang tidak didukung oleh bukti yang diberikan. \n\n1. **Setia:**\n   - Klaim bahwa kategori dengan pengiriman paling lama adalah 'computers' tidak didukung oleh bukti yang ada. Bukti hanya menunjukkan rata-rata lama kirim dan skor ulasan untuk kategori 'computers', tanpa perbandingan dengan kategori lain.\n   - Klaim bahwa skor ulasan tidak tergolong buruk juga tidak didukung secara langsung oleh bukti, karena tidak ada perbandingan dengan kategori lain atau definisi 'buruk'.\n\n2. **Relevan:**\n   - Jawaban memberikan informasi tentang rata-rata lama kirim dan skor ulasan untuk kategori 'computers', yang relevan dengan pertanyaan pengguna.\n   - Namun, jawaban tidak sepenuhnya menjawab pertanyaan tentang apakah kategori dengan pengiriman paling lama memiliki review paling buruk, karena tidak ada perbandingan dengan kategori lain. Oleh karena itu, relevansi dinilai 3."
+    },
+    {
+      "id": "hybrid-13",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori terlaris 2018 itu pembelinya puas tidak?",
+      "jawaban": "Berdasarkan data, kategori terlaris di tahun 2018 adalah **bed_bath_table** dengan jumlah pesanan sebanyak 9.399. Dari ulasan yang ada, pembeli menunjukkan kepuasan yang tinggi. Misalnya, salah satu pembeli menyatakan barang diterima tepat waktu dan dalam kondisi baik [review:7000b9edb9fb12d1d09f819cb33dfd86]. Selain itu, ada ulasan yang menyebutkan pengalaman positif dengan layanan dan kemudahan navigasi di situs [review:ccf42999eed40ec9ec4cb4bf770fd319]. Pembeli juga mengungkapkan kepuasan dengan produk yang diterima, menyatakan \"sangat baik\" dan \"saya sangat menyukainya\" [review:b842c07626701ee2c8f8ea72457c4e2b]. Secara keseluruhan, ulasan ini mencerminkan pengalaman positif dari pembeli.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Dari ulasan yang ada, pembeli menunjukkan kepuasan yang tinggi.",
+        "Misalnya, salah satu pembeli menyatakan barang diterima tepat waktu dan dalam kondisi baik [review:7000b9edb9fb12d1d09f819cb33dfd86].",
+        "Selain itu, ada ulasan yang menyebutkan pengalaman positif dengan layanan dan kemudahan navigasi di situs [review:ccf42999eed40ec9ec4cb4bf770fd319].",
+        "Pembeli juga mengungkapkan kepuasan dengan produk yang diterima, menyatakan \"sangat baik\" dan \"saya sangat menyukainya\" [review:b842c07626701ee2c8f8ea72457c4e2b]."
+      ],
+      "relevan": 2,
+      "alasan": "Jawaban chatbot tidak sepenuhnya setia karena klaim tentang kepuasan pembeli tidak didukung oleh bukti yang relevan. Ulasan yang disediakan tidak terkait dengan kategori 'bed_bath_table', melainkan kategori lain seperti 'fashion underwear beach' dan 'health beauty'. Oleh karena itu, klaim tentang kepuasan pembeli untuk kategori terlaris tidak dapat diverifikasi dengan bukti yang ada. \n\nRelevansi jawaban juga rendah karena meskipun chatbot menyebutkan kategori terlaris, ulasan yang digunakan untuk mendukung klaim kepuasan tidak relevan dengan kategori tersebut. Jawaban hanya sebagian menjawab pertanyaan pengguna mengenai kepuasan pembeli untuk kategori terlaris."
+    },
+    {
+      "id": "hybrid-14",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Tampilkan 3 kategori dengan skor terendah beserta contoh keluhannya.",
+      "jawaban": "Berdasarkan asumsi bahwa pengguna ingin mengetahui kategori dengan skor terendah beserta keluhannya, berikut adalah tiga kategori dengan skor terendah dan contoh keluhannya:\n\n1. **office_furniture** - Rata-rata skor: 3.62. Contoh keluhan: Pembeli mengeluhkan bahwa produk yang diterima tidak sesuai dengan gambar yang ditampilkan, dan ada yang menerima barang yang rusak [review:687a142218c10118894bcdb14711e3f8].\n\n2. **fashion_female_clothing** - Rata-rata skor: 3.73. Contoh keluhan: Beberapa pembeli melaporkan bahwa mereka menerima produk yang salah dan ada yang menyatakan barang tidak sesuai dengan foto yang ditampilkan [review:1c0b75274dfc20d452ce98d5bc8f9f15].\n\n3. **fashion_male_clothing** - Rata-rata skor: 3.73. Contoh keluhan: Terdapat keluhan mengenai produk yang dikirim tidak sesuai dengan yang dipesan, termasuk kesalahan dalam warna dan jenis produk [review:836ce0716522eb7ef452806e28597884].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Contoh keluhan untuk kategori 'office_furniture' tidak didukung oleh bukti ulasan yang ada.",
+        "Contoh keluhan untuk kategori 'fashion_female_clothing' tidak didukung oleh bukti ulasan yang ada.",
+        "Contoh keluhan untuk kategori 'fashion_male_clothing' tidak didukung oleh bukti ulasan yang ada."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot menyebutkan tiga kategori dengan skor terendah sesuai hasil query SQL, namun contoh keluhan yang diberikan tidak didukung oleh bukti ulasan yang tersedia. Oleh karena itu, meskipun sebagian besar informasi relevan, klaim mengenai keluhan tidak dapat diverifikasi dengan bukti yang ada."
+    },
+    {
+      "id": "holdout-04",
+      "set": "gold_holdout",
+      "rute": "rag",
+      "pertanyaan": "Kategori utilidades domesticas itu jualan apa saja?",
+      "jawaban": "Kategori \"utilidades domesticas\" mencakup beberapa jenis produk, antara lain:\n\n1. **Housewares**: Terdapat 2.335 produk yang termasuk dalam kategori ini.\n2. **Home Appliances**: Ada 370 produk yang termasuk dalam kategori ini.\n3. **Home Appliances 2**: Terdapat 90 produk dalam kategori ini.\n\nProduk-produk ini biasanya berkaitan dengan peralatan dan perlengkapan rumah tangga.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Home Appliances: Ada 370 produk yang termasuk dalam kategori ini.",
+        "Home Appliances 2: Terdapat 90 produk dalam kategori ini."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot sebagian besar setia pada bukti yang diberikan, namun terdapat klaim yang tidak didukung oleh bukti yang tersedia. \n\n1. **Setia**: \n   - Klaim mengenai jumlah produk dalam kategori \"Housewares\" didukung oleh bukti yang menyebutkan 2.335 produk.\n   - Klaim mengenai \"Home Appliances\" dan \"Home Appliances 2\" tidak didukung oleh bukti yang menyatakan bahwa kategori ini adalah bagian dari \"utilidades domesticas\".\n\n2. **Relevan**: \n   - Jawaban memberikan informasi tentang kategori \"utilidades domesticas\" dengan menyebutkan produk dalam kategori \"Housewares\". Namun, informasi mengenai \"Home Appliances\" dan \"Home Appliances 2\" tidak relevan karena tidak ada bukti bahwa mereka termasuk dalam \"utilidades domesticas\". Oleh karena itu, jawaban hanya sebagian menjawab pertanyaan pengguna."
+    }
+  ],
+  "semua": [
+    {
+      "id": "rag-01",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Apa saja keluhan pembeli soal produk elektronik?",
+      "jawaban": "Beberapa keluhan pembeli mengenai produk elektronik meliputi:\n\n1. Produk yang diterima dalam kondisi rusak atau cacat, seperti yang diungkapkan dalam ulasan \"Produto com defeito!\" [review:6ec426df90098ed69f5eaf251cc47432].\n2. Ada juga keluhan tentang produk yang tidak lengkap, misalnya \"falta o segundo produto\" [review:5467d200779dc6c7336aaf7f5f908f51].\n3. Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan \"Não gostei\" [review:e9096d0d59b585d14ff336482e5d25b].\n4. Ulasan lain menyebutkan bahwa barang datang dalam keadaan pecah, contohnya \"Pedido veio quebrado\" [review:248316ad439dfb5a44a0a0cf5d52b34b].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan \"Não gostei\" [review:e9096d0d59b585d14ff336482e5d25b]."
+      ],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot sebagian besar didukung oleh bukti yang ada, namun terdapat satu klaim yang tidak didukung oleh bukti yang diberikan. Berikut adalah penilaian berdasarkan bukti yang tersedia:\n\n1. **Setia**: \n   - **Klaim Fakta Didukung**:\n     - Produk rusak atau cacat: \"Produto com defeito!\" [review:6ec426df90098ed69f5eaf251cc47432].\n     - Produk tidak lengkap: \"falta o segundo produto\" [review:5467d200779dc6c7336aaf7f5f908f51].\n     - Barang datang pecah: \"Pedido veio quebrado\" [review:248316ad439dfb5a44a0a0cf5d52b34b].\n   - **Klaim Fakta Tidak Didukung**:\n     - \"Beberapa pembeli merasa tidak puas dengan produk yang diterima, seperti dalam ulasan 'Não gostei' [review:e9096d0d59b585d14ff336482e5d25b].\" Tidak ada bukti ulasan dengan ID tersebut dalam data yang diberikan.\n\n2. **Relevan**: \n   - Jawaban chatbot cukup relevan dengan pertanyaan pengguna mengenai keluhan pembeli soal produk elektronik. Namun, karena ada satu klaim yang tidak didukung, relevansi sedikit berkurang. Oleh karena itu, nilai relevansi adalah 4."
+    },
+    {
+      "id": "rag-02",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Gimana pengalaman orang beli furnitur di OLIST?",
+      "jawaban": "Pengalaman pembeli furnitur di OLIST umumnya positif. Beberapa ulasan menyatakan kepuasan tinggi, seperti \"saya sangat menyukai produk ini\" [review:0d429a74885e1504eb865c9ff1d7458d] dan \"produk sempurna\" [review:f4365177831efebbec007c4e2471ea89]. Pembeli juga memberikan pujian terhadap pelayanan, dengan satu ulasan menyebutkan bahwa \"pelayanan sesuai harapan\" [review:99655414706e9803cfebed01dcf96cff]. Secara keseluruhan, banyak yang merekomendasikan seller dan produk yang mereka beli.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta yang dibuat dalam jawaban memiliki referensi langsung ke ulasan yang relevan, dan tidak ada klaim yang tidak didukung oleh bukti. Jawaban tersebut juga secara langsung menjawab pertanyaan pengguna mengenai pengalaman pembeli furnitur di OLIST, dengan memberikan ringkasan ulasan yang menunjukkan kepuasan pembeli dan kualitas pelayanan."
+    },
+    {
+      "id": "rag-03",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Ada ulasan yang bilang barangnya datang rusak?",
+      "jawaban": "Ada beberapa ulasan yang menyebutkan barang datang dalam kondisi rusak:\n\n1. Salah satu pembeli melaporkan bahwa produk datang dalam keadaan patah dan ingin mengembalikannya [review:9837c1aa57c1116c83c2dd5050f685aa].\n2. Ulasan lain menyebutkan bahwa barang yang diterima sangat kotor dan kemasannya robek [review:65edb79a59e6efe7c9a3488dabce368f].\n\nKedua ulasan ini menunjukkan pengalaman negatif terkait kondisi barang saat diterima.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta yang dibuat oleh chatbot memiliki dukungan dari ulasan yang tersedia:\n\n1. **Klaim Fakta 1**: \"Salah satu pembeli melaporkan bahwa produk datang dalam keadaan patah dan ingin mengembalikannya\" didukung oleh ulasan dengan ID 9837c1aa57c1116c83c2dd5050f685aa yang menyatakan \"o produto veio quebrado ,,, quero devolver\".\n\n2. **Klaim Fakta 2**: \"Ulasan lain menyebutkan bahwa barang yang diterima sangat kotor dan kemasannya robek\" didukung oleh ulasan dengan ID 65edb79a59e6efe7c9a3488dabce368f yang menyatakan \"chegaram bem sujas ,caixa rasgada\".\n\nJawaban chatbot juga relevan dengan pertanyaan pengguna, yang menanyakan tentang ulasan terkait barang yang datang rusak. Chatbot memberikan informasi yang tepat dan langsung dari ulasan yang tersedia, sehingga mendapatkan nilai relevansi tertinggi."
+    },
+    {
+      "id": "rag-04",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Pembeli parfum biasanya komplain soal apa?",
+      "jawaban": "Pembeli parfum sering mengeluhkan beberapa masalah, antara lain:\n\n1. Produk yang diterima dalam kondisi cacat, seperti tutup spray yang rusak [review:07f1ee6108ca1aa94fd4379ead6d96e3].\n2. Ketidakjelasan status pengiriman, di mana barang tiba-tiba dinyatakan tidak tersedia tanpa komunikasi lebih lanjut [review:bfad67ce5d41aebaa2713ad3aa0d129d].\n3. Kesalahan pengiriman, di mana produk yang diterima tidak sesuai dengan yang dipesan [review:ebd6fe59a49aff8223ce1d5cfe6a4592].\n4. Produk yang diterima tidak asli, yang menyebabkan kekecewaan [review:c03099ac307403551cc1bf5419889e46].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai keluhan pembeli parfum sesuai dengan ulasan yang tersedia. Chatbot berhasil mengidentifikasi dan menyampaikan masalah utama yang dihadapi pembeli parfum berdasarkan ulasan yang ada, menjadikannya relevan dan tepat dalam menjawab pertanyaan pengguna."
+    },
+    {
+      "id": "rag-05",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Apa yang disukai pembeli dari jam tangan?",
+      "jawaban": "Pembeli menyukai jam tangan karena beberapa alasan berikut:\n\n1. Banyak yang menyatakan bahwa mereka sangat menyukai produk tersebut, seperti dalam ulasan \"Adorei! Lindo!\" [review:e0f224b38ffaa51f860d043208dcc8d0].\n2. Ulasan positif lainnya menunjukkan kepuasan dengan kata-kata sederhana seperti \"Boa\" dan \"Gostei!\" [review:0c1f0fe6191ad864265cc68c4805f832; review:92e62e4f3ea203ac193f3271d85b11ea].\n3. Beberapa pembeli merekomendasikan jam tangan ini kepada orang lain, menunjukkan kepercayaan mereka terhadap produk tersebut [review:540d9d82538804c7e0e0e1208d519bc6].\n4. Secara keseluruhan, ulasan menunjukkan kepuasan tinggi dengan kualitas dan penampilan jam tangan.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot didukung oleh bukti yang ada, dengan ulasan yang menunjukkan kepuasan pembeli terhadap jam tangan. Namun, jawaban bisa lebih spesifik dengan menyebutkan aspek-aspek tertentu dari jam tangan yang disukai, seperti desain atau fungsi, jika informasi tersebut tersedia."
+    },
+    {
+      "id": "rag-06",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Ceritakan pengalaman pembeli yang barangnya tidak pernah sampai.",
+      "jawaban": "Berikut adalah beberapa pengalaman pembeli yang barangnya tidak pernah sampai:\n\n1. Seorang pembeli mengeluhkan bahwa pesanan yang dijanjikan tiba pada 22 Desember belum diterima hingga saat ulasan ditulis [review:70c59e65b586be2a27ea7d7b07c8eab5].\n2. Pembeli lain menyatakan bahwa produk yang dipesan tidak pernah dikirim, dan pesan dari jasa pengiriman menyebutkan bahwa barang belum sampai ke unit mereka [review:327d75c4d6dd076a7892dc910205f2e1].\n3. Ada juga yang menunggu barang yang seharusnya tiba sebelum 13 Maret, namun hingga saat itu barang belum diterima [review:73b022300fec142e9939aba068921a79].\n4. Seorang pembeli lainnya mengeluhkan bahwa barangnya sangat lama sampai dan belum tiba [review:47f3961ddbc91e07bd55fc4cdd11f9af].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Seorang pembeli lainnya mengeluhkan bahwa barangnya sangat lama sampai dan belum tiba [review:47f3961ddbc91e07bd55fc4cdd11f9af]."
+      ],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot sebagian besar setia pada bukti yang diberikan, namun terdapat satu klaim yang tidak sepenuhnya didukung oleh bukti. Berikut adalah penilaian lebih rinci:\n\n1. **Setia:**\n   - **Klaim 1:** Didukung oleh ulasan 70c59e65b586be2a27ea7d7b07c8eab5.\n   - **Klaim 2:** Didukung oleh ulasan 327d75c4d6dd076a7892dc910205f2e1.\n   - **Klaim 3:** Didukung oleh ulasan 73b022300fec142e9939aba068921a79.\n   - **Klaim 4:** Tidak sepenuhnya didukung. Ulasan 47f3961ddbc91e07bd55fc4cdd11f9af menyebutkan \"Demorou muito pra chegar\" yang berarti \"sangat lama untuk sampai\", tetapi tidak menyatakan bahwa barang belum tiba.\n\n2. **Relevan:**\n   - Jawaban chatbot relevan dengan pertanyaan pengguna, yaitu pengalaman pembeli yang barangnya tidak pernah sampai. Namun, satu klaim tidak sepenuhnya sesuai dengan bukti, sehingga relevansi dinilai 4 dari 5."
+    },
+    {
+      "id": "rag-07",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Apakah ada review yang memuji kemasan produk?",
+      "jawaban": "Ada beberapa ulasan yang memuji kemasan produk:\n\n1. Ulasan dengan skor 5 menyebutkan \"kemasan yang sangat baik\" untuk kategori kesehatan dan kecantikan [review:40743b46a0ee86375cedb95e82b78d75].\n2. Ulasan lain juga dengan skor 5 menyatakan \"sangat baik dikemas\" dalam kategori makanan [review:f5740b3a09f0246f792e20fd13282d25].\n3. Ulasan dengan skor 5 lainnya menekankan bahwa produk diterima dengan kemasan yang baik dan rapi [review:f3f7dbf0220fe95b4705bd88833fcc17].\n\nUlasan-ulasan ini menunjukkan kepuasan pembeli terhadap kemasan produk yang diterima.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai ulasan, skor, dan isi pujian tentang kemasan produk sesuai dengan data yang ada. Jawaban tersebut juga relevan dengan pertanyaan pengguna, yaitu mengenai adanya ulasan yang memuji kemasan produk."
+    },
+    {
+      "id": "rag-08",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Seperti apa keluhan pembeli terhadap seller dari Minas Gerais?",
+      "jawaban": "Keluhan pembeli terhadap seller dari Minas Gerais mencakup beberapa masalah, antara lain:\n\n1. Banyak produk yang diterima dalam kondisi cacat atau tidak dapat digunakan, seperti masalah pada perakitan [review:4ae065a9ed27676994e75f0f0f3bab4c].\n2. Beberapa pembeli melaporkan bahwa produk yang mereka terima tidak sesuai dengan deskripsi atau kualitas yang diharapkan [review:e2e729eb640d33f5be9ff317a3a3007d].\n3. Kesulitan dalam menghubungi seller untuk proses pengembalian atau pertukaran produk juga menjadi keluhan [review:e2e729eb640d33f5be9ff317a3a3007d].\n4. Ulasan negatif lainnya menunjukkan bahwa produk yang diterima tidak berfungsi dengan baik atau memiliki cacat [review:50a97079bab9b08502ac7ad2d962ae78].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta yang dibuat dalam jawaban memiliki referensi langsung ke ulasan yang relevan, dan jawaban tersebut secara tepat menjawab pertanyaan pengguna mengenai keluhan pembeli terhadap seller dari Minas Gerais."
+    },
+    {
+      "id": "rag-09",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "What do customers complain about in the toys category?",
+      "jawaban": "Dalam kategori mainan, beberapa keluhan dari pelanggan meliputi:\n\n1. Produk tidak diterima, dengan salah satu pelanggan menyatakan kekhawatiran karena belum menerima barangnya [review:9043efcb9bdb61f596768e9a8f8f5aaa].\n2. Ketidakpuasan terhadap ketersediaan produk, di mana pelanggan diberitahu bahwa barang yang dipesan tidak tersedia dan meminta pembatalan [review:cfa79cb33e0df39678b56d4cd070f3f7].\n3. Masalah dengan pengiriman, termasuk pengiriman barang yang salah dan kurangnya respons dari penjual [review:e3d0b5759bcb4f0cf86a52f8e0c9664f].\n4. Beberapa pelanggan merasa sangat kecewa dan meminta pengembalian uang [review:f2fc1ccbedaf62be611cfaadf515aaf2].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta yang dibuat dalam jawaban memiliki referensi langsung ke ulasan yang relevan:\n\n1. **Produk tidak diterima**: Didukung oleh ulasan 9043efcb9bdb61f596768e9a8f8f5aaa, di mana pelanggan menyatakan kekhawatiran karena belum menerima barangnya.\n2. **Ketidakpuasan terhadap ketersediaan produk**: Didukung oleh ulasan cfa79cb33e0df39678b56d4cd070f3f7, di mana pelanggan diberitahu bahwa barang yang dipesan tidak tersedia dan meminta pembatalan.\n3. **Masalah dengan pengiriman**: Didukung oleh ulasan e3d0b5759bcb4f0cf86a52f8e0c9664f, yang menyebutkan pengiriman barang yang salah dan kurangnya respons dari penjual.\n4. **Permintaan pengembalian uang**: Didukung oleh ulasan f2fc1ccbedaf62be611cfaadf515aaf2, di mana pelanggan merasa sangat kecewa dan meminta pengembalian uang.\n\nJawaban chatbot juga relevan dengan pertanyaan pengguna, yaitu mengenai keluhan pelanggan dalam kategori mainan. Semua poin yang disebutkan langsung menjawab pertanyaan tersebut."
+    },
+    {
+      "id": "rag-10",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori cama mesa banho itu isinya barang apa?",
+      "jawaban": "Asumsi saya adalah Anda ingin mengetahui lebih lanjut tentang kategori \"cama mesa banho\". Kategori ini mencakup produk-produk seperti Bed Bath Table, Furniture Mattress and Upholstery, serta Furniture Bedroom, yang semuanya berfokus pada kenyamanan di ruang tidur dan mandi. \n\nJika Anda mencari saran, Anda bisa mempertimbangkan untuk mengeksplorasi produk dari kategori ini yang memiliki ulasan positif, seperti yang disebutkan dalam ulasan [review:...]. Selain itu, perhatikan juga statistik penjualan untuk memahami produk mana yang paling diminati. Jika Anda memerlukan data lebih lanjut, silakan beri tahu saya!",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Kategori ini mencakup produk-produk seperti Bed Bath Table, Furniture Mattress and Upholstery, serta Furniture Bedroom, yang semuanya berfokus pada kenyamanan di ruang tidur dan mandi."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot tidak sepenuhnya setia pada bukti yang ada. Klaim bahwa kategori \"cama mesa banho\" mencakup produk dari kategori lain seperti \"Furniture Mattress and Upholstery\" dan \"Furniture Bedroom\" tidak didukung oleh bukti yang diberikan. \n\nNamun, jawaban tersebut relevan sebagian karena menyebutkan \"Bed Bath Table\" yang sesuai dengan bukti bahwa \"cama mesa banho\" adalah nama Portugis untuk kategori tersebut. \n\nUntuk meningkatkan relevansi, jawaban seharusnya lebih fokus pada informasi yang didukung oleh bukti, yaitu bahwa \"cama mesa banho\" adalah kategori \"Bed Bath Table\" dengan 3029 produk di katalog OLIST."
+    },
+    {
+      "id": "rag-11",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Ada pembeli yang merasa produknya tidak sesuai deskripsi?",
+      "jawaban": "Ya, ada beberapa pembeli yang merasa produknya tidak sesuai deskripsi. Contohnya:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima berbeda dari yang diiklankan [review:da8e936bc2f1b52ec626f8aa41f3df44].\n2. Pembeli lain juga menyatakan bahwa produk yang dikirim tidak sesuai dengan deskripsi yang diberikan [review:418e116e674f189fe8cf49e42f9de462].\n3. Ada juga yang mengatakan bahwa produk yang diterima berbeda dari yang dijanjikan [review:51a1578250f045f0a1044b653ee9b3be].\n4. Satu ulasan menyebutkan bahwa produk yang diterima salah [review:be5ee84b468eeadea14d65bab28d34a0].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai keluhan pembeli tentang produk yang tidak sesuai deskripsi didukung oleh ulasan yang relevan. Jawaban tersebut juga menjawab pertanyaan pengguna dengan tepat, yaitu mengenai adanya pembeli yang merasa produknya tidak sesuai deskripsi."
+    },
+    {
+      "id": "rag-12",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Bagaimana pendapat pembeli tentang aksesoris otomotif?",
+      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang aksesoris otomotif:\n\n1. Beberapa pembeli sangat puas, seperti yang menyatakan bahwa mereka menerima produk sesuai harapan dan tepat waktu, serta memberikan rekomendasi tinggi [review:06fa0f0cd0a80fb34dc20883ee371c66].\n2. Ada juga yang mengungkapkan kepuasan dengan kualitas produk dan menyatakan akan membeli lagi di masa depan [review:cd471cfd5bee02d75eba615948ab5e09].\n3. Namun, terdapat keluhan mengenai pengiriman yang tidak lengkap, di mana pembeli hanya menerima sebagian dari pesanan yang dibayar [review:515da289d55287bc7bf45cc2fa1eda67].\n4. Secara keseluruhan, ulasan menunjukkan kombinasi antara kepuasan dan masalah dalam pengiriman.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot secara akurat mencerminkan isi ulasan yang diberikan dalam bukti. Setiap klaim fakta yang dibuat oleh chatbot didukung oleh bukti yang tersedia, dan jawaban tersebut secara langsung menjawab pertanyaan pengguna tentang pendapat pembeli mengenai aksesoris otomotif."
+    },
+    {
+      "id": "rag-13",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Review bintang satu untuk perlengkapan olahraga biasanya membahas apa?",
+      "jawaban": "Ulasan bintang satu untuk perlengkapan olahraga biasanya mencakup beberapa keluhan, seperti:\n\n1. Produk yang diterima tidak sesuai dengan yang dipesan, seperti pengiriman barang yang salah [review:5a4a69b43fa5569dc8df97590152e236].\n2. Pembeli membatalkan pesanan karena ketidakpuasan, misalnya terkait produk yang tidak memenuhi harapan [review:8801d20fbcfc6b400eb8ea64522971c6].\n3. Masalah pengiriman, seperti barang yang tidak sampai atau terlambat [review:3a8ff86ce1079a5f8464b95b394568ca].\n4. Ulasan yang tidak jelas atau tidak memberikan informasi yang berarti, seperti hanya menyatakan \"Bom\" tanpa konteks [review:79d76926e7e1ddd4ebdcd79ec83c74fa].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot secara akurat mencerminkan isi ulasan bintang satu yang diberikan dalam bukti. Setiap klaim yang dibuat oleh chatbot didukung oleh bukti yang tersedia:\n\n1. **Produk yang diterima tidak sesuai dengan yang dipesan**: Didukung oleh ulasan 5a4a69b43fa5569dc8df97590152e236 yang menyatakan \"Oferece um produto manda outro. Indignado.\"\n2. **Pembeli membatalkan pesanan**: Didukung oleh ulasan 8801d20fbcfc6b400eb8ea64522971c6 yang menyatakan \"Cancelei a compra dessa lanterna.\"\n3. **Masalah pengiriman**: Didukung oleh ulasan 3a8ff86ce1079a5f8464b95b394568ca yang menyatakan \"Ta, de rosca, não chega.\"\n4. **Ulasan yang tidak jelas**: Didukung oleh ulasan 79d76926e7e1ddd4ebdcd79ec83c74fa yang hanya menyatakan \"Bom.\"\n\nJawaban chatbot mencakup semua aspek yang relevan dengan pertanyaan pengguna dan didukung oleh bukti yang tersedia, sehingga mendapatkan nilai relevansi tertinggi."
+    },
+    {
+      "id": "rag-14",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Pembeli yang puas dengan pengiriman cepat bilang apa?",
+      "jawaban": "Pembeli yang puas dengan pengiriman cepat menyatakan hal-hal berikut:\n\n1. Mereka mengapresiasi pengiriman yang sangat cepat, seperti dalam ulasan yang menyebutkan \"pengiriman super cepat\" [review:1d37dd21d43d04d7b35226a84718386b].\n2. Beberapa ulasan menekankan kecepatan pengiriman dengan frasa \"pengiriman sangat cepat\" [review:4fe147835743747f5c1ceff423fc0330].\n3. Ulasan lain juga mencatat pengiriman yang cepat, menunjukkan kepuasan tinggi terhadap layanan [review:3d33fe0e1a463975187574f2b9a7e510].\n4. Secara keseluruhan, banyak pembeli merekomendasikan seller karena pengiriman yang efisien.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai ulasan pembeli yang puas dengan pengiriman cepat didukung oleh potongan ulasan yang relevan. Jawaban tersebut juga menjawab pertanyaan pengguna dengan tepat, yaitu mengenai apa yang dikatakan pembeli yang puas dengan pengiriman cepat."
+    },
+    {
+      "id": "rag-15",
+      "set": "gold",
+      "rute": "rag",
+      "pertanyaan": "Ada keluhan soal produk palsu atau tidak original?",
+      "jawaban": "Ada beberapa keluhan mengenai produk palsu atau tidak original:\n\n1. Seorang pembeli mengeluhkan bahwa produk yang diterima adalah barang palsu dengan kode keaslian yang tidak valid [review:d2a171215ddd370f5c874cc7652310f8].\n2. Pembeli lain menyatakan bahwa tinta yang diterima adalah palsu dan kemasannya tidak sesuai [review:3ff139f4da87ba9b3ccc354b0cea150d].\n3. Ada juga yang mengeluhkan bahwa produk yang diterima tidak memiliki segel keaslian [review:db8d57be56f47bdaa9a09f1d79e4bd8f].\n4. Satu ulasan menyebutkan bahwa pembeli merasa tertipu karena produk yang diterima tidak sesuai dengan yang diiklankan [review:6778d8e88b9826ce74cb1aa41d5a1da6].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai keluhan produk palsu atau tidak original sesuai dengan ulasan yang tersedia. Chatbot berhasil mengidentifikasi dan menyampaikan keluhan dari ulasan dengan tepat, menjawab pertanyaan pengguna secara langsung dan lengkap."
+    },
+    {
+      "id": "sql-01",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa jumlah pesanan yang dikirim ke São Paulo?",
+      "jawaban": "Jumlah pesanan yang dikirim ke São Paulo adalah 15.291.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang menunjukkan jumlah pesanan yang dikirim ke São Paulo adalah 15.291. Tidak ada klaim fakta lain yang dibuat dalam jawaban tersebut, dan informasi yang diberikan relevan serta menjawab pertanyaan pengguna secara langsung."
+    },
+    {
+      "id": "sql-02",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Kategori dengan penjualan terbanyak tahun 2017 apa?",
+      "jawaban": "Kategori dengan penjualan terbanyak tahun 2017 adalah **health_beauty** dengan total penjualan sebesar **BRL 1,255,695.13**.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa kategori dengan penjualan terbanyak tahun 2017 adalah 'health_beauty' dan total penjualan sebesar BRL 1,255,695.13 sesuai dengan hasil query SQL yang disediakan. Jawaban ini menjawab pertanyaan pengguna secara tepat dan lengkap."
+    },
+    {
+      "id": "sql-03",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa rata-rata harga produk elektronik?",
+      "jawaban": "Rata-rata harga produk elektronik adalah 57,02 BRL.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim fakta mengenai rata-rata harga produk elektronik sebesar 57,02 BRL sesuai dengan hasil query SQL yang ditampilkan. Jawaban tersebut juga relevan dan menjawab pertanyaan pengguna secara langsung dan tepat."
+    },
+    {
+      "id": "sql-04",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa total nilai pembayaran semua pesanan?",
+      "jawaban": "Total nilai pembayaran semua pesanan adalah 16.008.872,12 BRL.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang disediakan. Angka total nilai pembayaran yang disebutkan dalam jawaban sesuai dengan hasil query, yaitu 16.008.872,12 BRL. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai total nilai pembayaran semua pesanan."
+    },
+    {
+      "id": "sql-05",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Metode pembayaran apa yang paling sering dipakai?",
+      "jawaban": "Metode pembayaran yang paling sering dipakai adalah **credit_card** dengan jumlah penggunaan sebanyak **74259** kali.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa metode pembayaran yang paling sering dipakai adalah 'credit_card' dengan jumlah penggunaan sebanyak 74259 kali sesuai dengan hasil query SQL yang ditampilkan. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai metode pembayaran yang paling sering dipakai."
+    },
+    {
+      "id": "sql-06",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa persen pesanan yang terlambat dari estimasi?",
+      "jawaban": "Persentase pesanan yang terlambat dari estimasi adalah 5.73%. Ini dihitung sebagai rata-rata persen terlambat dari semua kategori.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Persentase pesanan yang terlambat, yaitu 5.73%, sesuai dengan hasil query SQL yang ditampilkan. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai persentase pesanan yang terlambat dari estimasi."
+    },
+    {
+      "id": "sql-08",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa rata-rata skor review kategori furnitur?",
+      "jawaban": "Rata-rata skor review untuk kategori furnitur adalah 4.04.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot menyatakan bahwa rata-rata skor review untuk kategori furnitur adalah 4.04. Klaim ini didukung oleh hasil query SQL yang menunjukkan empat nilai rata-rata skor: 4.13, 4.02, 4.04, dan 3.82. Dari data ini, 4.04 adalah salah satu nilai yang muncul, sehingga klaim tersebut didukung oleh bukti yang ada. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai rata-rata skor review kategori furnitur."
+    },
+    {
+      "id": "sql-09",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa rata-rata ongkir ke Rio de Janeiro?",
+      "jawaban": "Rata-rata ongkir ke Rio de Janeiro adalah 20.96 BRL.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa rata-rata ongkir ke Rio de Janeiro adalah 20.96 BRL sesuai dengan hasil query SQL yang menunjukkan nilai rata-rata ongkir tersebut. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai rata-rata ongkir ke Rio de Janeiro."
+    },
+    {
+      "id": "sql-10",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Bulan apa yang penjualannya paling tinggi?",
+      "jawaban": "Bulan dengan penjualan tertinggi adalah November 2017, dengan total penjualan sebesar 1.003.862,14 BRL.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa November 2017 adalah bulan dengan penjualan tertinggi dan total penjualan sebesar 1.003.862,14 BRL sesuai dengan hasil query SQL yang menunjukkan bulan '2017-11' dengan total penjualan 1003862.14 BRL. Jawaban ini menjawab pertanyaan pengguna secara tepat dan lengkap."
+    },
+    {
+      "id": "sql-11",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Ada berapa produk dalam kategori mainan?",
+      "jawaban": "Ada 1.396 produk dalam kategori mainan.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang menunjukkan bahwa ada 1.396 produk dalam kategori mainan. Jawaban ini tepat dan relevan dengan pertanyaan pengguna."
+    },
+    {
+      "id": "sql-12",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa lama rata-rata pengiriman dari pembelian sampai diterima?",
+      "jawaban": "Rata-rata lama pengiriman dari pembelian sampai diterima adalah 12.56 hari. Data ini diambil dari pesanan yang statusnya 'delivered'.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa rata-rata lama pengiriman adalah 12.56 hari sesuai dengan hasil query SQL yang menunjukkan nilai rata-rata tersebut. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai rata-rata lama pengiriman dari pembelian sampai diterima."
+    },
+    {
+      "id": "sql-13",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Top 5 kota dengan pembeli terbanyak?",
+      "jawaban": "Top 5 kota dengan pembeli terbanyak adalah sebagai berikut:\n\n1. **Sao Paulo**: 15,291 pembeli\n2. **Rio de Janeiro**: 6,800 pembeli\n3. **Belo Horizonte**: 2,737 pembeli\n4. **Brasilia**: 2,111 pembeli\n5. **Curitiba**: 1,502 pembeli",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang disediakan. Setiap klaim fakta mengenai nama kota dan jumlah pembeli sesuai dengan data yang ada. Jawaban juga relevan dan menjawab pertanyaan pengguna dengan tepat, yaitu menyebutkan 5 kota dengan pembeli terbanyak."
+    },
+    {
+      "id": "sql-14",
+      "set": "gold",
+      "rute": "sql",
+      "pertanyaan": "Berapa rata-rata jumlah cicilan kartu kredit?",
+      "jawaban": "Rata-rata jumlah cicilan kartu kredit adalah sekitar 2.93.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang menunjukkan rata-rata jumlah cicilan kartu kredit adalah 2.9305209171359614, yang dibulatkan menjadi 2.93 dalam jawaban. Jawaban ini tepat menjawab pertanyaan pengguna mengenai rata-rata jumlah cicilan kartu kredit."
+    },
+    {
+      "id": "hybrid-01",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori apa yang skor reviewnya paling jelek dan kenapa pembeli kecewa?",
+      "jawaban": "Berdasarkan data, kategori dengan skor review terendah adalah **office_furniture** dengan rata-rata skor 3.62, dan kategori ini memiliki minimal 30 pesanan. Beberapa pembeli kecewa dengan kategori ini, terutama karena masalah pengiriman dan komunikasi. Misalnya, satu pembeli mengeluhkan kurangnya komitmen dan tanggung jawab dari penjual terkait keterlambatan pengiriman [review:6285fe9d1457d9d4b0694f04f46f9699]. Untuk menangani masalah ini, Anda bisa: 1) Meningkatkan komunikasi dengan pembeli mengenai status pengiriman, seperti yang diharapkan oleh pembeli yang kecewa [review:6285fe9d1457d9d4b0694f04f46f9699]; 2) Memastikan komitmen terhadap waktu pengiriman agar sesuai dengan harapan pembeli; 3) Mengumpulkan umpan balik lebih lanjut dari pembeli yang tidak puas untuk memahami masalah yang lebih spesifik [review:f1ef6631203466229ef1710a73b49674].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Beberapa pembeli kecewa dengan kategori ini, terutama karena masalah pengiriman dan komunikasi.",
+        "Misalnya, satu pembeli mengeluhkan kurangnya komitmen dan tanggung jawab dari penjual terkait keterlambatan pengiriman [review:6285fe9d1457d9d4b0694f04f46f9699]."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot menyebutkan kategori dengan skor review terendah berdasarkan data yang diberikan, yaitu 'office_furniture'. Namun, klaim mengenai alasan kekecewaan pembeli tidak didukung oleh bukti yang ada, karena ulasan yang disediakan terkait dengan kategori 'home appliances', bukan 'office_furniture'. Oleh karena itu, jawaban tidak sepenuhnya setia pada bukti yang diberikan. \n\nRelevansi jawaban dinilai 3 karena meskipun chatbot berhasil mengidentifikasi kategori dengan skor terendah, alasan kekecewaan yang disebutkan tidak relevan dengan bukti yang ada."
+    },
+    {
+      "id": "hybrid-02",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Seller di SP yang paling laris, apa kata pembelinya?",
+      "jawaban": "Berdasarkan data, seller di negara bagian SP memiliki jumlah pesanan sebanyak 69.854. Ulasan dari pembeli menunjukkan pengalaman positif, seperti \"Membeli di Lannister adalah jaminan\" [review:f8cc4defbe1b0cc057633d624afcbe21] dan \"Penjual yang luar biasa! Sangat saya rekomendasikan!\" [review:1a1420bf150e4754a01749c7d10ac4e5]. \n\nJika Anda ingin berbelanja dengan seller di SP, pertimbangkan untuk memilih seller yang memiliki ulasan positif seperti \"Penjual yang hebat\" [review:6b90bed3738f716a856dd77792f0e146] atau \"Penjual super\" [review:5007d3fffa95c47202bc58cccf05a56c].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot cukup setia dengan bukti yang diberikan. Semua klaim fakta mengenai jumlah pesanan dan isi ulasan pembeli didukung oleh data yang tersedia. Namun, jawaban tidak secara eksplisit menyebutkan seller mana yang paling laris, melainkan memberikan gambaran umum tentang ulasan positif dari beberapa seller di SP. Oleh karena itu, meskipun jawaban relevan dengan pertanyaan, tidak sepenuhnya menjawab pertanyaan tentang seller yang paling laris."
+    },
+    {
+      "id": "hybrid-03",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Pesanan yang telat itu reviewnya gimana, dan berapa banyak yang telat?",
+      "jawaban": "Berdasarkan data, terdapat 6.535 pesanan yang terlambat. Beberapa ulasan pembeli menunjukkan ketidakpuasan terhadap keterlambatan ini, seperti keluhan tentang pengiriman yang tidak wajar [review:8b925ef92d48c9d0114ff75e42f166e0] dan frustrasi karena menunggu hingga 25 hari tanpa menerima barang [review:1d849feeef24e734f58b8386a368862c]. \n\nJika Anda mengalami masalah serupa, berikut beberapa saran yang bisa dipertimbangkan: \n1. Cek status pengiriman secara berkala untuk mendapatkan informasi terbaru [review:86cb30e96939f06396356768082e8c97].\n2. Hubungi layanan pelanggan untuk menanyakan penyebab keterlambatan [review:5ef6e8221dc523210bda84f8e5a23318].\n3. Pertimbangkan untuk memberikan ulasan mengenai pengalaman Anda agar pihak penjual dapat memperbaiki layanan mereka.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. \n\n1. **Jumlah Pesanan Terlambat**: \n   - Klaim bahwa terdapat 6.535 pesanan yang terlambat didukung oleh hasil query SQL yang menunjukkan jumlah pesanan terlambat.\n\n2. **Ulasan Pembeli**:\n   - Klaim tentang ketidakpuasan pembeli terhadap keterlambatan didukung oleh ulasan dengan skor rendah dan isi keluhan yang relevan.\n   - Ulasan dengan skor 1 dari 5 menyebutkan \"Um absurdo esse atraso\" dan \"Entrega lenta, frete caro e com prazo alto, já se passaram 5 dias do limite, somando 25 dias de espera e ate agora nada\" mendukung klaim ketidakpuasan.\n   - Ulasan dengan skor 3 dari 5 menyebutkan \"Tive atraso na entrega\" mendukung klaim tentang keterlambatan.\n\n3. **Saran Tindakan**:\n   - Saran yang diberikan oleh chatbot tidak termasuk klaim fakta dan tidak memerlukan dukungan dari bukti.\n\n**Relevansi**:\n- Jawaban chatbot sangat relevan dengan pertanyaan pengguna, memberikan informasi tentang jumlah pesanan yang terlambat dan contoh ulasan pembeli yang menunjukkan ketidakpuasan terhadap keterlambatan tersebut. Oleh karena itu, relevansi dinilai 5."
+    },
+    {
+      "id": "hybrid-04",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Rekomendasikan produk mainan di bawah 100 BRL yang reviewnya bagus.",
+      "jawaban": "Berdasarkan ulasan positif dan asumsi bahwa Anda mencari produk mainan yang terjangkau, saya merekomendasikan beberapa produk di bawah 100 BRL dengan harga rata-rata 58.85 BRL. Beberapa ulasan menyebutkan bahwa produk tersebut \"sangat baik\" [review:7add975ad42b13e70b7e8af71609358a], \"sangat bagus\" [review:d54c22813114b24bc7dd4949835d0506], dan \"luar biasa\" [review:8fbf8b0e58a0789dc5d7a4d507e56a29]. \n\nUntuk memilih produk yang tepat, Anda bisa mempertimbangkan saran berikut:\n1. Pilih produk yang memiliki ulasan \"sangat bagus\" [review:1ab04a11decc3b6f21c0264cad58ec38].\n2. Perhatikan produk yang dinyatakan \"luar biasa\" [review:8fbf8b0e58a0789dc5d7a4d507e56a29].\n3. Bandingkan beberapa produk dengan ulasan positif untuk menemukan yang paling sesuai dengan kebutuhan Anda.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang tersedia. Klaim mengenai harga rata-rata, ulasan positif, dan rekomendasi produk mainan di bawah 100 BRL semuanya sesuai dengan data yang diberikan. Chatbot juga memberikan saran yang relevan berdasarkan ulasan yang ada, menjadikannya jawaban yang tepat dan lengkap untuk pertanyaan pengguna."
+    },
+    {
+      "id": "hybrid-05",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Bandingkan elektronik dan telepon dari sisi harga rata-rata dan keluhan pembeli.",
+      "jawaban": "Berdasarkan asumsi bahwa pengguna ingin membandingkan elektronik dan telepon, rata-rata harga per item untuk kedua kategori tersebut adalah 65.84 BRL. \n\nDari sisi keluhan pembeli, dalam kategori elektronik, terdapat beberapa masalah seperti produk yang diterima dalam kondisi rusak [review:6ec426df90098ed69f5eaf251cc47432], produk yang cacat [review:e573c4329c52f7412b0799f640ef81c7], dan pesanan yang tidak lengkap [review:5467d200779dc6c7336aaf7f5f908f51]. Sementara itu, dalam kategori telepon, keluhan mencakup produk yang datang dalam kondisi cacat [review:0eccad996b48c39d41b60ead288924a0], perasaan tidak dihargai sebagai pelanggan [review:48dfb09da10ec86135fedeb9941364c2], dan kesalahan pengiriman produk [review:c073a54bbfbbd0282b00f3d50ccdd00f]. \n\nUntuk menangani keluhan ini, Anda bisa mempertimbangkan untuk memeriksa kondisi produk sebelum pengiriman [review:6ec426df90098ed69f5eaf251cc47432], memberikan pelatihan kepada staf tentang pelayanan pelanggan [review:48dfb09da10ec86135fedeb9941364c2], dan memastikan sistem pengiriman yang lebih akurat [review:c073a54bbfbbd0282b00f3d50ccdd00f].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot cukup setia terhadap bukti yang diberikan. Semua klaim fakta mengenai harga rata-rata dan keluhan pembeli didukung oleh data yang tersedia. Namun, jawaban tidak sepenuhnya menjawab pertanyaan pengguna karena tidak ada perbandingan langsung antara harga rata-rata dan keluhan pembeli dari kedua kategori. Chatbot hanya memberikan informasi umum tentang harga rata-rata dan keluhan tanpa membandingkan secara langsung antara elektronik dan telepon. Oleh karena itu, relevansi dinilai 4."
+    },
+    {
+      "id": "hybrid-06",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori dengan ongkir paling mahal, apakah pembeli mengeluhkan ongkirnya?",
+      "jawaban": "Berdasarkan asumsi bahwa pengguna ingin mengetahui keluhan terkait ongkir, kategori dengan ongkir paling mahal adalah **computers** dengan rata-rata ongkir sebesar **48.45 BRL**. Meskipun tidak ada keluhan spesifik mengenai ongkir di kategori fashion, beberapa ulasan menyebutkan keterlambatan pengiriman, seperti pada ulasan dengan skor 1 yang menyatakan \"barang datang terlambat\" [review:47f3961ddbc91e07bd55fc4cdd11f9af]. \n\nSaran untuk menangani masalah ini adalah: \n1. Memastikan estimasi waktu pengiriman yang akurat untuk menghindari keterlambatan, seperti yang dikeluhkan dalam ulasan tersebut.\n2. Menyediakan informasi yang jelas mengenai ongkir di halaman produk untuk mengurangi kebingungan pembeli.\n3. Meningkatkan komunikasi dengan pembeli mengenai status pengiriman agar mereka tidak merasa khawatir jika terjadi keterlambatan.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Meskipun tidak ada keluhan spesifik mengenai ongkir di kategori fashion, beberapa ulasan menyebutkan keterlambatan pengiriman, seperti pada ulasan dengan skor 1 yang menyatakan \"barang datang terlambat\""
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot mengidentifikasi kategori dengan ongkir paling mahal berdasarkan data yang diberikan, yaitu 'computers' dengan rata-rata ongkir 48.45 BRL. Namun, klaim mengenai keluhan keterlambatan pengiriman tidak didukung oleh bukti yang relevan dengan kategori 'computers'. Ulasan yang disebutkan terkait dengan kategori 'cool stuff', bukan 'computers'. Oleh karena itu, klaim tersebut tidak setia terhadap bukti yang ada.\n\nRelevansi jawaban dinilai 3 karena:\n- Jawaban memberikan informasi yang relevan mengenai kategori dengan ongkir paling mahal, yang merupakan bagian dari pertanyaan pengguna.\n- Namun, jawaban tidak sepenuhnya menjawab pertanyaan mengenai keluhan pembeli terkait ongkir di kategori tersebut, karena tidak ada bukti keluhan spesifik yang disediakan untuk kategori 'computers'.\n\nUntuk meningkatkan relevansi, jawaban seharusnya fokus pada bukti yang tersedia dan tidak membuat asumsi atau klaim yang tidak didukung oleh data yang diberikan."
+    },
+    {
+      "id": "hybrid-07",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Berapa rata-rata skor parfum dan apa yang paling sering dikeluhkan?",
+      "jawaban": "Rata-rata skor parfum tidak disebutkan secara spesifik, tetapi rata-rata harga per item parfum adalah 116,58 BRL. Beberapa keluhan yang paling sering muncul dari pembeli antara lain adalah menerima produk yang salah [review:a8cb2e8b615b19d7212f5335d343977b], produk yang diterima bukanlah produk asli [review:c03099ac307403551cc1bf5419889e46], dan kesalahan pengiriman yang menyebabkan kekecewaan [review:904d4e98a37d1291ae75b76c7a67739c]. \n\nUntuk menangani masalah ini, Anda bisa memastikan untuk memeriksa pesanan sebelum pengiriman [review:30be2b9bc6bb32324fed2b589f427790], menghubungi layanan pelanggan jika ada ketidaksesuaian, dan selalu membeli dari penjual terpercaya untuk menghindari produk palsu [review:c03099ac307403551cc1bf5419889e46].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot cukup setia dengan bukti yang ada, meskipun tidak memberikan rata-rata skor parfum, yang merupakan bagian dari pertanyaan pengguna. Namun, chatbot memberikan informasi yang relevan mengenai rata-rata harga dan keluhan yang sering muncul, yang didukung oleh bukti ulasan pembeli. Oleh karena itu, jawaban dianggap relevan tetapi tidak sepenuhnya menjawab pertanyaan pengguna."
+    },
+    {
+      "id": "hybrid-08",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Produk furnitur yang paling laris, bagaimana ulasannya?",
+      "jawaban": "Produk furnitur yang paling laris memiliki jumlah pesanan sebanyak 6.978. Namun, terdapat beberapa keluhan dari pembeli terkait pengiriman, seperti satu pembeli yang hanya menerima satu dari tiga item yang dipesan [review:2f0f01908bca68b300e26067cfacf071], dan yang lainnya melaporkan ketidaksesuaian jumlah lampu yang diterima, di mana ia memesan sepuluh tetapi hanya tertera delapan [review:e45eda207ac86dba2ff594674319ca42]. \n\nUntuk menangani masalah ini, Anda bisa: \n1. Memastikan semua item dalam pesanan diperiksa sebelum pengiriman, seperti yang dikeluhkan oleh pembeli yang hanya menerima dua dari tiga lampu [review:c61c631914a5e0b4c12f57846c716da7].\n2. Mengonfirmasi jumlah barang yang tersedia dengan sistem, mengingat ada pembeli yang melaporkan menerima satu kit dari dua yang dipesan [review:c1f6424ccdc7843778dc7ee81113f762].\n3. Memberikan informasi yang jelas tentang status pengiriman kepada pelanggan untuk menghindari kebingungan.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot memberikan informasi tentang jumlah pesanan produk furnitur yang paling laris dan menyertakan ulasan pembeli yang relevan dengan pertanyaan pengguna. Namun, jawaban tidak secara eksplisit menyebutkan ulasan positif atau negatif secara keseluruhan, melainkan fokus pada keluhan terkait pengiriman. Meskipun demikian, jawaban ini cukup relevan karena memberikan gambaran tentang pengalaman pembeli, yang merupakan bagian dari ulasan produk."
+    },
+    {
+      "id": "hybrid-09",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Apakah kategori dengan pengiriman paling lama juga punya review paling buruk? Beri angka dan contohnya.",
+      "jawaban": "Berdasarkan data, kategori dengan pengiriman paling lama adalah **computers**, dengan rata-rata lama kirim **13.51 hari** dan rata-rata skor ulasan **4.18**. Meskipun pengiriman lama, skor ulasan tidak tergolong buruk. Namun, ada beberapa ulasan negatif terkait pengiriman, seperti: \"Produk baik, tetapi pengirimannya sangat lambat.\" [review:bf609ea17aac99a384b50139d562c26a] dan \"Meskipun produk sesuai, pengirimannya memakan waktu yang lama.\" [review:1ae18fbab2ce7a7631d5f5b450974a79].\n\nJika Anda mengalami masalah serupa, berikut beberapa saran yang bisa dipertimbangkan:\n1. Periksa estimasi waktu pengiriman sebelum membeli, mengingat rata-rata lama kirim di kategori ini adalah **13.51 hari**.\n2. Siapkan alternatif pengambilan barang jika pengiriman memerlukan waktu lama, seperti yang disebutkan dalam ulasan \"Saya harus pergi ke kantor pos untuk mengambil barang, sangat merepotkan.\" [review:f6a856dbc72d2a8bb09d860da9215545].\n3. Pertimbangkan untuk membaca ulasan lain untuk mendapatkan gambaran lebih baik tentang pengalaman pembeli lain terkait pengiriman.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Kategori dengan pengiriman paling lama adalah computers.",
+        "Skor ulasan tidak tergolong buruk."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot sebagian besar didukung oleh bukti yang ada, namun terdapat klaim yang tidak didukung oleh bukti yang diberikan. \n\n1. **Setia:**\n   - Klaim bahwa kategori dengan pengiriman paling lama adalah 'computers' tidak didukung oleh bukti yang ada. Bukti hanya menunjukkan rata-rata lama kirim dan skor ulasan untuk kategori 'computers', tanpa perbandingan dengan kategori lain.\n   - Klaim bahwa skor ulasan tidak tergolong buruk juga tidak didukung secara langsung oleh bukti, karena tidak ada perbandingan dengan kategori lain atau definisi 'buruk'.\n\n2. **Relevan:**\n   - Jawaban memberikan informasi tentang rata-rata lama kirim dan skor ulasan untuk kategori 'computers', yang relevan dengan pertanyaan pengguna.\n   - Namun, jawaban tidak sepenuhnya menjawab pertanyaan tentang apakah kategori dengan pengiriman paling lama memiliki review paling buruk, karena tidak ada perbandingan dengan kategori lain. Oleh karena itu, relevansi dinilai 3."
+    },
+    {
+      "id": "hybrid-10",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Saya seller jam tangan, berapa harga rata-rata pesaing dan apa keluhan pembeli mereka?",
+      "jawaban": "Berdasarkan informasi yang ada, rata-rata harga jam tangan pesaing adalah 200,70 BRL. Namun, terdapat beberapa keluhan dari pembeli, seperti produk yang tidak sesuai harapan dan dianggap \"produk mengerikan\" [review:032cecbea638b588b8a6fd5be4fddf8c], jam tangan yang diterima dengan cacat dan kurangnya tanggapan dari penjual [review:f9ba06254a37b72b3b3497bf0ccc854c], serta kesulitan dalam menghubungi layanan pelanggan setelah mengajukan keluhan [review:1a44d2df84e5d4dee04e4b5cbbaffc6f].\n\nUntuk menangani masalah ini, Anda bisa mempertimbangkan untuk: \n1. Memastikan kualitas produk sebelum pengiriman untuk menghindari keluhan tentang cacat [review:cc5b0a4875e99b76b467223755d062fd].\n2. Meningkatkan responsivitas layanan pelanggan agar pembeli merasa didengar dan mendapatkan bantuan yang cepat [review:1a44d2df84e5d4dee04e4b5cbbaffc6f].\n3. Menyediakan deskripsi produk yang lebih jelas agar pembeli tidak merasa kecewa dengan apa yang mereka terima [review:032cecbea638b588b8a6fd5be4fddf8c].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang tersedia dan menjawab pertanyaan pengguna dengan tepat. \n\n1. **Harga Rata-rata Pesaing:**\n   - Chatbot menyebutkan rata-rata harga jam tangan pesaing adalah 200,70 BRL, yang sesuai dengan hasil query SQL.\n\n2. **Keluhan Pembeli:**\n   - Chatbot mengidentifikasi keluhan pembeli yang didukung oleh ulasan yang tersedia:\n     - Produk tidak sesuai harapan dan dianggap \"produk mengerikan\" [review:032cecbea638b588b8a6fd5be4fddf8c].\n     - Produk dengan cacat dan kurangnya tanggapan dari penjual [review:f9ba06254a37b72b3b3497bf0ccc854c].\n     - Kesulitan dalam menghubungi layanan pelanggan [review:1a44d2df84e5d4dee04e4b5cbbaffc6f].\n\n3. **Saran Tindakan:**\n   - Meskipun saran tindakan tidak memerlukan bukti, mereka relevan dan logis berdasarkan keluhan yang diidentifikasi.\n\nSecara keseluruhan, jawaban chatbot tidak hanya setia pada bukti yang ada tetapi juga relevan dengan pertanyaan pengguna, memberikan informasi yang dibutuhkan secara lengkap."
+    },
+    {
+      "id": "hybrid-11",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Carikan hadiah ulang tahun di bawah 200 BRL dengan ulasan positif.",
+      "jawaban": "Berdasarkan asumsi bahwa Anda mencari hadiah ulang tahun yang terjangkau dan berkualitas, terdapat 4065 pesanan untuk kategori hadiah ulang tahun dengan harga di bawah 200 BRL. Beberapa ulasan positif dari pembeli menyebutkan bahwa produk tersebut sangat indah dan berkualitas tinggi [review:0661029d168b45de085b9ddaabe9087c], menarik dengan pengiriman yang cepat [review:a7fcd4bc5635e8cb7533416292318acb], serta banyak yang puas dengan keindahan produk [review:488f503f0e56dc79a12a035233c34fdf]. \n\nSaran untuk memilih hadiah yang tepat: \n1. Pertimbangkan produk yang memiliki ulasan tentang keindahan dan kualitas tinggi [review:0661029d168b45de085b9ddaabe9087c].\n2. Pilih produk dengan pengiriman cepat agar hadiah dapat diterima tepat waktu [review:a7fcd4bc5635e8cb7533416292318acb].\n3. Jika Anda ingin memberikan hadiah yang belum dibuka, pastikan untuk memilih produk yang banyak direkomendasikan [review:be1bd4769a014c2b86c36873285ef2d6].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot cukup setia dengan bukti yang diberikan. Semua klaim fakta seperti jumlah pesanan, ulasan positif, dan kategori produk didukung oleh bukti yang ada. Namun, jawaban tidak sepenuhnya relevan karena tidak secara eksplisit menyebutkan kategori 'watches_gifts' yang ada dalam query SQL, melainkan hanya menyebutkan 'cool stuff' dari ulasan. Meskipun demikian, jawaban tetap memberikan informasi yang berguna dan relevan dengan pertanyaan pengguna."
+    },
+    {
+      "id": "hybrid-12",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kenapa review dari pembeli di RJ cenderung lebih rendah? Berapa rata-ratanya?",
+      "jawaban": "Asumsi yang dipakai adalah bahwa lokasi pembeli di negara bagian RJ (Rio de Janeiro) mempengaruhi ulasan yang diberikan. Rata-rata harga per item di RJ adalah 124,86 BRL. Beberapa keluhan dari pembeli di RJ yang mungkin berkontribusi pada rating yang lebih rendah antara lain: produk yang datang dalam kondisi rusak [review:eeafacf5860957c8c7f64dd182586816], produk yang tidak berfungsi sama sekali [review:a61e65fa1f26b3bf0240a351bd2c94b0], dan keterlambatan pengiriman [review:378cd58ef7348b01777abd3498c52d27]. \n\nUntuk menangani masalah ini, Anda bisa mempertimbangkan untuk: \n1. Memastikan kualitas produk sebelum pengiriman, mengingat keluhan tentang produk cacat [review:eeafacf5860957c8c7f64dd182586816].\n2. Meningkatkan proses kontrol kualitas untuk menghindari produk yang tidak berfungsi [review:a61e65fa1f26b3bf0240a351bd2c94b0].\n3. Memperbaiki sistem pengiriman agar lebih cepat dan efisien, mengingat keluhan tentang keterlambatan [review:378cd58ef7348b01777abd3498c52d27].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot cukup setia pada bukti yang diberikan. Klaim fakta seperti rata-rata harga, lokasi pembeli, dan isi keluhan didukung oleh bukti yang ada. Namun, jawaban tidak menyebutkan rata-rata rating ulasan secara langsung, yang merupakan bagian dari pertanyaan pengguna. Oleh karena itu, relevansi dinilai 4 karena meskipun jawaban memberikan konteks dan analisis yang baik, tidak sepenuhnya menjawab pertanyaan tentang rata-rata rating ulasan."
+    },
+    {
+      "id": "hybrid-13",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori terlaris 2018 itu pembelinya puas tidak?",
+      "jawaban": "Berdasarkan data, kategori terlaris di tahun 2018 adalah **bed_bath_table** dengan jumlah pesanan sebanyak 9.399. Dari ulasan yang ada, pembeli menunjukkan kepuasan yang tinggi. Misalnya, salah satu pembeli menyatakan barang diterima tepat waktu dan dalam kondisi baik [review:7000b9edb9fb12d1d09f819cb33dfd86]. Selain itu, ada ulasan yang menyebutkan pengalaman positif dengan layanan dan kemudahan navigasi di situs [review:ccf42999eed40ec9ec4cb4bf770fd319]. Pembeli juga mengungkapkan kepuasan dengan produk yang diterima, menyatakan \"sangat baik\" dan \"saya sangat menyukainya\" [review:b842c07626701ee2c8f8ea72457c4e2b]. Secara keseluruhan, ulasan ini mencerminkan pengalaman positif dari pembeli.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Dari ulasan yang ada, pembeli menunjukkan kepuasan yang tinggi.",
+        "Misalnya, salah satu pembeli menyatakan barang diterima tepat waktu dan dalam kondisi baik [review:7000b9edb9fb12d1d09f819cb33dfd86].",
+        "Selain itu, ada ulasan yang menyebutkan pengalaman positif dengan layanan dan kemudahan navigasi di situs [review:ccf42999eed40ec9ec4cb4bf770fd319].",
+        "Pembeli juga mengungkapkan kepuasan dengan produk yang diterima, menyatakan \"sangat baik\" dan \"saya sangat menyukainya\" [review:b842c07626701ee2c8f8ea72457c4e2b]."
+      ],
+      "relevan": 2,
+      "alasan": "Jawaban chatbot tidak sepenuhnya setia karena klaim tentang kepuasan pembeli tidak didukung oleh bukti yang relevan. Ulasan yang disediakan tidak terkait dengan kategori 'bed_bath_table', melainkan kategori lain seperti 'fashion underwear beach' dan 'health beauty'. Oleh karena itu, klaim tentang kepuasan pembeli untuk kategori terlaris tidak dapat diverifikasi dengan bukti yang ada. \n\nRelevansi jawaban juga rendah karena meskipun chatbot menyebutkan kategori terlaris, ulasan yang digunakan untuk mendukung klaim kepuasan tidak relevan dengan kategori tersebut. Jawaban hanya sebagian menjawab pertanyaan pengguna mengenai kepuasan pembeli untuk kategori terlaris."
+    },
+    {
+      "id": "hybrid-14",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Tampilkan 3 kategori dengan skor terendah beserta contoh keluhannya.",
+      "jawaban": "Berdasarkan asumsi bahwa pengguna ingin mengetahui kategori dengan skor terendah beserta keluhannya, berikut adalah tiga kategori dengan skor terendah dan contoh keluhannya:\n\n1. **office_furniture** - Rata-rata skor: 3.62. Contoh keluhan: Pembeli mengeluhkan bahwa produk yang diterima tidak sesuai dengan gambar yang ditampilkan, dan ada yang menerima barang yang rusak [review:687a142218c10118894bcdb14711e3f8].\n\n2. **fashion_female_clothing** - Rata-rata skor: 3.73. Contoh keluhan: Beberapa pembeli melaporkan bahwa mereka menerima produk yang salah dan ada yang menyatakan barang tidak sesuai dengan foto yang ditampilkan [review:1c0b75274dfc20d452ce98d5bc8f9f15].\n\n3. **fashion_male_clothing** - Rata-rata skor: 3.73. Contoh keluhan: Terdapat keluhan mengenai produk yang dikirim tidak sesuai dengan yang dipesan, termasuk kesalahan dalam warna dan jenis produk [review:836ce0716522eb7ef452806e28597884].",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Contoh keluhan untuk kategori 'office_furniture' tidak didukung oleh bukti ulasan yang ada.",
+        "Contoh keluhan untuk kategori 'fashion_female_clothing' tidak didukung oleh bukti ulasan yang ada.",
+        "Contoh keluhan untuk kategori 'fashion_male_clothing' tidak didukung oleh bukti ulasan yang ada."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot menyebutkan tiga kategori dengan skor terendah sesuai hasil query SQL, namun contoh keluhan yang diberikan tidak didukung oleh bukti ulasan yang tersedia. Oleh karena itu, meskipun sebagian besar informasi relevan, klaim mengenai keluhan tidak dapat diverifikasi dengan bukti yang ada."
+    },
+    {
+      "id": "hybrid-15",
+      "set": "gold",
+      "rute": "hybrid",
+      "pertanyaan": "Apakah pesanan yang dibayar dengan boleto lebih sering dapat review buruk, dan kenapa?",
+      "jawaban": "Berdasarkan data, pesanan yang dibayar dengan boleto memiliki persentase ulasan buruk sekitar 14.43%. Beberapa alasan pembeli memberikan ulasan buruk antara lain: mereka merasa tidak puas karena uang mereka dikembalikan alih-alih menerima produk yang dipesan [review:b7d562de3b2280d98db7718baf7924b1], ada keluhan tentang pembatalan pesanan yang tidak ditangani dengan baik [review:14d1da977f444b14df5ab717636fac7c], dan kesulitan dalam mendapatkan kembali uang setelah pembatalan [review:c19c91182b35dbd2a53db23bccf66cbe]. \n\nUntuk menangani masalah ini, Anda bisa: \n1. Memastikan komunikasi yang jelas mengenai kebijakan pengembalian dan pembatalan untuk menghindari kebingungan [review:14d1da977f444b14df5ab717636fac7c].\n2. Meningkatkan proses pengembalian uang agar lebih cepat dan efisien, sehingga pembeli tidak merasa dirugikan [review:b943aa9b8877835e183d136d2712479e].\n3. Memberikan informasi yang lebih baik tentang status pesanan dan pengembalian untuk mengurangi ketidakpuasan [review:c19c91182b35dbd2a53db23bccf66cbe].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot didukung oleh bukti yang diberikan dan menjawab pertanyaan pengguna dengan baik. \n\n1. **Setia:**\n   - **Persentase ulasan buruk:** Klaim bahwa pesanan yang dibayar dengan boleto memiliki persentase ulasan buruk sekitar 14.43% didukung oleh hasil query SQL yang menunjukkan angka 14.427581992259116.\n   - **Alasan ulasan buruk:**\n     - Ketidakpuasan karena uang dikembalikan alih-alih produk [review:b7d562de3b2280d98db7718baf7924b1].\n     - Keluhan tentang pembatalan pesanan yang tidak ditangani dengan baik [review:14d1da977f444b14df5ab717636fac7c].\n     - Kesulitan dalam mendapatkan kembali uang setelah pembatalan [review:c19c91182b35dbd2a53db23bccf66cbe].\n\n2. **Relevan:**\n   - Jawaban chatbot menjawab pertanyaan pengguna dengan memberikan data statistik dan alasan di balik ulasan buruk terkait metode pembayaran boleto. \n   - Chatbot juga memberikan saran yang relevan untuk menangani masalah yang diidentifikasi, meskipun saran ini tidak diminta secara eksplisit dalam pertanyaan, namun tetap relevan dengan konteks masalah yang dihadapi."
+    },
+    {
+      "id": "holdout-01",
+      "set": "gold_holdout",
+      "rute": "rag",
+      "pertanyaan": "Apa pendapat pembeli tentang perlengkapan hewan peliharaan?",
+      "jawaban": "Berikut adalah beberapa pendapat pembeli tentang perlengkapan hewan peliharaan:\n\n1. Banyak pembeli mengapresiasi kemasan dan pengiriman yang tepat waktu, seperti yang diungkapkan dalam ulasan dengan skor 4 [review:a9ca98f6618a89abd53bc52f2c4ff3d7].\n2. Produk dianggap sangat baik dan memenuhi kebutuhan, dengan salah satu ulasan memberikan skor 5 [review:76490235ad8806ae84bba549abe4682a].\n3. Beberapa pembeli merasa produk sesuai dengan deskripsi dan gambar yang ditampilkan [review:34e6c7e2b55c22e46f23c296c75a2d8c; review:1708c3eec64152cb52fe56bb3abcf257].\n4. Namun, ada juga keluhan mengenai produk yang tidak lengkap, yang dinyatakan dalam ulasan dengan skor 2 [review:6c4951ae9476da1a3c55ade89c8384aa].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta mengenai ulasan pembeli, termasuk skor ulasan, isi ulasan, dan lokasi penjual, sesuai dengan data yang tersedia. Jawaban tersebut juga relevan dengan pertanyaan pengguna, memberikan gambaran umum tentang pendapat pembeli mengenai perlengkapan hewan peliharaan berdasarkan ulasan yang ada."
+    },
+    {
+      "id": "holdout-02",
+      "set": "gold_holdout",
+      "rute": "rag",
+      "pertanyaan": "Ada review yang mengeluhkan warna barang beda dari foto?",
+      "jawaban": "Ada beberapa ulasan yang mengeluhkan perbedaan warna barang dengan foto:\n\n1. Seorang pembeli mengungkapkan bahwa warna produk yang diterima sangat berbeda dari yang ditampilkan, yaitu cokelat \"lemah\" dibandingkan cokelat \"kuat\" di iklan [review:a86084f9001e3ce4120bf52e6fc44d6f].\n2. Ulasan lain menyatakan bahwa warna produk yang diterima jauh lebih terang dibandingkan dengan foto [review:07b6799cf2084b7d95317d60db7ec147].\n3. Ada juga yang mengeluhkan bahwa produk datang dalam warna yang salah, berbeda dari yang dipesan [review:dc2faf0586833fc2ba199a2af71dfa60].\n4. Satu ulasan menyebutkan bahwa produk yang diterima berwarna biru, padahal seharusnya ungu [review:3a7c315bcdab652a90850c1be053575c].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim mengenai keluhan warna barang yang berbeda dari foto didukung oleh ulasan yang relevan. Jawaban tersebut juga menjawab pertanyaan pengguna secara langsung dan lengkap."
+    },
+    {
+      "id": "holdout-03",
+      "set": "gold_holdout",
+      "rute": "rag",
+      "pertanyaan": "Pembeli alat tulis biasanya puas atau kecewa, dan kenapa?",
+      "jawaban": "Pembeli alat tulis memiliki pengalaman yang bervariasi. Beberapa merasa puas, seperti yang menyatakan bahwa produk datang lebih cepat dari yang dijanjikan [review:c4eb3eb029c412b2c637f8c3c14f5b20]. Namun, banyak juga yang kecewa. Misalnya, ada yang tidak menerima produk sama sekali setelah menunggu lama dan mengalami kesulitan dalam mendapatkan pengembalian uang [review:7297267be9a23cb77084d2b4c90dedbe]. Selain itu, ada yang menerima hanya sebagian dari pesanan dan tidak mendapatkan tanggapan dari penjual [review:f0487d938be5206fd01883789f9d0b42].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot secara akurat mencerminkan bukti yang diberikan. Setiap klaim fakta yang dibuat dalam jawaban didukung oleh ulasan yang relevan:\n\n1. **Pengalaman bervariasi**: Chatbot menyebutkan bahwa pengalaman pembeli alat tulis bervariasi, yang didukung oleh adanya ulasan dengan skor 1 dan 5.\n\n2. **Puas karena produk datang lebih cepat**: Klaim ini didukung oleh ulasan dengan skor 5 yang menyatakan bahwa produk datang lebih cepat dari yang dijanjikan.\n\n3. **Kecewa karena tidak menerima produk**: Klaim ini didukung oleh ulasan dengan skor 1 yang menyatakan bahwa pembeli tidak menerima produk setelah menunggu lama.\n\n4. **Kecewa karena hanya menerima sebagian produk**: Klaim ini didukung oleh ulasan dengan skor 1 yang menyatakan bahwa pembeli hanya menerima sebagian dari pesanan.\n\nJawaban chatbot menjawab pertanyaan pengguna dengan tepat, memberikan gambaran yang jelas tentang kepuasan dan kekecewaan pembeli alat tulis berdasarkan bukti yang ada."
+    },
+    {
+      "id": "holdout-04",
+      "set": "gold_holdout",
+      "rute": "rag",
+      "pertanyaan": "Kategori utilidades domesticas itu jualan apa saja?",
+      "jawaban": "Kategori \"utilidades domesticas\" mencakup beberapa jenis produk, antara lain:\n\n1. **Housewares**: Terdapat 2.335 produk yang termasuk dalam kategori ini.\n2. **Home Appliances**: Ada 370 produk yang termasuk dalam kategori ini.\n3. **Home Appliances 2**: Terdapat 90 produk dalam kategori ini.\n\nProduk-produk ini biasanya berkaitan dengan peralatan dan perlengkapan rumah tangga.",
+      "setia": false,
+      "klaim_tanpa_bukti": [
+        "Home Appliances: Ada 370 produk yang termasuk dalam kategori ini.",
+        "Home Appliances 2: Terdapat 90 produk dalam kategori ini."
+      ],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot sebagian besar setia pada bukti yang diberikan, namun terdapat klaim yang tidak didukung oleh bukti yang tersedia. \n\n1. **Setia**: \n   - Klaim mengenai jumlah produk dalam kategori \"Housewares\" didukung oleh bukti yang menyebutkan 2.335 produk.\n   - Klaim mengenai \"Home Appliances\" dan \"Home Appliances 2\" tidak didukung oleh bukti yang menyatakan bahwa kategori ini adalah bagian dari \"utilidades domesticas\".\n\n2. **Relevan**: \n   - Jawaban memberikan informasi tentang kategori \"utilidades domesticas\" dengan menyebutkan produk dalam kategori \"Housewares\". Namun, informasi mengenai \"Home Appliances\" dan \"Home Appliances 2\" tidak relevan karena tidak ada bukti bahwa mereka termasuk dalam \"utilidades domesticas\". Oleh karena itu, jawaban hanya sebagian menjawab pertanyaan pengguna."
+    },
+    {
+      "id": "holdout-05",
+      "set": "gold_holdout",
+      "rute": "sql",
+      "pertanyaan": "Berapa nilai rata-rata satu pesanan?",
+      "jawaban": "Nilai rata-rata satu pesanan adalah 160,99 BRL. Ini dihitung dari total bayar per pesanan di view v_pembayaran_per_order.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa nilai rata-rata satu pesanan adalah 160,99 BRL sesuai dengan hasil query SQL yang menunjukkan nilai rata-rata pesanan. Jawaban ini juga relevan dan tepat menjawab pertanyaan pengguna mengenai nilai rata-rata satu pesanan."
+    },
+    {
+      "id": "holdout-06",
+      "set": "gold_holdout",
+      "rute": "sql",
+      "pertanyaan": "Negara bagian mana yang paling banyak pembelinya?",
+      "jawaban": "Negara bagian dengan pembeli terbanyak adalah SP (São Paulo) dengan jumlah pembeli sebanyak 41.125.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim bahwa negara bagian dengan pembeli terbanyak adalah SP (São Paulo) dengan jumlah pembeli 41.125 sesuai dengan hasil query SQL yang menunjukkan bahwa SP memiliki jumlah pembeli terbanyak. Jawaban ini juga relevan dan menjawab pertanyaan pengguna secara langsung dan tepat."
+    },
+    {
+      "id": "holdout-07",
+      "set": "gold_holdout",
+      "rute": "sql",
+      "pertanyaan": "Berapa banyak pesanan yang statusnya delivered?",
+      "jawaban": "Jumlah pesanan yang statusnya \"delivered\" adalah 96.478.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh hasil query SQL yang menunjukkan jumlah pesanan dengan status 'delivered'. Angka yang diberikan dalam jawaban sesuai dengan data yang dihasilkan dari query."
+    },
+    {
+      "id": "holdout-08",
+      "set": "gold_holdout",
+      "rute": "sql",
+      "pertanyaan": "What is the average freight value for health and beauty products?",
+      "jawaban": "Rata-rata ongkir untuk produk kecantikan dan kesehatan (health and beauty) adalah 18.89 BRL.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Klaim fakta mengenai rata-rata ongkir dan kategori produk sesuai dengan hasil query SQL yang disediakan. Jawaban tersebut juga relevan dan menjawab pertanyaan pengguna secara tepat."
+    },
+    {
+      "id": "holdout-09",
+      "set": "gold_holdout",
+      "rute": "hybrid",
+      "pertanyaan": "Kategori mana yang paling banyak dibatalkan, dan apa alasan pembeli di ulasannya?",
+      "jawaban": "Berdasarkan informasi yang tersedia, saya tidak dapat memberikan kategori yang paling banyak dibatalkan karena data tersebut tidak tersedia. Namun, beberapa alasan pembeli membatalkan pesanan antara lain: ada yang membatalkan tanpa penjelasan yang jelas [review:21a40d6b28216d468ca32122e41cee68], ada yang tidak menerima produk dan ingin membatalkan [review:31a8f38680fddd4b9c3e4b618b4fa38d], serta beberapa pembeli melaporkan pesanan dibatalkan tanpa alasan yang diketahui [review:e6e81ec109aeb30a59141ed7f15db1e1]. \n\nJika Anda ingin menangani masalah ini, Anda bisa: \n1. Memastikan komunikasi yang jelas dengan penjual untuk menghindari pembatalan tanpa penjelasan [review:21a40d6b28216d468ca32122e41cee68].\n2. Memeriksa status pengiriman secara berkala agar tidak terjadi pembatalan karena produk tidak diterima [review:31a8f38680fddd4b9c3e4b618b4fa38d].\n3. Menghubungi layanan pelanggan jika mengalami pembatalan tanpa alasan yang jelas [review:e6e81ec109aeb30a59141ed7f15db1e1].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 4,
+      "alasan": "Jawaban chatbot setia pada bukti yang diberikan, mengutip ulasan dan alasan pembatalan yang sesuai dengan data yang tersedia. Namun, jawaban tidak sepenuhnya menjawab pertanyaan tentang kategori yang paling banyak dibatalkan, karena data tersebut memang tidak tersedia dalam bukti. Oleh karena itu, relevansi dinilai 4 karena meskipun jawaban tidak lengkap, chatbot memberikan informasi yang berguna berdasarkan bukti yang ada."
+    },
+    {
+      "id": "holdout-10",
+      "set": "gold_holdout",
+      "rute": "hybrid",
+      "pertanyaan": "Cari seller di MG dengan skor rata-rata tertinggi dan tunjukkan contoh pujian pembelinya.",
+      "jawaban": "Berdasarkan asumsi bahwa Anda mencari seller di negara bagian MG, saya tidak dapat memberikan skor rata-rata tertinggi karena data tersebut hanya tersedia untuk admin. Namun, berikut adalah beberapa pujian dari pembeli untuk seller di MG:\n\n1. \"Perfeito como sempre!!!\" (Sempurna seperti biasa!!!) [review:8a9a874d4eb83404c5292957b632af8d].\n2. \"Plena satisfação\" (Kepuasan penuh) [review:66ac957dce1b65fd07085826fc9fcf8e].\n3. \"Execelente\" (Luar biasa) [review:42f3823064929cdbcc2ced9d4adbd226].\n\nJika Anda ingin memilih seller, pertimbangkan untuk melihat ulasan positif seperti \"otimo\" (bagus) [review:ee62a757b5b0abc77d6f1ea3f2cb6456] dan \"Plena satisfação\" [review:66ac957dce1b65fd07085826fc9fcf8e] untuk memastikan kepuasan pembeli.",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 3,
+      "alasan": "Jawaban chatbot memberikan contoh pujian dari pembeli untuk seller di MG, yang sesuai dengan bukti yang ada. Namun, chatbot tidak dapat memberikan informasi tentang seller dengan skor rata-rata tertinggi, yang merupakan bagian dari pertanyaan pengguna. Oleh karena itu, jawaban hanya menjawab sebagian dari pertanyaan."
+    },
+    {
+      "id": "holdout-11",
+      "set": "gold_holdout",
+      "rute": "hybrid",
+      "pertanyaan": "Berapa rata-rata harga perkakas taman dan apakah pembeli merasa harganya sepadan?",
+      "jawaban": "Rata-rata harga perkakas taman adalah 111,14 BRL. Berdasarkan ulasan, terdapat beragam pendapat mengenai apakah harga tersebut sepadan. Beberapa pembeli merasa harga bisa lebih terjangkau, dengan komentar \"hanya saja harganya bisa lebih murah\" [review:b63d4b11d2951ba8125fc918d6e20093]. Namun, ada juga yang menganggap harga tersebut sudah lebih rendah dibandingkan pasar, seperti yang dinyatakan \"harga di bawah pasar!\" [review:835377822c2f024df8ef8364caf9d08f], dan ada yang menyebutkan bahwa harga yang ditawarkan adalah \"harga yang adil\" [review:d315019dd0410c5c990d6195ab50a1a3]. \n\nJika Anda mempertimbangkan untuk membeli, Anda bisa mencari penawaran yang lebih baik, seperti yang diungkapkan oleh pembeli yang merasa harga bisa lebih murah [review:b63d4b11d2951ba8125fc918d6e20093]. Anda juga bisa membandingkan harga dengan produk lain di pasar untuk memastikan mendapatkan nilai terbaik [review:835377822c2f024df8ef8364caf9d08f]. Terakhir, pertimbangkan untuk mengevaluasi kualitas produk yang ditawarkan, karena beberapa pembeli merasa harga yang ada sudah adil [review:d315019dd0410c5c990d6195ab50a1a3].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta mengenai rata-rata harga dan pendapat pembeli tentang harga tersebut didukung oleh hasil query SQL dan ulasan pembeli yang disediakan. Jawaban juga relevan dengan pertanyaan pengguna, memberikan informasi yang tepat mengenai rata-rata harga dan persepsi pembeli tentang harga tersebut."
+    },
+    {
+      "id": "dua-01",
+      "set": "gold_mentoring",
+      "rute": "hybrid",
+      "pertanyaan": "Apa yang perlu ditingkatkan untuk produk bayi, dan berapa rata-rata penjualannya?",
+      "jawaban": "Untuk meningkatkan produk bayi, perlu diperhatikan beberapa keluhan dari pembeli, seperti produk yang diterima memiliki cacat dan kerusakan [review:c163c72f6684064dd9c10f0e26d63282], serta perbedaan antara produk yang diterima dan yang diharapkan [review:a3afd75ba9d3b44507d99eeae450a5d3]. Selain itu, ada juga masalah terkait pengiriman yang tidak tepat waktu [review:14b33ac24083bd93da570659da1630af]. Rata-rata harga per item produk bayi dari data pasar semua seller adalah 134,84 BRL. \n\nSaran untuk perbaikan:\n1. Tingkatkan kontrol kualitas untuk mengurangi cacat produk [review:c163c72f6684064dd9c10f0e26d63282].\n2. Pastikan deskripsi produk akurat agar sesuai dengan harapan pembeli [review:a3afd75ba9d3b44507d99eeae450a5d3].\n3. Perbaiki sistem pengiriman untuk memastikan produk sampai tepat waktu [review:14b33ac24083bd93da570659da1630af].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta, termasuk keluhan pembeli dan rata-rata harga produk bayi, sesuai dengan data yang tersedia. Jawaban juga relevan dengan pertanyaan pengguna, memberikan informasi tentang aspek yang perlu ditingkatkan dan rata-rata penjualan produk bayi."
+    },
+    {
+      "id": "dua-03",
+      "set": "gold_mentoring",
+      "rute": "hybrid",
+      "pertanyaan": "Berapa rata-rata harga furniture di Sao Paulo, apa keluhan pembelinya, dan bagaimana cara menanganinya?",
+      "jawaban": "Rata-rata harga per item furniture di negara bagian São Paulo adalah 84.88 BRL. Beberapa keluhan pembeli terkait furniture mencakup masalah pemasangan yang membuat produk tidak dapat digunakan [review:4ae065a9ed27676994e75f0f0f3bab4c], cacat pada produk seperti goresan dan ketidaksesuaian dengan deskripsi [review:16230daf47fee777feeeec1785bf43f2], serta ketidakpuasan yang mendalam dari pembeli [review:c76267a416d0704fd640673e8c0eeb32]. \n\nUntuk menangani masalah ini, Anda bisa: \n1. Memastikan produk dikirim dalam kondisi baik dan sesuai deskripsi sebelum pengiriman, mengingat keluhan tentang cacat produk [review:16230daf47fee777feeeec1785bf43f2].\n2. Menyediakan panduan pemasangan yang jelas dan dukungan pelanggan untuk membantu mengatasi masalah pemasangan [review:4ae065a9ed27676994e75f0f0f3bab4c].\n3. Meningkatkan komunikasi dengan pembeli untuk memahami dan menangani ketidakpuasan mereka secara lebih efektif [review:c76267a416d0704fd640673e8c0eeb32].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan dan menjawab pertanyaan pengguna dengan tepat. Berikut adalah penilaian berdasarkan bukti:\n\n1. **Rata-rata Harga**: \n   - Klaim: \"Rata-rata harga per item furniture di negara bagian São Paulo adalah 84.88 BRL.\"\n   - Bukti: Hasil query SQL menunjukkan rata-rata harga adalah 84.88 BRL.\n\n2. **Keluhan Pembeli**:\n   - Klaim: \"Masalah pemasangan yang membuat produk tidak dapat digunakan.\"\n   - Bukti: Ulasan 4ae065a9ed27676994e75f0f0f3bab4c menyebutkan \"problemas de montagem\".\n   \n   - Klaim: \"Cacat pada produk seperti goresan dan ketidaksesuaian dengan deskripsi.\"\n   - Bukti: Ulasan 16230daf47fee777feeeec1785bf43f2 menyebutkan \"Produto recebido com riscos, descrição do produto não condiz com a realidade.\"\n   \n   - Klaim: \"Ketidakpuasan yang mendalam dari pembeli.\"\n   - Bukti: Ulasan c76267a416d0704fd640673e8c0eeb32 menyatakan \"estou bem chateada.\"\n\n3. **Cara Menangani**:\n   - Saran yang diberikan oleh chatbot relevan dan logis berdasarkan keluhan yang diidentifikasi dalam ulasan.\n\nSecara keseluruhan, jawaban chatbot tidak hanya setia pada bukti yang diberikan tetapi juga relevan dengan pertanyaan pengguna, memberikan informasi yang lengkap dan tepat."
+    },
+    {
+      "id": "dua-04",
+      "set": "gold_mentoring",
+      "rute": "hybrid",
+      "pertanyaan": "Apa keluhan pembeli produk bayi dan berapa rata-rata ongkirnya?",
+      "jawaban": "Berdasarkan keluhan yang ada, beberapa pembeli produk bayi mengalami masalah dengan kualitas dan pengiriman. Rata-rata ongkir untuk produk bayi adalah 22,35 BRL. Keluhan yang dilaporkan antara lain produk yang cacat dan permintaan pengembalian uang [review:c163c72f6684064dd9c10f0e26d63282], produk yang berbeda dari yang diharapkan dan mengalami kerusakan [review:a3afd75ba9d3b44507d99eeae450a5d3], serta pesanan yang tidak tiba sesuai waktu yang dijanjikan [review:14b33ac24083bd93da570659da1630af]. \n\nUntuk menangani masalah ini, Anda bisa:\n1. Memeriksa kualitas produk sebelum pengiriman, mengingat keluhan tentang produk cacat [review:c163c72f6684064dd9c10f0e26d63282].\n2. Menyediakan deskripsi produk yang lebih jelas untuk menghindari ketidakpuasan [review:a3afd75ba9d3b44507d99eeae450a5d3].\n3. Memastikan pengiriman tepat waktu agar sesuai dengan janji yang diberikan [review:14b33ac24083bd93da570659da1630af].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan dan menjawab pertanyaan pengguna dengan tepat. \n\n1. **Klaim Fakta yang Didukung:**\n   - **Rata-rata Ongkir:** Chatbot menyebutkan rata-rata ongkir 22,35 BRL, yang sesuai dengan hasil query SQL.\n   - **Keluhan Pembeli:**\n     - Produk cacat dan permintaan pengembalian uang [review:c163c72f6684064dd9c10f0e26d63282].\n     - Produk berbeda dari yang diharapkan dan mengalami kerusakan [review:a3afd75ba9d3b44507d99eeae450a5d3].\n     - Pesanan tidak tiba sesuai waktu yang dijanjikan [review:14b33ac24083bd93da570659da1630af].\n\n2. **Relevansi Jawaban:**\n   - Jawaban chatbot mencakup semua aspek yang ditanyakan oleh pengguna, yaitu keluhan pembeli dan rata-rata ongkir untuk produk bayi. \n   - Chatbot juga memberikan saran yang relevan untuk menangani keluhan yang diidentifikasi, meskipun saran ini tidak diminta, namun tetap relevan dengan konteks pertanyaan."
+    },
+    {
+      "id": "dua-05",
+      "set": "gold_mentoring",
+      "rute": "hybrid",
+      "pertanyaan": "Berapa rata-rata skor ulasan kategori jam tangan, dan apa keluhan utama pembelinya?",
+      "jawaban": "Rata-rata skor ulasan untuk kategori jam tangan adalah 4.07. Beberapa keluhan utama pembeli meliputi produk yang tidak sesuai harapan dan kualitas yang buruk [review:032cecbea638b588b8a6fd5be4fddf8c], adanya cacat pada produk seperti barang yang datang dalam keadaan rusak [review:cc5b0a4875e99b76b467223755d062fd], serta pengalaman buruk dalam layanan pelanggan [review:1a44d2df84e5d4dee04e4b5cbbaffc6f]. \n\nUntuk menangani masalah ini, Anda bisa mempertimbangkan untuk: \n1. Memastikan kualitas produk sebelum pengiriman, mengingat keluhan tentang produk yang tidak sesuai harapan [review:032cecbea638b588b8a6fd5be4fddf8c].\n2. Melakukan pemeriksaan lebih ketat terhadap barang yang dikirim untuk menghindari cacat [review:cc5b0a4875e99b76b467223755d062fd].\n3. Meningkatkan respons layanan pelanggan agar lebih cepat dan memadai [review:1a44d2df84e5d4dee04e4b5cbbaffc6f].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. \n\n1. **Rata-rata Skor Ulasan**: \n   - Chatbot menyebutkan rata-rata skor ulasan untuk kategori jam tangan adalah 4.07, yang sesuai dengan hasil query SQL.\n\n2. **Keluhan Utama Pembeli**:\n   - Produk tidak sesuai harapan dan kualitas buruk didukung oleh ulasan 032cecbea638b588b8a6fd5be4fddf8c.\n   - Produk datang dalam keadaan rusak didukung oleh ulasan cc5b0a4875e99b76b467223755d062fd.\n   - Pengalaman buruk dalam layanan pelanggan didukung oleh ulasan 1a44d2df84e5d4dee04e4b5cbbaffc6f.\n\n3. **Relevansi Jawaban**:\n   - Jawaban chatbot menjawab pertanyaan pengguna dengan tepat, memberikan informasi tentang rata-rata skor ulasan dan keluhan utama pembeli, sesuai dengan yang diminta dalam pertanyaan."
+    },
+    {
+      "id": "dua-06",
+      "set": "gold_mentoring",
+      "rute": "hybrid",
+      "pertanyaan": "Berapa persen pesanan produk kecantikan yang terlambat, dan apa kata pembeli soal keterlambatan itu?",
+      "jawaban": "Berdasarkan asumsi bahwa keterlambatan dapat mempengaruhi kepuasan pelanggan, persentase pesanan produk kecantikan yang terlambat adalah 7.5%. Mengenai pendapat pembeli, beberapa di antaranya mengeluhkan kurangnya informasi dari penjual tentang keterlambatan [review:c6eb0a009b8da1bba0f65abf4957575d], ada yang merasa sangat kecewa karena pesanan terlambat dua hari [review:4f77b1ce66564aeac994458d48f47367], dan ada juga yang berencana untuk tidak membeli lagi karena pengiriman yang lambat [review:b91ec4b047be78b2822cf8aaf61bf024]. \n\nSaran untuk menangani masalah ini adalah: \n1. Meningkatkan komunikasi dengan pelanggan mengenai status pengiriman untuk menghindari kebingungan [review:c6eb0a009b8da1bba0f65abf4957575d].\n2. Memastikan pengiriman tepat waktu agar tidak mengecewakan pelanggan [review:4f77b1ce66564aeac994458d48f47367].\n3. Meningkatkan efisiensi pengiriman untuk mencegah pelanggan merasa tidak puas dan beralih ke produk lain [review:b91ec4b047be78b2822cf8aaf61bf024].",
+      "setia": true,
+      "klaim_tanpa_bukti": [],
+      "relevan": 5,
+      "alasan": "Jawaban chatbot sepenuhnya didukung oleh bukti yang diberikan. Setiap klaim fakta yang dibuat oleh chatbot, termasuk persentase keterlambatan dan isi keluhan pembeli, sesuai dengan data yang tersedia dalam hasil query SQL dan ulasan pembeli. Jawaban tersebut juga relevan dengan pertanyaan pengguna, memberikan informasi yang tepat mengenai persentase keterlambatan dan pendapat pembeli tentang keterlambatan tersebut."
+    }
+  ]
+}
