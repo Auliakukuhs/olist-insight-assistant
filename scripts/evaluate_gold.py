@@ -17,28 +17,15 @@ import sys
 import time
 import uuid
 from collections import Counter, defaultdict
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from olist_assistant.agents.supervisor import HARI, WIB, default_supervisor
+from olist_assistant.agents.supervisor import default_supervisor
 from olist_assistant.config import load_dotenv
-from olist_assistant.evaluation import check_case, latency_summary
+from olist_assistant.evaluation import check_case, latency_summary, resolve_dates
 
 DEFAULT_GOLD = Path("data/eval/gold.jsonl")
 # Seller dengan penjualan terbesar, sama dengan akun demo seller.
 DEMO_SELLER = "4869f7a5dfa277a7dca6462dcf3b52b2"
-
-
-def resolve_dates(case: dict) -> dict:
-    today = datetime.now(UTC).astimezone(WIB)
-    names = {
-        "{hari_ini}": HARI[today.weekday()],
-        "{besok}": HARI[(today + timedelta(days=1)).weekday()],
-    }
-    words = case.get("answer_must_mention_any")
-    if not words:
-        return case
-    return case | {"answer_must_mention_any": [names.get(w, w) for w in words]}
 
 
 def main() -> None:

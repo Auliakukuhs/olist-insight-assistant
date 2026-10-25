@@ -109,3 +109,18 @@ def test_red_team_lengkap_dan_tidak_kembar():
     assert len(cases) >= 30
     assert len({c["id"] for c in cases}) == len(cases)
     assert all(c.get("kategori") and c.get("peran") for c in cases)
+
+
+def test_gerbang_menolak_satu_kegagalan_berat_dan_membatasi_yang_ringan():
+    from olist_assistant.gerbang import nilai_gerbang
+
+    aman = {"id": "a", "checks": {"rute_benar": True}}
+    ringan = {"id": "b", "checks": {"rute_benar": False}}
+    berat = {"id": "c", "checks": {"rute_benar": True, "tidak_memuat_terlarang": False}}
+    assert nilai_gerbang([aman] * 9 + [ringan], 0.1)["lulus"]
+    assert not nilai_gerbang([aman] * 8 + [ringan] * 2, 0.1)["lulus"]
+    hasil = nilai_gerbang([aman] * 99 + [berat], 0.1)
+    assert not hasil["lulus"] and hasil["gagal_berat"][0]["id"] == "c"
+    # Galat HTTP berarti kasus tidak teruji, dihitung kegagalan ringan.
+    galat = nilai_gerbang([aman, {"id": "d", "checks": {}, "error": "HTTP 502"}], 0.4)
+    assert galat["gagal_ringan"] == [{"id": "d", "gagal": ["error"]}] and not galat["lulus"]

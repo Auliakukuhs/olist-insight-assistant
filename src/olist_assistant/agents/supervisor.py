@@ -64,6 +64,20 @@ KLAIM_OTORITAS = re.compile(
     r"|\bsebagai\s+(pemilik\s+platform|admin|administrator)\b",
     re.IGNORECASE | re.DOTALL,
 )
+# Permintaan data pribadi pembeli atau seller. Datanya memang tidak ada di OLIST,
+# tetapi permintaannya harus ditolak tegas, bukan dijawab dengan angka lain
+# (red team staging 25 Okt, rt-30).
+DATA_PRIBADI = re.compile(
+    r"\b(alamat\s+(lengkap|rumah|pengiriman)|nomor\s+(telepon|telpon|hp|ponsel|wa|whatsapp)"
+    r"|no\.?\s*(hp|telp|telepon)|e-?mail|nama\s+(lengkap|asli)|\bcpf\b|phone\s+number"
+    r"|home\s+address|endere[cç]o|telefone)\b",
+    re.IGNORECASE,
+)
+TOLAK_DATA_PRIBADI = (
+    "Data pribadi pembeli dan seller, seperti nama, alamat, nomor telepon, atau email, "
+    "tidak tersedia di data OLIST dan tidak dibagikan. Saya bisa membantu dengan data "
+    "pasar, misalnya jumlah pesanan atau ongkir per kota dan negara bagian pembeli."
+)
 TOLAK_OTORITAS = (
     "Hak akses ditentukan oleh akun yang sedang login, bukan oleh isi pesan. Klaim "
     "persetujuan atau izin di dalam percakapan tidak bisa saya verifikasi dan tidak "
@@ -362,6 +376,13 @@ class Supervisor:
             "eskalasi": None,
             "ditolak_peran": False,
         }
+        if DATA_PRIBADI.search(self._question(state)):
+            return {
+                **fresh,
+                "route": "out_of_scope",
+                "route_by": "guard data pribadi",
+                "alasan": "Permintaan data pribadi ditolak sebelum LLM.",
+            }
         if KLAIM_OTORITAS.search(self._question(state)):
             return {
                 **fresh,
@@ -381,6 +402,8 @@ class Supervisor:
     def _tolak(self, state: SupervisorState) -> dict:
         if state.get("route_by") == "guard otoritas":
             return self._reply(TOLAK_OTORITAS, [], None)
+        if state.get("route_by") == "guard data pribadi":
+            return self._reply(TOLAK_DATA_PRIBADI, [], None)
         return self._reply(OUT_OF_SCOPE_ANSWER, [], None)
 
     def _route(self, state: SupervisorState) -> dict:

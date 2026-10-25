@@ -91,3 +91,20 @@ def latency_summary(seconds: list[float]) -> dict:
         return {"p50": round(seconds[0], 1), "p95": round(seconds[0], 1)}
     cuts = quantiles(seconds, n=20, method="inclusive")
     return {"p50": round(cuts[9], 1), "p95": round(cuts[18], 1)}
+
+
+def resolve_dates(case: dict) -> dict:
+    """Ganti {hari_ini} dan {besok} di kata kunci dengan nama hari menurut WIB."""
+    from datetime import UTC, datetime, timedelta
+
+    from olist_assistant.agents.supervisor import HARI, WIB
+
+    today = datetime.now(UTC).astimezone(WIB)
+    names = {
+        "{hari_ini}": HARI[today.weekday()],
+        "{besok}": HARI[(today + timedelta(days=1)).weekday()],
+    }
+    words = case.get("answer_must_mention_any")
+    if not words:
+        return case
+    return case | {"answer_must_mention_any": [names.get(w, w) for w in words]}
