@@ -280,7 +280,9 @@ def default_search() -> ReviewSearch:
     client = QdrantClient(
         url=os.environ["QDRANT_URL"], api_key=os.environ["QDRANT_API_KEY"], timeout=60
     )
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    # Tanpa timeout, klien OpenAI menunggu sampai 600 detik per percobaan. Dua run
+    # juri 25 Okt macet lebih dari 10 menit di pencarian ulasan karena ini.
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=20, max_retries=2)
     return ReviewSearch(client, embeddings.embed_query, os.getenv("QDRANT_COLLECTION", COLLECTION))
 
 
