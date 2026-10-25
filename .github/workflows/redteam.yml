@@ -11,6 +11,11 @@
 #   OPENAI_API_KEY, QDRANT_URL, QDRANT_API_KEY             untuk lapis kode
 #   STAGING_API_URL, STAGING_API_KEY, STAGING_DEMO_PASSWORDS untuk lapis staging
 # Tanpa secret, job dilewati dengan peringatan, tidak gagal.
+#
+# promptfoo meminta verifikasi email secara interaktif di luar CI. GitHub Actions
+# mengisi CI=true, jadi promptfoo memakai email pengganti dan tidak menunggu input.
+# Serangan dibuat oleh layanan promptfoo dari teks purpose di promptfooconfig.yaml
+# (deskripsi aplikasi dan aturan peran, tanpa kunci), lalu dikirim ke staging.
 
 name: redteam
 
