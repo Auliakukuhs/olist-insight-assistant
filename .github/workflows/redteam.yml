@@ -75,6 +75,9 @@ jobs:
         run: |
           uv sync --locked --group router
           gunzip -k data/olist.db.gz
+      - name: Periksa kunci OpenAI dan Qdrant
+        if: steps.cek.outputs.jalan == 'true'
+        run: uv run python scripts/periksa_kunci.py openai qdrant
       - name: Corpus serangan dengan gerbang toleransi nol
         if: steps.cek.outputs.jalan == 'true'
         run: |
@@ -111,10 +114,14 @@ jobs:
         if: steps.cek.outputs.jalan == 'true'
         with:
           version: "0.11.21"
-      - name: Corpus serangan ke staging lewat HTTP
+      - name: Periksa kunci staging
         if: steps.cek.outputs.jalan == 'true'
         run: |
           uv sync --locked
+          uv run python scripts/periksa_kunci.py staging
+      - name: Corpus serangan ke staging lewat HTTP
+        if: steps.cek.outputs.jalan == 'true'
+        run: |
           uv run python scripts/serang_api.py \
             data/eval/redteam.jsonl data/eval/redteam_otoritas.jsonl data/eval/serangan_holdout.jsonl
       - uses: actions/setup-node@v7

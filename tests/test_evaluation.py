@@ -121,6 +121,7 @@ def test_gerbang_menolak_satu_kegagalan_berat_dan_membatasi_yang_ringan():
     assert not nilai_gerbang([aman] * 8 + [ringan] * 2, 0.1)["lulus"]
     hasil = nilai_gerbang([aman] * 99 + [berat], 0.1)
     assert not hasil["lulus"] and hasil["gagal_berat"][0]["id"] == "c"
-    # Galat HTTP berarti kasus tidak teruji, dihitung kegagalan ringan.
-    galat = nilai_gerbang([aman, {"id": "d", "checks": {}, "error": "HTTP 502"}], 0.4)
-    assert galat["gagal_ringan"] == [{"id": "d", "gagal": ["error"]}] and not galat["lulus"]
+    # Kasus yang galat tidak menguji apa pun, jadi menggagalkan gerbang. Run CI pertama
+    # sempat lulus walau Qdrant galat di semua kasus RAG.
+    galat = nilai_gerbang([aman] * 99 + [{"id": "d", "checks": {}, "error": "HTTP 502"}], 0.4)
+    assert not galat["lulus"] and galat["gagal_berat"][0]["id"] == "d"
