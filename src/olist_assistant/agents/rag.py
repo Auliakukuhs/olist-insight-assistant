@@ -25,12 +25,20 @@ from typing import TypedDict
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.language_models.chat_models import BaseChatModel
+from langgraph.errors import GraphRecursionError
 from qdrant_client import QdrantClient, models
 
 from olist_assistant.agents.sql_contract import Message
 
 COLLECTION = "olist_rag_v1"
 MAX_SNIPPET = 300
+# Batas pencarian per pertanyaan, ditegakkan kode (audit 25 Okt, S04).
+MAX_PENCARIAN = 3
+BATAS_LANGKAH = 2 * MAX_PENCARIAN + 1
+RAG_TERLALU_BANYAK = (
+    "Maaf, ulasan yang cocok belum ditemukan setelah beberapa kali pencarian. "
+    "Coba sebut kategori produknya, misalnya furniture, mainan, atau jam tangan."
+)
 HISTORY_TURNS = 6
 
 SYSTEM_PROMPT = """Kamu adalah agent RAG untuk data e-commerce OLIST (Brasil, 2016 sampai 2018).
@@ -51,7 +59,10 @@ Aturan:
    "paling" sering, banyak, atau buruk. Itu tugas agent SQL. Beberapa contoh
    ulasan bukan statistik, jadi sebut sebagai contoh.
 5. Ulasan melekat ke pesanan, bukan ke satu produk. Data tidak memuat nama
-   produk atau nama seller, jadi jangan menyebutnya.
+   produk atau nama seller, jadi jangan menyebutnya. Ulasan juga anonim:
+   jangan pernah mengaitkan ulasan dengan nama, username, atau orang tertentu
+   yang disebut pengguna. Bila pengguna menanyakan pembeli tertentu, jelaskan
+   bahwa ulasan bersifat anonim.
 6. Jawab dalam bahasa Indonesia secara ringkas, paling banyak empat poin dan
    sekitar 90 kata. Parafrasekan kutipan berbahasa Portugis. Sebut ID ulasan
    yang dipakai dengan format [review:ID].
@@ -271,7 +282,10 @@ def jawab_rag(
     prompt = SYSTEM_PROMPT.format(kategori=", ".join(sorted(search.known_categories())))
     agent = create_agent(model=model, tools=_make_tools(search, collector), system_prompt=prompt)
     messages = [*riwayat[-HISTORY_TURNS:], {"role": "user", "content": pertanyaan}]
-    result = agent.invoke({"messages": messages})
+    try:
+        result = agent.invoke({"messages": messages}, {"recursion_limit": BATAS_LANGKAH})
+    except GraphRecursionError:
+        return {"answer": RAG_TERLALU_BANYAK, "sources": []}
     answer = result["messages"][-1].content
     return {"answer": answer, "sources": _sources(answer, collector)}
 

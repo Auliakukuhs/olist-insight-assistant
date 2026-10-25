@@ -33,6 +33,7 @@ import sqlglot
 from langchain.agents import create_agent
 from langchain_core.language_models import BaseChatModel
 from langchain_core.tools import tool
+from langgraph.errors import GraphRecursionError
 from sqlglot import exp
 
 from olist_assistant.agents.sql_contract import VIEW_PER_PERAN, Message, Peran, SqlResult
@@ -41,6 +42,15 @@ MAX_ROWS = 200
 MAX_LENGTH = 10_000_000
 ROWS_TO_LLM = 30
 MAX_SECONDS = 5.0
+# Batas eksekusi query per pertanyaan: satu percobaan dan tiga kali perbaikan,
+# sama dengan prompt, tapi ditegakkan kode (audit 25 Okt, S04). Setiap putaran
+# model lalu tool memakai dua langkah graph, ditambah satu langkah jawaban akhir.
+MAX_QUERY = 4
+BATAS_LANGKAH = 2 * MAX_QUERY + 1
+SQL_TERLALU_BANYAK = (
+    "Maaf, data untuk pertanyaan ini belum berhasil diambil setelah beberapa percobaan. "
+    "Coba tulis pertanyaannya lebih spesifik, misalnya sebut kategori, lokasi, atau tahun."
+)
 # Peringkat rasio dari view ringkasan butuh batas pesanan, sama dengan default
 # halaman market. Tanpa ini seller dengan 1 pesanan selalu menang skor 5,0.
 MIN_ORDER = 30
@@ -501,5 +511,8 @@ def jawab(
         ),
     )
     messages = [*riwayat[-HISTORY_TURNS:], {"role": "user", "content": pertanyaan}]
-    result = agent.invoke({"messages": messages})
+    try:
+        result = agent.invoke({"messages": messages}, {"recursion_limit": BATAS_LANGKAH})
+    except GraphRecursionError:
+        return {"answer": SQL_TERLALU_BANYAK, "sql": "", "rows": []}
     return {"answer": result["messages"][-1].content, "sql": catatan.sql, "rows": catatan.rows}

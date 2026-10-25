@@ -334,3 +334,39 @@ def test_kota_seller_kosong_untuk_selain_admin():
         "SELECT COUNT(*) AS n FROM v_pasar WHERE negara_bagian_seller = 'SP'", "customer", None
     )
     assert rows[0]["n"] > 0
+
+
+def test_eksekusi_query_dibatasi_kode_bukan_prompt(monkeypatch):
+    # Audit 25 Okt (S04): model palsu bisa menjalankan 6 query dalam satu giliran.
+    from langchain_core.messages import AIMessage as Pesan
+
+    dipanggil = []
+    monkeypatch.setattr(sql_agent, "skema", lambda peran, seller_id: "skema uji")
+    asli = sql_agent.jalankan
+
+    def catat(sql, peran, seller_id):
+        dipanggil.append(sql)
+        return asli(sql, peran, seller_id)
+
+    monkeypatch.setattr(sql_agent, "jalankan", catat)
+    panggilan = [
+        Pesan(
+            content="",
+            tool_calls=[
+                {
+                    "name": "jalankan_sql",
+                    "args": {"query": "SELECT 1 AS n FROM v_pasar"},
+                    "id": f"c{i}",
+                }
+            ],
+        )
+        for i in range(10)
+    ]
+
+    class Model(GenericFakeChatModel):
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+    hasil = jawab("Berapa?", [], "customer", model=Model(messages=iter(panggilan)))
+    assert len(dipanggil) <= sql_agent.MAX_QUERY
+    assert hasil["answer"] == sql_agent.SQL_TERLALU_BANYAK

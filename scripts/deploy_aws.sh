@@ -91,10 +91,15 @@ for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUS
   fi
 done
 
+# Kuota dinaikkan dari bawaan (60 per klien, 30 per akun) setelah uji beban 26 Okt:
+# satu task melayani 40 pengguna serentak dengan p95 23 detik. Semua pengguna
+# Streamlit Cloud datang dari satu alamat, dan penguji bisa berbagi akun demo.
 CONTAINER="$(cat <<JSON
 {"image": "${IMAGE}", "containerPort": 8000,
  "environment": [{"name": "APP_ENV", "value": "production"},
-                 {"name": "LANGFUSE_TRACING_ENVIRONMENT", "value": "${TARGET}"}],
+                 {"name": "LANGFUSE_TRACING_ENVIRONMENT", "value": "${TARGET}"},
+                 {"name": "RATE_LIMIT_PER_CLIENT", "value": "120"},
+                 {"name": "RATE_LIMIT_PER_ACCOUNT", "value": "60"}],
  "secrets": [${SECRETS}]}
 JSON
 )"
