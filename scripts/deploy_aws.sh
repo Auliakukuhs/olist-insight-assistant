@@ -67,7 +67,7 @@ done
 
 CONTAINER="$(cat <<JSON
 {"image": "${IMAGE}", "containerPort": 8000,
- "environment": [{"name": "APP_ENV", "value": "production"}],
+ "environment": [{"name": "APP_ENV", "value": "production"}, {"name": "LANGFUSE_TRACING_ENVIRONMENT", "value": "production"}],
  "secrets": [${SECRETS}]}
 JSON
 )"

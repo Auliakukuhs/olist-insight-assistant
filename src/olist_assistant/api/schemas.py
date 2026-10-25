@@ -96,3 +96,22 @@ class FeedbackResponse(BaseModel):
 class HealthResponse(BaseModel):
     status: Literal["ok"]
     version: str
+
+
+class HariPemakaian(BaseModel):
+    tanggal: str
+    pertanyaan: int
+    token: int
+    biaya_usd: float
+    latensi_p50_ms: float | None = None
+    latensi_p95_ms: float | None = None
+
+
+class PemakaianResponse(BaseModel):
+    environment: str
+    dari: str
+    sampai: str
+    per_hari: list[HariPemakaian]
+    per_peran: dict[str, int]
+    per_agent: dict[str, int]
+    umpan_balik: dict[str, int]
