@@ -7,10 +7,13 @@ melewati lima lapis pengaman sebelum menyentuh data.
 
 1. Koneksi read-only (`mode=ro`) dan `PRAGMA query_only`.
 2. sqlglot memastikan hanya ada satu SELECT dan semua tabel yang dirujuk ada di
-   `VIEW_PER_PERAN[peran]`.
-3. Authorizer SQLite menolak semua aksi selain SELECT, READ, dan FUNCTION.
+   `VIEW_PER_PERAN[peran]`, tanpa awalan skema dan tanpa nama CTE yang menyamar
+   sebagai tabel atau view sungguhan.
+3. Authorizer SQLite menolak semua aksi selain SELECT, READ, dan FUNCTION, dan
+   hanya mengizinkan READ ke tabel yang dibutuhkan view milik peran itu. Lapis ini
+   tetap menahan walau pemeriksa sqlglot terlewati.
 4. LIMIT dipaksa dan query dihentikan bila lebih dari batas waktu.
-5. Seller hanya melihat datanya lewat TEMP VIEW yang difilter `seller_id` dari
+5. Seller hanya melihat datanya lewat TEMP TABLE yang difilter `seller_id` dari
    token login. LLM tidak pernah menentukan `seller_id`.
 
 Selain pengaman, ada satu koreksi kualitas. Peringkat rasio (skor, persen
@@ -212,8 +215,19 @@ def periksa_sql(sql: str, allowed: set[str]) -> str:
     tree = statements[0]
     if not isinstance(tree, exp.Query):
         raise SqlDitolak("Hanya SELECT yang diizinkan.")
+    referensi = list(tree.find_all(exp.Table))
+    # main.sellers atau temp.x selalu menunjuk tabel fisik, walau ada CTE bernama sama.
+    if any(t.args.get("db") or t.args.get("catalog") for t in referensi):
+        raise SqlDitolak("Nama tabel tidak boleh memakai awalan skema. Pakai nama view saja.")
     ctes = {cte.alias_or_name for cte in tree.find_all(exp.CTE)}
-    tables = {table.name for table in tree.find_all(exp.Table)} - ctes
+    # Nama CTE yang sama dengan tabel atau view sungguhan bisa menyamarkan tabel
+    # terlarang, misalnya CTE di subquery lalu nama yang sama dipakai di luar scope-nya.
+    bentrok = {c for c in ctes if c.lower() in nama_objek_db()}
+    if bentrok:
+        raise SqlDitolak(
+            f"Nama CTE {', '.join(sorted(bentrok))} sama dengan tabel atau view. Pakai nama lain."
+        )
+    tables = {table.name for table in referensi} - ctes
     # Fungsi tabel seperti pragma_table_info('orders') terbaca sebagai tabel tanpa nama.
     if "" in tables:
         raise SqlDitolak("Fungsi tabel tidak diizinkan. Baca dari view yang diizinkan.")
@@ -272,14 +286,68 @@ def batas_pesanan(tree: exp.Query) -> exp.Query:
     return tree.where(f"jumlah_order >= {MIN_ORDER}", append=True)
 
 
-def _authorizer(action, arg1, arg2, dbname, source):
-    if action in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_READ, sqlite3.SQLITE_FUNCTION):
-        return sqlite3.SQLITE_OK
-    return sqlite3.SQLITE_DENY
+# Data toko seller, dibuat per koneksi di database temp. Tidak ada di sqlite_master.
+TABEL_TOKO = {"v_penjualan_saya", "v_ringkasan_saya"}
+
+
+@lru_cache(maxsize=4)
+def _objek_db(path: str, mtime: float) -> dict[str, str]:
+    conn = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
+    try:
+        rows = conn.execute("SELECT name, sql FROM sqlite_master WHERE type IN ('table', 'view')")
+        return {name.lower(): sql or "" for name, sql in rows}
+    finally:
+        conn.close()
+
+
+def objek_db() -> dict[str, str]:
+    """Nama setiap tabel dan view di database, beserta SQL pembuatnya."""
+    return _objek_db(str(db_path()), db_path().stat().st_mtime)
+
+
+def nama_objek_db() -> set[str]:
+    return set(objek_db()) | TABEL_TOKO
+
+
+def tabel_yang_dibutuhkan(allowed: set[str]) -> set[str]:
+    """Nama yang boleh dibaca peran ini beserta semua tabel di balik view-nya."""
+    objek = objek_db()
+    hasil: set[str] = set()
+    antre = [v.lower() for v in allowed]
+    while antre:
+        nama = antre.pop()
+        if nama in hasil:
+            continue
+        hasil.add(nama)
+        if objek.get(nama, "").upper().startswith("CREATE VIEW"):
+            definisi = sqlglot.parse_one(objek[nama], read="sqlite")
+            antre.extend(t.name.lower() for t in definisi.find_all(exp.Table))
+    return hasil
+
+
+def _authorizer_untuk(allowed: set[str]):
+    """Lapis kedua yang independen dari pemeriksa sqlglot.
+
+    Setiap pembacaan tabel diperiksa terhadap tabel yang memang dibutuhkan view
+    milik peran ini. Argumen source dari SQLite tidak dipakai, karena view yang
+    dilebur ke subquery atau CTE kehilangan namanya. Customer dan seller tidak
+    pernah butuh sellers, customers, order_items, atau ringkasan_seller, jadi
+    tabel itu tertutup walau pemeriksa sqlglot terlewati.
+    """
+    boleh = tabel_yang_dibutuhkan(allowed)
+
+    def authorizer(action, arg1, arg2, dbname, source):
+        if action == sqlite3.SQLITE_READ:
+            return sqlite3.SQLITE_OK if (arg1 or "").lower() in boleh else sqlite3.SQLITE_DENY
+        if action in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_FUNCTION):
+            return sqlite3.SQLITE_OK
+        return sqlite3.SQLITE_DENY
+
+    return authorizer
 
 
 def buka_koneksi(peran: Peran, seller_id: str | None) -> sqlite3.Connection:
-    """Koneksi baca saja. Untuk seller, buat dulu TEMP VIEW berisi data tokonya."""
+    """Koneksi baca saja. Untuk seller, buat dulu TEMP TABLE berisi data tokonya."""
     conn = sqlite3.connect(f"file:{db_path()}?mode=ro", uri=True)
     # Batasi ukuran string atau blob hasil query. Tanpa ini randomblob(500000000)
     # memakan sekitar 500 MB, dan container 1 GB bisa mati untuk semua pengguna.
@@ -288,10 +356,11 @@ def buka_koneksi(peran: Peran, seller_id: str | None) -> sqlite3.Connection:
         if not SELLER_ID.fullmatch(seller_id or ""):
             conn.close()
             raise SqlDitolak("Akun seller ini tidak punya seller_id yang valid.")
-        # seller_id sudah divalidasi 32 karakter hex, jadi aman ditulis di definisi view.
-        # TEMP VIEW disimpan di database temp, bukan di berkas utama yang read-only.
+        # seller_id sudah divalidasi 32 karakter hex, jadi aman ditulis di query.
+        # TEMP TABLE, bukan TEMP VIEW, supaya koneksi seller tidak perlu izin baca ke
+        # tabel mentah berisi data seller lain (lihat _authorizer_untuk).
         conn.execute(
-            f"""CREATE TEMP VIEW v_penjualan_saya AS
+            f"""CREATE TEMP TABLE v_penjualan_saya AS
             SELECT i.order_id, i.product_id, i.kategori, i.harga_brl, i.ongkir_brl,
                    i.tanggal_beli, i.kota_pembeli, i.negara_bagian_pembeli,
                    o.terlambat, ROUND(o.hari_kirim, 1) AS hari_kirim, o.skor AS skor_ulasan
@@ -300,11 +369,11 @@ def buka_koneksi(peran: Peran, seller_id: str | None) -> sqlite3.Connection:
             WHERE i.seller_id = '{seller_id}'"""
         )
         conn.execute(
-            f"CREATE TEMP VIEW v_ringkasan_saya AS "
+            f"CREATE TEMP TABLE v_ringkasan_saya AS "
             f"SELECT * FROM v_ringkasan_seller WHERE seller_id = '{seller_id}'"
         )
     conn.execute("PRAGMA query_only = ON")
-    conn.set_authorizer(_authorizer)
+    conn.set_authorizer(_authorizer_untuk(VIEW_PER_PERAN[peran]))
     return conn
 
 
