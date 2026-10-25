@@ -106,7 +106,10 @@ ATTACK_PATTERNS = [
     r"ignore\s+(all\s+)?(previous|prior|above)\s+instructions",
     r"system\s*prompt",
     r"mode\s+developer|developer\s+mode|jailbreak",
-    r"\bapi[\s_-]?key\b|\bsecret\b|\bpassword\b",
+    # Tanpa \b di depan, supaya OPENAI_API_KEY ikut tertangkap (garis bawah dihitung huruf).
+    r"api[\s_-]?key|(secret|access)[\s_-]?key|\bsecret\b|\bpassword\b",
+    r"\bkonfigurasi\b.*\b(agent|prompt|model)",
+    r"kamu\s+(sekarang\s+)?(adalah\s+)?(sebuah\s+)?(konsol|terminal|shell|console)\b",
     r"\b(drop|truncate|alter)\s+table\b|\bdelete\s+from\b|\binsert\s+into\b",
     r"\bupdate\s+\w+\s+set\b",
     # Keluarga jailbreak bermain peran: meminta model menjadi persona tanpa aturan.
@@ -345,6 +348,16 @@ class Supervisor:
         route = result[0]
         by = result[1] if len(result) > 1 else "classifier"
         alasan = result[2] if len(result) > 2 else f"Dipilih {by}."
+        # Di jalur hybrid, perencana menulis ulang pertanyaan sebelum sampai ke agent
+        # SQL, jadi aturan peran dicek di sini pada kalimat asli pengguna. Jalur sql
+        # membuat agent SQL menolak dengan pesan tetap, tanpa LLM.
+        if route == "hybrid":
+            from olist_assistant.agents.sql_agent import minta_data_seller_lain
+
+            role = state.get("role", "customer")
+            if minta_data_seller_lain(self._question(state), role, state.get("seller_id")):
+                route, by = "sql", "aturan peran"
+                alasan = "Pertanyaan meminta data seller lain, ditolak aturan peran tanpa LLM."
         return {"route": route, "route_by": by, "alasan": alasan}
 
     # ---------- Jawaban langsung supervisor ----------

@@ -9,6 +9,7 @@ Contoh:
     uv run python scripts/evaluate_gold.py                                  # gold set diagnosis
     uv run python scripts/evaluate_gold.py data/eval/gold_holdout.jsonl     # holdout buta
     uv run python scripts/evaluate_gold.py data/eval/gold_mentoring.jsonl   # skenario mentoring 1
+    uv run python scripts/evaluate_gold.py data/eval/redteam.jsonl          # red team per kategori
 """
 
 import json
@@ -80,9 +81,10 @@ def main() -> None:
         question = case["question"][:50]
         print(f"{mark} {case['id']:15s} rute={route:13s} {by:22s} {seconds:5.1f}s  {question}")
 
+    # Kasus red team dikelompokkan per kategori serangan, kasus lain per jenis.
     per_type = defaultdict(list)
     for r in results:
-        per_type[r["type"]].append(r)
+        per_type[r.get("kategori", r["type"])].append(r)
     summary = {
         kind: {
             "kasus": len(rows),

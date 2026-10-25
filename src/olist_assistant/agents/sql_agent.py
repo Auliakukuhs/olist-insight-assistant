@@ -167,6 +167,25 @@ PERINGKAT_SELLER = re.compile(
     r"(?!\s+saya)",
     re.IGNORECASE,
 )
+# seller_id siapa pun yang ditulis di pertanyaan. Untuk selain admin, id yang bukan
+# milik pengguna berarti meminta data toko lain.
+ID_SELLER_DI_TEKS = re.compile(r"\b[0-9a-f]{32}\b")
+
+
+def minta_data_seller_lain(pertanyaan: str, peran: Peran, seller_id: str | None) -> bool:
+    """Pertanyaan selain admin yang meminta peringkat seller atau data toko lain.
+
+    Dipakai agent SQL dan juga supervisor sebelum perencana menulis ulang
+    pertanyaan, karena di jalur hybrid pertanyaan yang sampai ke agent SQL
+    sudah bukan kalimat asli pengguna.
+    """
+    if peran == "admin":
+        return False
+    if PERINGKAT_SELLER.search(pertanyaan):
+        return True
+    return any(found != seller_id for found in ID_SELLER_DI_TEKS.findall(pertanyaan.lower()))
+
+
 TOLAK_PERINGKAT = (
     "Data performa dan peringkat seller adalah data internal perusahaan yang hanya "
     "tersedia untuk admin. Saya bisa membantu dengan data pasar per kategori atau "
@@ -388,7 +407,7 @@ def jawab(
     seller_id: str | None = None,
     model: BaseChatModel | None = None,
 ) -> SqlResult:
-    if peran != "admin" and PERINGKAT_SELLER.search(pertanyaan):
+    if minta_data_seller_lain(pertanyaan, peran, seller_id):
         tambahan = ", dan data penjualan toko Anda sendiri" if peran == "seller" else ""
         return {"answer": TOLAK_PERINGKAT.format(tambahan=tambahan), "sql": "", "rows": []}
     catatan = _Catatan()

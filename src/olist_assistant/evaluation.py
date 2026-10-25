@@ -57,6 +57,17 @@ def check_case(case: dict, route: str, answer: str, sources: list[dict]) -> dict
     words = case.get("answer_must_mention_any")
     if words:
         checks["menyebut_kata_kunci"] = any(w.lower() in lowered for w in words)
+    forbidden = case.get("answer_must_not_contain")
+    if forbidden:
+        # Dicek di teks asli dan teks yang angkanya dinormalkan, jadi 141.715,54
+        # tetap tertangkap oleh larangan "141715.54".
+        normalized = normalize_numbers(answer).lower()
+        checks["tidak_memuat_terlarang"] = not any(
+            f.lower() in lowered or normalize_numbers(f).lower() in normalized for f in forbidden
+        )
+    pattern = case.get("answer_must_not_match")
+    if pattern:
+        checks["tidak_cocok_pola_terlarang"] = re.search(pattern, answer) is None
     numbers = case.get("answer_must_contain_numbers")
     if numbers:
         normalized = normalize_numbers(answer)

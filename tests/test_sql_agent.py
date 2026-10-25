@@ -258,3 +258,14 @@ def test_cross_join_tanpa_limit_tetap_dipotong():
     assert len(rows) == 200
     safe, _ = jalankan(sql + " LIMIT 100000000", "admin", None)
     assert "LIMIT 200" in safe
+
+
+def test_data_seller_lain_dikenali_dari_id_dan_peringkat():
+    from olist_assistant.agents.sql_agent import minta_data_seller_lain
+
+    sendiri, lain = "4869f7a5dfa277a7dca6462dcf3b52b2", "7a67c85e85bb2ce8582c35f2203ad736"
+    assert minta_data_seller_lain(f"Kalau toko {lain} berapa?", "seller", sendiri)
+    assert minta_data_seller_lain(f"Total penjualan seller {sendiri}?", "customer", None)
+    assert minta_data_seller_lain("Per kota, seller dengan omzet terbesar?", "seller", sendiri)
+    assert not minta_data_seller_lain(f"Penjualan toko {sendiri} tahun 2018?", "seller", sendiri)
+    assert not minta_data_seller_lain(f"Kalau toko {lain} berapa?", "admin", None)
