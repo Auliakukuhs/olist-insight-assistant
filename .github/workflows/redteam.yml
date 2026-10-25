@@ -1,0 +1,132 @@
+# Red team sebagai gerbang rilis, mengikuti OWASP DevSecOps Guideline bagian
+# AI/LLM Application Security Testing. Dua lapis:
+#
+# 1. kode    Corpus serangan kita (red team, klaim otoritas, serangan holdout)
+#            dijalankan ke kode PR ini dengan LLM asli. Toleransi nol untuk
+#            kebocoran (scripts/evaluate_gold.py --gerbang).
+# 2. staging Serangan lewat HTTP ke staging: corpus yang sama, lalu promptfoo
+#            dengan preset OWASP LLM Top 10. Manual dan setiap Senin.
+#
+# Secret yang dibutuhkan (lihat README, bagian Gerbang red team):
+#   OPENAI_API_KEY, QDRANT_URL, QDRANT_API_KEY             untuk lapis kode
+#   STAGING_API_URL, STAGING_API_KEY, STAGING_DEMO_PASSWORDS untuk lapis staging
+# Tanpa secret, job dilewati dengan peringatan, tidak gagal.
+
+name: redteam
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "data/eval/**"
+      - "scripts/evaluate_gold.py"
+      - "scripts/serang_api.py"
+      - "redteam/**"
+      - ".github/workflows/redteam.yml"
+  workflow_dispatch:
+    inputs:
+      promptfoo:
+        description: "Jalankan promptfoo ke staging"
+        type: boolean
+        default: true
+  schedule:
+    - cron: "0 1 * * 1"  # Senin 08.00 WIB
+
+concurrency:
+  group: redteam-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kode:
+    if: github.event_name != 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      QDRANT_URL: ${{ secrets.QDRANT_URL }}
+      QDRANT_API_KEY: ${{ secrets.QDRANT_API_KEY }}
+    steps:
+      - name: Lewati bila secret belum diisi
+        id: cek
+        run: |
+          if [ -z "$OPENAI_API_KEY" ] || [ -z "$QDRANT_URL" ] || [ -z "$QDRANT_API_KEY" ]; then
+            echo "::warning::Secret OPENAI_API_KEY, QDRANT_URL, QDRANT_API_KEY belum diisi, red team kode dilewati"
+            echo "jalan=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "jalan=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.cek.outputs.jalan == 'true'
+      - uses: astral-sh/setup-uv@v7
+        if: steps.cek.outputs.jalan == 'true'
+        with:
+          version: "0.11.21"
+      - name: Pasang dependensi dan bongkar database
+        if: steps.cek.outputs.jalan == 'true'
+        run: |
+          uv sync --locked --group router
+          gunzip -k data/olist.db.gz
+      - name: Corpus serangan dengan gerbang toleransi nol
+        if: steps.cek.outputs.jalan == 'true'
+        run: |
+          uv run python scripts/evaluate_gold.py --gerbang \
+            data/eval/redteam.jsonl data/eval/redteam_otoritas.jsonl data/eval/serangan_holdout.jsonl
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.cek.outputs.jalan == 'true'
+        with:
+          name: redteam-kode
+          path: reports/eval_*.json
+
+  staging:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      STAGING_API_URL: ${{ secrets.STAGING_API_URL }}
+      STAGING_API_KEY: ${{ secrets.STAGING_API_KEY }}
+      STAGING_DEMO_PASSWORDS: ${{ secrets.STAGING_DEMO_PASSWORDS }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+    steps:
+      - name: Lewati bila secret belum diisi
+        id: cek
+        run: |
+          if [ -z "$STAGING_API_URL" ] || [ -z "$STAGING_API_KEY" ] || [ -z "$STAGING_DEMO_PASSWORDS" ]; then
+            echo "::warning::Secret staging belum diisi, red team staging dilewati"
+            echo "jalan=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "jalan=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/checkout@v7
+        if: steps.cek.outputs.jalan == 'true'
+      - uses: astral-sh/setup-uv@v7
+        if: steps.cek.outputs.jalan == 'true'
+        with:
+          version: "0.11.21"
+      - name: Corpus serangan ke staging lewat HTTP
+        if: steps.cek.outputs.jalan == 'true'
+        run: |
+          uv sync --locked
+          uv run python scripts/serang_api.py \
+            data/eval/redteam.jsonl data/eval/redteam_otoritas.jsonl data/eval/serangan_holdout.jsonl
+      - uses: actions/setup-node@v7
+        if: steps.cek.outputs.jalan == 'true' && env.OPENAI_API_KEY != '' && (github.event_name == 'schedule' || inputs.promptfoo)
+        with:
+          node-version: "22"
+      - name: promptfoo, preset OWASP LLM Top 10
+        if: steps.cek.outputs.jalan == 'true' && env.OPENAI_API_KEY != '' && (github.event_name == 'schedule' || inputs.promptfoo)
+        working-directory: redteam
+        env:
+          PROMPTFOO_PYTHON: ${{ github.workspace }}/.venv/bin/python
+          PROMPTFOO_DISABLE_TELEMETRY: "1"
+        run: npx --yes promptfoo@0.124.1 redteam run -c promptfooconfig.yaml --max-concurrency 2 -o hasil-promptfoo.json
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.cek.outputs.jalan == 'true'
+        with:
+          name: redteam-staging
+          path: |
+            reports/gerbang_staging.json
+            redteam/hasil-promptfoo.json

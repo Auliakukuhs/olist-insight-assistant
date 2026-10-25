@@ -10,9 +10,11 @@ Contoh:
     uv run python scripts/evaluate_gold.py data/eval/gold_holdout.jsonl     # holdout buta
     uv run python scripts/evaluate_gold.py data/eval/gold_mentoring.jsonl   # skenario mentoring 1
     uv run python scripts/evaluate_gold.py data/eval/redteam.jsonl          # red team per kategori
+    uv run python scripts/evaluate_gold.py --gerbang data/eval/redteam*.jsonl  # gerbang rilis
 """
 
 import json
+import os
 import sys
 import time
 import uuid
@@ -22,6 +24,7 @@ from pathlib import Path
 from olist_assistant.agents.supervisor import default_supervisor
 from olist_assistant.config import load_dotenv
 from olist_assistant.evaluation import check_case, latency_summary, resolve_dates
+from olist_assistant.gerbang import nilai_gerbang
 
 DEFAULT_GOLD = Path("data/eval/gold.jsonl")
 # Seller dengan penjualan terbesar, sama dengan akun demo seller.
@@ -29,10 +32,29 @@ DEMO_SELLER = "4869f7a5dfa277a7dca6462dcf3b52b2"
 
 
 def main() -> None:
-    gold = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_GOLD
-    report = Path("reports") / f"eval_{gold.stem}.json"
+    args = [a for a in sys.argv[1:] if a != "--gerbang"]
+    golds = [Path(a) for a in args] or [DEFAULT_GOLD]
     load_dotenv()
     supervisor = default_supervisor()
+    semua = []
+    for gold in golds:
+        semua += evaluate_file(supervisor, gold)
+    if supervisor.callbacks:
+        from langfuse import get_client
+
+        get_client().flush()
+    if "--gerbang" in sys.argv:
+        # Gerbang rilis: satu kegagalan berat menggagalkan run (lihat gerbang.py).
+        gerbang = nilai_gerbang(semua, float(os.getenv("GERBANG_BATAS_RINGAN", "0.1")))
+        Path("reports/gerbang_kode.json").write_text(
+            json.dumps(gerbang, ensure_ascii=False, indent=2)
+        )
+        print(json.dumps({k: v for k, v in gerbang.items() if k != "gagal_ringan"}, indent=1))
+        sys.exit(0 if gerbang["lulus"] else 1)
+
+
+def evaluate_file(supervisor, gold: Path) -> list[dict]:
+    report = Path("reports") / f"eval_{gold.stem}.json"
     cases = [json.loads(line) for line in gold.read_text().splitlines() if line.strip()]
     run_id = uuid.uuid4().hex[:6]
     results = []
@@ -100,10 +122,7 @@ def main() -> None:
         )
     )
     print(json.dumps(summary, indent=2))
-    if supervisor.callbacks:
-        from langfuse import get_client
-
-        get_client().flush()
+    return results
 
 
 if __name__ == "__main__":
