@@ -2,7 +2,7 @@
 
 Chatbot multi-agent untuk customer, seller, dan admin di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status per 23 Oktober 2026. Supervisor LangGraph dengan jawaban langsung, dua agent paralel, dan pemeriksa kecukupan. Agent RAG ke Qdrant Cloud, agent SQL ke SQLite dengan aturan per peran, login tiga peran, panel proses, tracing Langfuse, dan CI keamanan. Semuanya berjalan di AWS. Antarmuka Streamlit sedang dikerjakan (#2).
+Status per 24 Oktober 2026. Supervisor LangGraph dengan jawaban langsung, dua agent paralel, dan pemeriksa kecukupan. Agent RAG ke Qdrant Cloud, agent SQL ke SQLite dengan aturan per peran, login tiga peran, panel proses, tracing Langfuse, dan CI keamanan. Backend berjalan di AWS, antarmuka Streamlit di Streamlit Community Cloud. Halaman market analysis sedang dikerjakan (#12).
 
 ## Link
 
@@ -10,7 +10,7 @@ Status per 23 Oktober 2026. Supervisor LangGraph dengan jawaban langsung, dua ag
 |---|---|
 | Backend (REST API di AWS ECS Express Mode) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws |
 | Dokumentasi API interaktif (Swagger) | https://ol-c576a0b2565b439a9bd39e2e2b2e8563.ecs.ap-southeast-1.on.aws/docs |
-| Frontend (Streamlit Community Cloud) | menyusul |
+| Frontend (Streamlit Community Cloud) | https://olist-insight-lettokukuh.streamlit.app |
 
 ### Mencoba API tanpa menulis kode
 
@@ -106,7 +106,7 @@ src/olist_assistant/
   rag/          dokumen dan ingestion Qdrant
   router/       dataset, baseline, dan router ONNX
   sql/          ETL CSV ke SQLite dan views.sql
-frontend/       Streamlit (#2)
+frontend/       Streamlit: login, chat, label agent, panel proses
 scripts/        build_sqlite, ingest_qdrant, evaluate_gold, coba_agent_sql, deploy_aws, training router
 data/eval/      gold set, holdout, skenario mentoring, pertanyaan contoh SQL
 reports/        hasil evaluasi dan training router
