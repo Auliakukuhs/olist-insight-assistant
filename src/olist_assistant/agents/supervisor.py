@@ -114,6 +114,8 @@ ATTACK_PATTERNS = [
     r"\bdan\b\s+(yang|mode|tanpa)|\bdo\s+anything\s+now\b",
     r"tanpa\s+(batasan|aturan|filter|sensor)|no\s+(restrictions|rules|limits)",
     r"\b(mem)?bobol\b|\bhack(ing)?\b",
+    # SQL mentah di pertanyaan. Pengguna bertanya dengan kalimat, query ditulis agent.
+    r"\bselect\b[\s\S]*\bfrom\b|\bwith\s+\w+\s+as\s*\(",
 ]
 
 ROUTER_PROMPT = """Kamu router untuk chatbot data e-commerce OLIST (Brasil, 2016 sampai 2018).

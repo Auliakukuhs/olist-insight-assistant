@@ -248,3 +248,54 @@ def test_peringkat_rasio_tanpa_batas_diberi_batas_pesanan(sql):
 def test_batas_pengguna_dan_peringkat_bukan_rasio_tidak_diubah(sql):
     safe, _ = jalankan(sql, "admin", None)
     assert "jumlah_order >= 30" not in safe
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        # Audit 25 Okt (S01): CTE bernama sama dengan tabel terlarang menyamarkan tabel itu.
+        "WITH sellers AS (SELECT 1) SELECT COUNT(*) AS n FROM main.sellers",
+        "SELECT * FROM (WITH sellers AS (SELECT 1) SELECT 1) AS d JOIN sellers ON 1=1",
+        "WITH v_ringkasan_seller AS (SELECT 1) SELECT * FROM v_ringkasan_seller",
+        'SELECT * FROM "main"."sellers"',
+    ],
+)
+def test_cte_dan_awalan_skema_tidak_bisa_menyamarkan_tabel_terlarang(sql):
+    with pytest.raises(SqlDitolak):
+        jalankan(sql, "customer", None)
+
+
+@pytest.mark.parametrize("peran", ["customer", "seller"])
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "WITH sellers AS (SELECT 1) SELECT COUNT(*) FROM main.sellers",
+        "SELECT customer_unique_id FROM customers",
+        "SELECT seller_id FROM ringkasan_seller",
+        "SELECT * FROM (WITH order_items AS (SELECT 1) SELECT 1) d JOIN order_items ON 1=1",
+        "SELECT seller_id FROM v_item_terjual",
+    ],
+)
+def test_authorizer_menahan_walau_pemeriksa_sqlglot_dilewati(peran, sql):
+    conn = buka_koneksi(peran, "4869f7a5dfa277a7dca6462dcf3b52b2" if peran == "seller" else None)
+    try:
+        with pytest.raises(sqlite3.DatabaseError):
+            conn.execute(sql).fetchall()
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize(
+    ("peran", "sql"),
+    [
+        ("customer", "WITH x AS (SELECT kategori FROM v_pasar) SELECT COUNT(*) AS n FROM x"),
+        ("customer", "SELECT COUNT(*) AS n FROM (SELECT kategori FROM v_pasar)"),
+        ("customer", "SELECT COUNT(*) AS n FROM v_pembayaran_per_order"),
+        ("seller", "WITH t AS (SELECT * FROM v_penjualan_saya) SELECT COUNT(*) AS n FROM t"),
+        ("admin", "SELECT COUNT(*) AS n FROM (SELECT * FROM v_item_terjual)"),
+    ],
+)
+def test_cte_dan_subquery_sah_tetap_jalan(peran, sql):
+    seller_id = "4869f7a5dfa277a7dca6462dcf3b52b2" if peran == "seller" else None
+    _, rows = jalankan(sql, peran, seller_id)
+    assert rows[0]["n"] > 0
