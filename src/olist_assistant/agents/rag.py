@@ -157,6 +157,11 @@ def _clean_score(value: int | None) -> int | None:
     return None if value is None else min(5, max(1, int(value)))
 
 
+def _sebagai_data(text: str) -> str:
+    """Teks ulasan tidak boleh bisa menutup tag <data_ulasan> (audit 25 Okt, S07)."""
+    return text.replace("<", "‹").replace(">", "›")
+
+
 def format_hits(hits: list[Hit]) -> str:
     """Bungkus hasil pencarian sebagai data, lengkap dengan ID untuk dikutip."""
     if not hits:
@@ -165,9 +170,9 @@ def format_hits(hits: list[Hit]) -> str:
     for hit in hits:
         meta = hit.metadata
         if meta.get("doc_type") == "category":
-            lines.append(f"[category:{meta['category']}] {hit.text}")
+            lines.append(f"[category:{meta['category']}] {_sebagai_data(hit.text)}")
         else:
-            lines.append(f"[review:{meta['review_id']}] {hit.text[:MAX_SNIPPET]}")
+            lines.append(f"[review:{meta['review_id']}] {_sebagai_data(hit.text[:MAX_SNIPPET])}")
     body = "\n".join(lines)
     return f"<data_ulasan>\n{body}\n</data_ulasan>"
 

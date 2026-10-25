@@ -18,6 +18,7 @@ from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
 from olist_assistant.api import analytics, auth
 from olist_assistant.api.auth import current_user
+from olist_assistant.api.keluaran import bersihkan
 from olist_assistant.api.ratelimit import RateLimiter, client_ip
 from olist_assistant.api.schemas import (
     ChatRequest,
@@ -183,9 +184,12 @@ def chat(
             detail=f"Agent gagal menjawab. Sebutkan kode {request_id} saat melapor.",
         ) from None
     return ChatResponse(
-        answer=state["answer"],
+        answer=bersihkan(state["answer"]),
         route=state["route"],
-        sources=[Source(**s) for s in state.get("sources", [])],
+        sources=[
+            Source(**{**s, "snippet": bersihkan(s["snippet"])} if s.get("snippet") else s)
+            for s in state.get("sources", [])
+        ],
         table=state.get("table"),
         proses=Proses(**state["proses"]) if state.get("proses") else None,
         request_id=request_id,

@@ -133,3 +133,20 @@ def test_logout_kembali_ke_halaman_login(api):
     at.sidebar.button[1].click().run()
     assert at.title[0].value == "OLIST Insight Assistant"
     assert len(at.text_input) == 2
+
+
+def test_401_di_tengah_sesi_membersihkan_semua_dan_kembali_ke_login(api, monkeypatch):
+    # Audit 25 Okt (S08): dulu hanya token yang dihapus, pengguna dan riwayat tertinggal.
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    assert len(at.session_state.messages) == 2
+
+    def kedaluwarsa(method, url, **kwargs):
+        return FakeResponse(401, {"detail": "Silakan login ulang"})
+
+    monkeypatch.setattr(requests, "request", kedaluwarsa)
+    at.chat_input[0].set_value("Pertanyaan lanjutan").run()
+    assert at.session_state.token is None and at.session_state.pengguna is None
+    assert at.session_state.messages == []
+    assert [t.label for t in at.text_input] == ["Username", "Password"]
+    assert "Sesi login berakhir" in at.error[0].value
