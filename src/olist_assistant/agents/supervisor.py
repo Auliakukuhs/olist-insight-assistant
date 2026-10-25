@@ -65,6 +65,28 @@ HYBRID_RAG_NOTE = (
     "Catatan sistem: angka dan peringkat dihitung agent lain. Tugasmu hanya mencari "
     "contoh ulasan yang relevan. Jangan menyebut statistik atau peringkat apa pun."
 )
+# Pertanyaan hybrid yang kategorinya baru diketahui dari peringkat SQL, misalnya
+# "kategori terlaris 2018 itu pembelinya puas tidak?". Bila paralel, agent RAG
+# mengambil ulasan tanpa tahu kategori itu (ditemukan juri LLM, #63 dan #75).
+PERINGKAT_KATEGORI = re.compile(
+    r"\bkategori\b.*\b(paling|ter(laris|tinggi|rendah|banyak|sedikit|buruk|jelek|mahal|"
+    r"murah|lama|cepat|baik)|top\s*\d+|\d+\s+kategori)"
+    r"|\b(top\s*\d+|\d+)\s+kategori\b",
+    re.IGNORECASE,
+)
+MAX_KATEGORI_LANJUT = 3
+
+
+def kategori_dari_sql(rows: list[dict] | None) -> list[str]:
+    """Kategori di baris hasil SQL, urut sesuai peringkatnya, tanpa duplikat."""
+    hasil: list[str] = []
+    for row in rows or []:
+        kategori = row.get("kategori")
+        if isinstance(kategori, str) and kategori not in hasil:
+            hasil.append(kategori)
+    return hasil[:MAX_KATEGORI_LANJUT]
+
+
 SQL_UNAVAILABLE = (
     "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan "
     "tentang harga, jumlah, atau ranking belum bisa dijawab."
@@ -285,6 +307,8 @@ class Supervisor:
         graph.add_node("rencana", self._rencana)
         graph.add_node("hybrid_sql", self._hybrid_sql)
         graph.add_node("hybrid_rag", self._hybrid_rag)
+        graph.add_node("hybrid_sql_dulu", self._hybrid_sql)
+        graph.add_node("hybrid_rag_lanjut", self._hybrid_rag_lanjut)
         graph.add_node("gabung", self._gabung)
 
         graph.add_edge(START, "guard")
@@ -298,10 +322,18 @@ class Supervisor:
         graph.add_edge("rag", "periksa")
         graph.add_edge("sql", "periksa")
         graph.add_conditional_edges("periksa", lambda s: "susulan" if s.get("eskalasi") else END)
-        # Dua cabang paralel. gabung baru berjalan setelah keduanya selesai.
-        graph.add_edge("rencana", "hybrid_sql")
-        graph.add_edge("rencana", "hybrid_rag")
+        # Biasanya dua cabang paralel, dan gabung berjalan setelah keduanya selesai.
+        # Pertanyaan yang kategorinya ditentukan peringkat SQL dijalankan berurutan.
+        graph.add_conditional_edges(
+            "rencana",
+            lambda s: (
+                "hybrid_sql_dulu" if s["rencana"].get("berurutan") else ["hybrid_sql", "hybrid_rag"]
+            ),
+            ["hybrid_sql", "hybrid_rag", "hybrid_sql_dulu"],
+        )
         graph.add_edge(["hybrid_sql", "hybrid_rag"], "gabung")
+        graph.add_edge("hybrid_sql_dulu", "hybrid_rag_lanjut")
+        graph.add_edge("hybrid_rag_lanjut", "gabung")
         for node in ("tolak", "langsung", "susulan", "gabung"):
             graph.add_edge(node, END)
         return graph.compile(checkpointer=InMemorySaver())
@@ -418,12 +450,19 @@ class Supervisor:
     # ---------- Jalur hybrid paralel ----------
 
     def _rencana(self, state: SupervisorState) -> dict:
-        """Cara kedua dari mentoring 1. Tentukan filter bersama, lalu agent jalan paralel."""
+        """Cara kedua dari mentoring 1. Tentukan filter bersama, lalu agent jalan paralel.
+
+        Bila kategorinya baru diketahui dari peringkat SQL, kedua agent dijalankan
+        berurutan supaya agent RAG mencari ulasan di kategori hasil SQL.
+        """
         question = self._question(state)
         if self.plan is None:
-            return {"rencana": {"pertanyaan_sql": question, "pertanyaan_rag": question}}
-        rencana = self.plan(question, _history(state["messages"]), state.get("role", "customer"))
-        return {"rencana": rencana}
+            rencana = {"pertanyaan_sql": question, "pertanyaan_rag": question}
+        else:
+            rencana = self.plan(
+                question, _history(state["messages"]), state.get("role", "customer")
+            )
+        return {"rencana": {**rencana, "berurutan": bool(PERINGKAT_KATEGORI.search(question))}}
 
     def _hybrid_sql(self, state: SupervisorState) -> dict:
         result = self._call_sql(
@@ -433,6 +472,19 @@ class Supervisor:
 
     def _hybrid_rag(self, state: SupervisorState) -> dict:
         question = f"{state['rencana']['pertanyaan_rag']}\n\n{HYBRID_RAG_NOTE}"
+        return {"hasil_rag": self._call_rag(question, _history(state["messages"]))}
+
+    def _hybrid_rag_lanjut(self, state: SupervisorState) -> dict:
+        """RAG setelah SQL selesai, difokuskan ke kategori yang ditemukan SQL."""
+        hasil_sql = state.get("hasil_sql")
+        kategori = kategori_dari_sql(hasil_sql["rows"] if hasil_sql else None)
+        question = state["rencana"]["pertanyaan_rag"]
+        if kategori:
+            question = (
+                f"{question}\n\nKategori yang dimaksud menurut data: {', '.join(kategori)}. "
+                "Panggil cari_ulasan dengan kategori itu, dan sebut kategori setiap ulasan."
+            )
+        question = f"{question}\n\n{HYBRID_RAG_NOTE}"
         return {"hasil_rag": self._call_rag(question, _history(state["messages"]))}
 
     def _gabung(self, state: SupervisorState) -> dict:
