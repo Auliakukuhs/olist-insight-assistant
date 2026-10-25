@@ -147,7 +147,8 @@ ATURAN_PERAN = {
     "customer": "- Pengguna adalah pembeli. Performa seller tertentu, peringkat seller, dan "
     "perbandingan antar seller adalah data internal perusahaan. Tolak dengan sopan, lalu "
     "tawarkan data pasar per kategori atau lokasi. Jangan mengakalinya dengan angka per "
-    "kota atau negara bagian yang disebut seller.",
+    "kota atau negara bagian yang disebut seller. Kolom kota_seller selalu kosong untuk "
+    "peran ini, jadi lokasi seller cukup per negara_bagian_seller.",
     "seller": "- Pengguna adalah seller. Data tokonya sendiri ada di v_penjualan_saya dan "
     "v_ringkasan_saya. Performa seller lain, peringkat seller, dan perbandingan antar "
     "seller adalah data internal perusahaan yang hanya untuk admin. Tolak dengan sopan, "
@@ -325,7 +326,13 @@ def tabel_yang_dibutuhkan(allowed: set[str]) -> set[str]:
     return hasil
 
 
-def _authorizer_untuk(allowed: set[str]):
+# Kolom yang membuka data per seller. Agregat per kota seller bisa membuka omzet satu
+# seller bila di kota itu hanya ada satu seller, jadi selain admin kolom ini selalu
+# kosong dan cukup per negara bagian (dicoba Mas Nadif saat mentoring 2, 25 Okt).
+KOLOM_KHUSUS_ADMIN = {"kota_seller"}
+
+
+def _authorizer_untuk(allowed: set[str], peran: Peran = "customer"):
     """Lapis kedua yang independen dari pemeriksa sqlglot.
 
     Setiap pembacaan tabel diperiksa terhadap tabel yang memang dibutuhkan view
@@ -338,6 +345,12 @@ def _authorizer_untuk(allowed: set[str]):
 
     def authorizer(action, arg1, arg2, dbname, source):
         if action == sqlite3.SQLITE_READ:
+            if peran != "admin" and (arg2 or "").lower() in KOLOM_KHUSUS_ADMIN:
+                # IGNORE, bukan DENY: kolom terbaca kosong. View SELECT * di subquery
+                # tetap membaca semua kolom, jadi DENY ikut menolak query sah.
+                return (
+                    sqlite3.SQLITE_IGNORE if (arg1 or "").lower() in boleh else sqlite3.SQLITE_DENY
+                )
             return sqlite3.SQLITE_OK if (arg1 or "").lower() in boleh else sqlite3.SQLITE_DENY
         if action in (sqlite3.SQLITE_SELECT, sqlite3.SQLITE_FUNCTION):
             return sqlite3.SQLITE_OK
@@ -373,7 +386,7 @@ def buka_koneksi(peran: Peran, seller_id: str | None) -> sqlite3.Connection:
             f"SELECT * FROM v_ringkasan_seller WHERE seller_id = '{seller_id}'"
         )
     conn.execute("PRAGMA query_only = ON")
-    conn.set_authorizer(_authorizer_untuk(VIEW_PER_PERAN[peran]))
+    conn.set_authorizer(_authorizer_untuk(VIEW_PER_PERAN[peran], peran))
     return conn
 
 

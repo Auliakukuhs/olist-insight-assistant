@@ -320,3 +320,17 @@ def test_cte_dan_subquery_sah_tetap_jalan(peran, sql):
     seller_id = "4869f7a5dfa277a7dca6462dcf3b52b2" if peran == "seller" else None
     _, rows = jalankan(sql, peran, seller_id)
     assert rows[0]["n"] > 0
+
+
+def test_kota_seller_kosong_untuk_selain_admin():
+    # Agregat per kota seller bisa membuka omzet satu seller (mentoring 2, 25 Okt).
+    sql = "SELECT kota_seller, COUNT(*) AS n FROM v_pasar GROUP BY 1 ORDER BY 2 DESC LIMIT 2"
+    for peran, seller_id in (("customer", None), ("seller", "4869f7a5dfa277a7dca6462dcf3b52b2")):
+        _, rows = jalankan(sql, peran, seller_id)
+        assert [r["kota_seller"] for r in rows] == [None]
+    _, rows = jalankan(sql, "admin", None)
+    assert rows[0]["kota_seller"] is not None
+    _, rows = jalankan(
+        "SELECT COUNT(*) AS n FROM v_pasar WHERE negara_bagian_seller = 'SP'", "customer", None
+    )
+    assert rows[0]["n"] > 0
