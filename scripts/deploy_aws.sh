@@ -24,6 +24,17 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
+
+# Rahasia keamanan wajib ada sebelum build. Tanpa ini container produksi menolak
+# start (periksa_konfigurasi), jadi lebih baik gagal di sini (audit 25 Okt, S02).
+for name in API_ACCESS_KEY AUTH_SECRET DEMO_USERS; do
+  if ! aws ssm describe-parameters --region "${REGION}" \
+      --parameter-filters "Key=Name,Values=/olist/${name}" \
+      --query 'length(Parameters)' --output text | grep -q '^1$'; then
+    echo "Parameter SSM /olist/${name} tidak ada. Deploy dibatalkan." >&2
+    exit 1
+  fi
+done
 REGISTRY="${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com"
 TAG="$(git rev-parse --short HEAD)"
 IMAGE="${REGISTRY}/${REPO}:${TAG}"
