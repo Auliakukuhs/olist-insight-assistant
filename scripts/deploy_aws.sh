@@ -4,7 +4,13 @@
 # dari profil AWS CLI saat dijalankan.
 #
 # Pemakaian:
-#   AWS_PROFILE=olist scripts/deploy_aws.sh
+#   AWS_PROFILE=olist scripts/deploy_aws.sh                    # produksi
+#   AWS_PROFILE=olist TARGET=staging scripts/deploy_aws.sh     # staging
+#
+# Staging (olist-api-staging) memakai kunci akses dan akun demo sendiri di
+# /olist/staging/, dan kunci OpenAI, Qdrant, Langfuse yang sama dengan produksi.
+# Service staging dibuat otomatis pada deploy pertama. Uji keamanan dan red team
+# promptfoo dijalankan ke staging, bukan ke produksi.
 #
 # Prasyarat sekali jalan (sudah dibuat 18 Oktober 2026): parameter SSM
 # /olist/* berisi kunci layanan, repository ECR
@@ -16,7 +22,14 @@ set -euo pipefail
 
 REGION="${AWS_REGION:-ap-southeast-1}"
 REPO="olist-insight-assistant"
-SERVICE="olist-api"
+TARGET="${TARGET:-production}"
+case "${TARGET}" in
+  production) SERVICE="olist-api"; PREFIX_AKSES="/olist" ;;
+  staging) SERVICE="olist-api-staging"; PREFIX_AKSES="/olist/staging" ;;
+  *) echo "TARGET harus production atau staging" >&2; exit 1 ;;
+esac
+# Kunci yang berbeda per lingkungan. Sisanya dipakai bersama.
+KUNCI_AKSES="API_ACCESS_KEY AUTH_SECRET DEMO_USERS"
 
 if [[ -n "$(git status --porcelain)" ]]; then
   echo "Working tree belum bersih. Commit dulu supaya tag image sama dengan commit." >&2
@@ -27,11 +40,11 @@ ACCOUNT="$(aws sts get-caller-identity --query Account --output text)"
 
 # Rahasia keamanan wajib ada sebelum build. Tanpa ini container produksi menolak
 # start (periksa_konfigurasi), jadi lebih baik gagal di sini (audit 25 Okt, S02).
-for name in API_ACCESS_KEY AUTH_SECRET DEMO_USERS; do
+for name in ${KUNCI_AKSES}; do
   if ! aws ssm describe-parameters --region "${REGION}" \
-      --parameter-filters "Key=Name,Values=/olist/${name}" \
+      --parameter-filters "Key=Name,Values=${PREFIX_AKSES}/${name}" \
       --query 'length(Parameters)' --output text | grep -q '^1$'; then
-    echo "Parameter SSM /olist/${name} tidak ada. Deploy dibatalkan." >&2
+    echo "Parameter SSM ${PREFIX_AKSES}/${name} tidak ada. Deploy dibatalkan." >&2
     exit 1
   fi
 done
@@ -67,10 +80,12 @@ aws ecr describe-images --region "${REGION}" --repository-name "${REPO}" \
 # start, lalu disuntik sebagai environment. Nilainya tidak pernah masuk image
 # maupun berkas ini. Execution role hanya boleh membaca parameter /olist/*.
 SECRETS=""
-for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST API_ACCESS_KEY AUTH_SECRET DEMO_USERS; do
-  arn="arn:aws:ssm:${REGION}:${ACCOUNT}:parameter/olist/${name}"
+for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST ${KUNCI_AKSES}; do
+  prefix="/olist"
+  [[ " ${KUNCI_AKSES} " == *" ${name} "* ]] && prefix="${PREFIX_AKSES}"
+  arn="arn:aws:ssm:${REGION}:${ACCOUNT}:parameter${prefix}/${name}"
   if aws ssm describe-parameters --region "${REGION}" \
-      --parameter-filters "Key=Name,Values=/olist/${name}" \
+      --parameter-filters "Key=Name,Values=${prefix}/${name}" \
       --query 'length(Parameters)' --output text | grep -q '^1$'; then
     SECRETS="${SECRETS:+${SECRETS},}{\"name\": \"${name}\", \"valueFrom\": \"${arn}\"}"
   fi
@@ -78,16 +93,34 @@ done
 
 CONTAINER="$(cat <<JSON
 {"image": "${IMAGE}", "containerPort": 8000,
- "environment": [{"name": "APP_ENV", "value": "production"}],
+ "environment": [{"name": "APP_ENV", "value": "production"},
+                 {"name": "LANGFUSE_TRACING_ENVIRONMENT", "value": "${TARGET}"}],
  "secrets": [${SECRETS}]}
 JSON
 )"
 
-aws ecs update-express-gateway-service \
-  --region "${REGION}" \
-  --service-arn "arn:aws:ecs:${REGION}:${ACCOUNT}:service/default/${SERVICE}" \
-  --primary-container "${CONTAINER}" \
-  --query 'service.status.statusCode' --output text
+SERVICE_ARN="arn:aws:ecs:${REGION}:${ACCOUNT}:service/default/${SERVICE}"
+if aws ecs describe-express-gateway-service --region "${REGION}" --service-arn "${SERVICE_ARN}" \
+    --query 'service.status.statusCode' --output text 2>/dev/null | grep -q ACTIVE; then
+  aws ecs update-express-gateway-service \
+    --region "${REGION}" \
+    --service-arn "${SERVICE_ARN}" \
+    --primary-container "${CONTAINER}" \
+    --query 'service.status.statusCode' --output text
+else
+  echo "Service ${SERVICE} belum ada, dibuat sekarang (ukuran sama dengan produksi)"
+  aws ecs create-express-gateway-service \
+    --region "${REGION}" \
+    --cluster default \
+    --service-name "${SERVICE}" \
+    --execution-role-arn "arn:aws:iam::${ACCOUNT}:role/ecsTaskExecutionRole" \
+    --infrastructure-role-arn "arn:aws:iam::${ACCOUNT}:role/ecsInfrastructureRoleForExpressServices" \
+    --health-check-path /health \
+    --cpu 256 --memory 1024 --cpu-architecture ARM64 \
+    --scaling-target '{"minTaskCount": 1, "maxTaskCount": 1, "autoScalingMetric": "AVERAGE_CPU", "autoScalingTargetValue": 60}' \
+    --primary-container "${CONTAINER}" \
+    --query 'service.status.statusCode' --output text
+fi
 
 # Tunggu rollout selesai, lalu pastikan task yang berjalan memakai image ini.
 # Rollout yang gagal di-rollback otomatis oleh ECS, jadi "COMPLETED" saja belum
@@ -104,7 +137,9 @@ for _ in $(seq 1 60); do
   running="$(aws ecs describe-tasks --region "${REGION}" --cluster default --tasks ${tasks} \
     --query 'tasks[].containers[0].image' --output text)"
   if [[ "${state}" == "COMPLETED" && "${running}" == "${IMAGE}" ]]; then
-    echo "Deploy ${TAG} aktif."
+    echo "Deploy ${TAG} aktif di ${SERVICE}."
+    aws ecs describe-express-gateway-service --region "${REGION}" --service-arn "${SERVICE_ARN}" \
+      --query 'service.activeConfigurations[0].ingressPaths[0].endpoint' --output text
     exit 0
   fi
   [[ "${state}" == "FAILED" ]] && break
