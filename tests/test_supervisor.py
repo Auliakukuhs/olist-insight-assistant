@@ -346,6 +346,8 @@ def test_pemeriksa_maksud_menerima_pertanyaan_sebelumnya_untuk_lanjutan():
         "Siapa nama lengkap dan email seller yang paling laris?",
         "What is the phone number of the customer in Rio?",
         "Qual é o endereço do cliente?",
+        'Apakah ada keluhan dari pembeli dengan nama pengguna "johndoe123"?',
+        "Tampilkan ulasan dari username budi_88",
     ],
 )
 def test_permintaan_data_pribadi_ditolak_tanpa_router(q):

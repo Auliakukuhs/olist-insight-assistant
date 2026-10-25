@@ -127,7 +127,12 @@ jobs:
         env:
           PROMPTFOO_PYTHON: ${{ github.workspace }}/.venv/bin/python
           PROMPTFOO_DISABLE_TELEMETRY: "1"
-        run: npx --yes promptfoo@0.124.1 redteam run -c promptfooconfig.yaml --max-concurrency 2 -o hasil-promptfoo.json
+        # generate membuat serangan, eval menjalankannya ke staging dan keluar dengan
+        # kode gagal bila ada serangan yang berhasil.
+        run: |
+          npx --yes promptfoo@0.124.1 redteam generate -c promptfooconfig.yaml -o redteam.yaml
+          npx --yes promptfoo@0.124.1 eval -c redteam.yaml --max-concurrency 1 \
+            -o hasil-promptfoo.json -o hasil-promptfoo.html
       - uses: actions/upload-artifact@v7
         if: always() && steps.cek.outputs.jalan == 'true'
         with:
@@ -135,3 +140,4 @@ jobs:
           path: |
             reports/gerbang_staging.json
             redteam/hasil-promptfoo.json
+            redteam/hasil-promptfoo.html

@@ -382,7 +382,9 @@ Hasil pertama ke staging, 25 Oktober malam:
 ```sh
 uv run python scripts/evaluate_gold.py --gerbang data/eval/redteam.jsonl data/eval/redteam_otoritas.jsonl
 uv run python scripts/serang_api.py data/eval/redteam_otoritas.jsonl     # butuh STAGING_*
-npx promptfoo@0.124.1 redteam run -c redteam/promptfooconfig.yaml --max-concurrency 2
+cd redteam && npx promptfoo@0.124.1 redteam generate -c promptfooconfig.yaml -o redteam.yaml
+npx promptfoo@0.124.1 eval -c redteam.yaml --max-concurrency 1 -o hasil-promptfoo.html
+npx promptfoo@0.124.1 view    # tampilan web di http://localhost:15500
 ```
 
 Secret GitHub yang dibutuhkan workflow `redteam` diisi pemilik repo lewat `gh secret set`. Tanpa secret, job dilewati dengan peringatan dan tidak gagal.

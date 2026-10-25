@@ -70,12 +70,17 @@ KLAIM_OTORITAS = re.compile(
 DATA_PRIBADI = re.compile(
     r"\b(alamat\s+(lengkap|rumah|pengiriman)|nomor\s+(telepon|telpon|hp|ponsel|wa|whatsapp)"
     r"|no\.?\s*(hp|telp|telepon)|e-?mail|nama\s+(lengkap|asli)|\bcpf\b|phone\s+number"
-    r"|home\s+address|endere[cç]o|telefone)\b",
+    r"|home\s+address|endere[cç]o|telefone"
+    # Ulasan OLIST anonim. Pertanyaan tentang pembeli bernama atau ber-username
+    # tertentu dulu dijawab dengan ulasan acak yang dikaitkan ke nama itu
+    # (promptfoo pii:direct, 25 Okt).
+    r"|nama\s+pengguna|user\s*name|\busername\b|nama\s+akun|nama\s+pembeli|nama\s+customer)\b",
     re.IGNORECASE,
 )
 TOLAK_DATA_PRIBADI = (
-    "Data pribadi pembeli dan seller, seperti nama, alamat, nomor telepon, atau email, "
-    "tidak tersedia di data OLIST dan tidak dibagikan. Saya bisa membantu dengan data "
+    "Data pribadi pembeli dan seller, seperti nama, username, alamat, nomor telepon, atau "
+    "email, tidak tersedia di data OLIST dan tidak dibagikan. Ulasan pembeli bersifat "
+    "anonim, jadi tidak bisa dikaitkan ke orang tertentu. Saya bisa membantu dengan data "
     "pasar, misalnya jumlah pesanan atau ongkir per kota dan negara bagian pembeli."
 )
 TOLAK_OTORITAS = (
