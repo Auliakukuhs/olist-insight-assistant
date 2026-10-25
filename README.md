@@ -293,6 +293,19 @@ Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu
 
 Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21 Oktober 2026. Token dihitung oleh callback LangChain (`src/olist_assistant/agents/proses.py`) yang mengaitkan setiap pemanggilan LLM dan tool ke langkah terdekat di graph, termasuk pemanggilan di dalam sub-agent. Biaya memakai harga gpt-4o-mini, 0,15 USD per 1 juta token input dan 0,60 USD per 1 juta token output. Embedding query ke Qdrant tidak ikut dihitung. Langkah yang sama juga tercatat sebagai span di Langfuse.
 
+### Umpan balik pengguna
+
+Di bawah setiap jawaban Streamlit ada jempol naik dan turun. `/chat` mengembalikan `trace_id`, yaitu trace Langfuse jawaban itu, yang ditentukan supervisor per pertanyaan. Trace id tidak dibaca dari handler, karena handler yang dipakai bersama bisa tertukar antar pertanyaan yang datang bersamaan. `POST /feedback` (wajib login) menulis score `umpan_balik_pengguna` bertipe BOOLEAN ke trace itu, lengkap dengan komentar opsional dan peran pengguna. Jadi kualitas jawaban bisa dilacak bersama token, biaya, dan langkah agent di trace yang sama.
+
+| Kondisi | Jawaban `/feedback` |
+|---|---|
+| Menilai jawaban milik sendiri | 200, score ditulis. Mengganti pilihan memperbarui score yang sama (`score_id` tetap per trace) |
+| Trace milik akun lain atau tidak dikenal | 404, sama persis supaya keberadaan trace orang lain tidak bisa ditebak |
+| Tanpa login | 401 |
+| Langfuse tidak aktif | 503 |
+
+Pemilik trace dicatat di memori, paling banyak 5.000 jawaban terakhir.
+
 Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, semua endpoint kecuali `/health` mewajibkan header `X-API-Key`.
 
 ## Keamanan berlapis

@@ -79,6 +79,18 @@ class ChatResponse(BaseModel):
     table: list[dict[str, CellValue]] | None = None
     proses: Proses | None = None
     request_id: str
+    trace_id: str | None = None
+    """Trace Langfuse jawaban ini, dipakai /feedback. None bila tracing mati."""
+
+
+class FeedbackRequest(BaseModel):
+    trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    suka: bool
+    komentar: str | None = Field(default=None, max_length=500)
+
+
+class FeedbackResponse(BaseModel):
+    tercatat: bool
 
 
 class HealthResponse(BaseModel):

@@ -197,6 +197,25 @@ def tampilkan_jawaban(pesan: dict) -> None:
                 st.code(s.get("snippet") or "", language="sql")
     if proses:
         detail_proses(proses)
+    if data.get("trace_id"):
+        # Nilai 1 berarti jempol naik, 0 jempol turun. Disimpan ke Langfuse lewat API.
+        st.feedback(
+            "thumbs",
+            key=f"umpan-{data['trace_id']}",
+            on_change=kirim_umpan_balik,
+            args=(data["trace_id"],),
+        )
+
+
+def kirim_umpan_balik(trace_id: str) -> None:
+    nilai = st.session_state.get(f"umpan-{trace_id}")
+    if nilai is None:
+        return
+    _, error = api("POST", "/feedback", json={"trace_id": trace_id, "suka": nilai == 1})
+    if error:
+        st.toast(f"Umpan balik belum tercatat. {error}")
+    else:
+        st.toast("Terima kasih, umpan balik tercatat.")
 
 
 # ---------- Halaman chat ----------

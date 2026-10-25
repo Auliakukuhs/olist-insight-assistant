@@ -14,7 +14,7 @@ from fastapi.security import APIKeyHeader
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
-from olist_assistant.api import analytics, auth
+from olist_assistant.api import analytics, auth, umpan_balik
 from olist_assistant.api.auth import current_user
 from olist_assistant.api.ratelimit import RateLimiter
 from olist_assistant.api.schemas import (
@@ -90,6 +90,7 @@ def get_supervisor() -> Supervisor:
 
 app.include_router(auth.router, dependencies=[Depends(require_api_key)])
 app.include_router(analytics.router, dependencies=[Depends(require_api_key)])
+app.include_router(umpan_balik.router, dependencies=[Depends(require_api_key)])
 
 
 def client_key(request: Request) -> str:
@@ -142,6 +143,9 @@ def chat(
             status.HTTP_502_BAD_GATEWAY,
             detail=f"Agent gagal menjawab. Sebutkan kode {request_id} saat melapor.",
         ) from None
+    trace_id = state.get("trace_id")
+    if trace_id and user is not None:
+        umpan_balik.pemilik_trace.catat(trace_id, user.username)
     return ChatResponse(
         answer=state["answer"],
         route=state["route"],
@@ -149,4 +153,5 @@ def chat(
         table=state.get("table"),
         proses=Proses(**state["proses"]) if state.get("proses") else None,
         request_id=request_id,
+        trace_id=trace_id,
     )

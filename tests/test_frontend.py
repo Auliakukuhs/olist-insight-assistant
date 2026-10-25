@@ -63,8 +63,11 @@ class FakeApi:
                     "table": [{"rata": 82.04}],
                     "proses": PROSES,
                     "request_id": "x" * 32,
+                    "trace_id": "a" * 32,
                 },
             )
+        if path == "/feedback":
+            return FakeResponse(200, {"tercatat": True})
         if path.startswith("/analytics/kategori"):
             return FakeResponse(200, {"data": [], "mata_uang": "BRL", "catatan": "historis"})
         if path.startswith("/analytics/seller/"):
@@ -133,3 +136,12 @@ def test_logout_kembali_ke_halaman_login(api):
     at.sidebar.button[1].click().run()
     assert at.title[0].value == "OLIST Insight Assistant"
     assert len(at.text_input) == 2
+
+
+def test_jempol_mengirim_umpan_balik_untuk_trace_jawaban(api):
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    assert len(at.feedback) == 1
+    at.feedback[0].set_value(0).run()
+    kiriman = [c for c in api.calls if c[1] == "/feedback"]
+    assert kiriman and kiriman[-1][3] == {"trace_id": "a" * 32, "suka": False}

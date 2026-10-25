@@ -51,7 +51,7 @@ def test_chat_mengikuti_kontrak():
     response = client.post("/chat", json=VALID)
     assert response.status_code == 200
     body = response.json()
-    assert set(body) == {"answer", "route", "sources", "table", "proses", "request_id"}
+    assert set(body) == {"answer", "route", "sources", "table", "proses", "request_id", "trace_id"}
     assert body["route"] == "rag"
     assert body["sources"] == [{"kind": "review", "id": "r1", "snippet": "x"}]
     assert len(body["request_id"]) == 32
