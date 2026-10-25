@@ -10,13 +10,15 @@ from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends, FastAPI, HTTPException, Request, Security, status
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.security import APIKeyHeader
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
 from olist_assistant.api import analytics, auth
 from olist_assistant.api.auth import current_user
-from olist_assistant.api.ratelimit import RateLimiter
+from olist_assistant.api.ratelimit import RateLimiter, client_ip
 from olist_assistant.api.schemas import (
     ChatRequest,
     ChatResponse,
@@ -34,6 +36,7 @@ logger = logging.getLogger("uvicorn.error")
 
 per_session = RateLimiter(int(os.getenv("RATE_LIMIT_PER_SESSION", "20")))
 per_client = RateLimiter(int(os.getenv("RATE_LIMIT_PER_CLIENT", "60")))
+per_account = RateLimiter(int(os.getenv("RATE_LIMIT_PER_ACCOUNT", "30")))
 
 
 def _warm_up() -> None:
@@ -47,8 +50,32 @@ def _warm_up() -> None:
         logger.exception("Pemanasan supervisor gagal")
 
 
+def periksa_konfigurasi(settings: Settings) -> None:
+    """Produksi wajib punya kunci akses, rahasia token, dan akun yang valid.
+
+    Dijalankan saat startup supaya salah konfigurasi menggagalkan container,
+    bukan diam-diam membuka API (audit 25 Okt, S02).
+    """
+    if settings.app_env != "production":
+        return
+    kurang = [
+        name
+        for name, value in (
+            ("API_ACCESS_KEY", settings.api_access_key),
+            ("AUTH_SECRET", settings.auth_secret),
+            ("DEMO_USERS", settings.demo_users),
+        )
+        if not value
+    ]
+    if kurang:
+        raise RuntimeError(f"Konfigurasi produksi tidak lengkap: {', '.join(kurang)}")
+    auth.demo_users(settings)  # lempar ValueError bila isinya tidak valid
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI):
+    load_dotenv()
+    periksa_konfigurasi(get_settings())
     # Di thread terpisah supaya /health langsung menjawab health check ECS.
     if os.getenv("WARMUP", "1") == "1":
         threading.Thread(target=_warm_up, daemon=True).start()
@@ -56,6 +83,15 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="OLIST Insight Assistant", version=__version__, lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def validasi_gagal(_: Request, exc: RequestValidationError) -> JSONResponse:
+    """Galat validasi tanpa nilai input, supaya password tidak dipantulkan (audit S09)."""
+    detail = [
+        {"loc": e.get("loc"), "msg": e.get("msg"), "type": e.get("type")} for e in exc.errors()
+    ]
+    return JSONResponse(status_code=422, content={"detail": detail})
 
 
 # Didaftarkan sebagai skema keamanan supaya tombol Authorize di /docs mengirimnya.
@@ -93,15 +129,19 @@ app.include_router(analytics.router, dependencies=[Depends(require_api_key)])
 
 
 def client_key(request: Request) -> str:
-    """Alamat klien asli. Di belakang load balancer AWS, ada di X-Forwarded-For."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    return request.client.host if request.client else "unknown"
+    return client_ip(request)
 
 
-def enforce_rate_limit(session_id: str, request: Request) -> None:
-    for limiter, key in ((per_client, client_key(request)), (per_session, session_id)):
+def enforce_rate_limit(session_id: str, request: Request, user: Pengguna | None = None) -> None:
+    # Kuota sesi diberi nama akun, supaya session_id yang sama dari akun lain tidak
+    # menghabiskan kuota orang lain. Kuota akun tidak bisa direset dengan
+    # percakapan baru (audit 25 Okt, S06).
+    checks = [(per_client, client_key(request))]
+    if user is None:
+        checks.append((per_session, session_id))
+    else:
+        checks += [(per_session, f"{user.username}:{session_id}"), (per_account, user.username)]
+    for limiter, key in checks:
         wait = limiter.check(key)
         if wait is not None:
             raise HTTPException(
@@ -125,7 +165,7 @@ def chat(
 ) -> ChatResponse:
     # Fungsi sinkron sengaja dipakai supaya pemanggilan LLM yang blocking
     # dijalankan FastAPI di threadpool, tidak menahan event loop.
-    enforce_rate_limit(request.session_id, http_request)
+    enforce_rate_limit(request.session_id, http_request, user)
     request_id = uuid.uuid4().hex
     # Login aktif berarti peran dari token, dan riwayat dipisah per akun supaya
     # session_id milik akun lain tidak bisa dipakai membaca percakapannya.

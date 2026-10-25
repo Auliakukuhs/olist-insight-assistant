@@ -22,7 +22,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Security, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from pydantic import BaseModel
 
-from olist_assistant.api.ratelimit import RateLimiter
+from olist_assistant.api.ratelimit import RateLimiter, client_ip
 from olist_assistant.api.schemas import LoginRequest, LoginResponse, Pengguna
 from olist_assistant.config import Settings, get_settings
 
@@ -30,8 +30,10 @@ TOKEN_TTL_SECONDS = 12 * 60 * 60
 SELLER_ID = re.compile(r"^[0-9a-f]{32}$")
 
 # Sepuluh percobaan per menit per klien cukup untuk manusia, terlalu lambat
-# untuk menebak password.
+# untuk menebak password. Batas per akun mencegah tebakan dari banyak alamat.
 per_client_login = RateLimiter(10)
+per_account_login = RateLimiter(10)
+MAX_TOKEN_LENGTH = 2048
 
 
 class DemoUser(BaseModel):
@@ -72,12 +74,16 @@ def make_token(user: Pengguna, secret: str, now: float | None = None) -> str:
 
 def read_token(token: str, secret: str, now: float | None = None) -> Pengguna | None:
     """Isi token bila tanda tangannya sah dan belum kedaluwarsa."""
+    if len(token) > MAX_TOKEN_LENGTH:
+        return None
     try:
         payload, signature = token.split(".")
-        if not hmac.compare_digest(signature, _sign(payload, secret)):
+        # Bandingkan sebagai bytes. Token berisi huruf non-ASCII membuat
+        # compare_digest pada str melempar TypeError, dulu menjadi HTTP 500.
+        if not hmac.compare_digest(signature.encode(), _sign(payload, secret).encode()):
             return None
         data = json.loads(_unb64(payload))
-    except ValueError:
+    except (ValueError, TypeError, UnicodeError):
         return None
     if data.pop("exp", 0) < (now or time.time()):
         return None
@@ -95,8 +101,20 @@ def current_user(
 ) -> Pengguna | None:
     """Pengguna dari header Authorization. None berarti login tidak diaktifkan."""
     if settings.auth_secret is None:
+        # Di produksi, login yang mati berarti salah konfigurasi. Gagal tertutup,
+        # jangan menerima peran dari body (audit 25 Okt, S02).
+        if settings.app_env == "production":
+            raise HTTPException(
+                status.HTTP_503_SERVICE_UNAVAILABLE, detail="Login belum dikonfigurasi di server"
+            )
         return None
     user = read_token(credentials.credentials, settings.auth_secret) if credentials else None
+    if user is not None:
+        # Token berlaku hanya selama akunnya masih ada dengan peran yang sama, jadi
+        # akun yang dihapus atau diubah perannya langsung tidak berlaku (S05).
+        account = demo_users(settings).get(user.username)
+        if account is None or (account.peran, account.seller_id) != (user.peran, user.seller_id):
+            user = None
     if user is None:
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED,
@@ -117,9 +135,7 @@ def login(
 ) -> LoginResponse:
     if settings.auth_secret is None:
         raise HTTPException(status.HTTP_503_SERVICE_UNAVAILABLE, detail="Login belum diaktifkan")
-    client = request.client.host if request.client else "unknown"
-    client = request.headers.get("x-forwarded-for", client).split(",")[0].strip()
-    wait = per_client_login.check(client)
+    wait = per_client_login.check(client_ip(request)) or per_account_login.check(body.username)
     if wait is not None:
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
