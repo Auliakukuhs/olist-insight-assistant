@@ -114,6 +114,11 @@ ATTACK_PATTERNS = [
     r"\bdan\b\s+(yang|mode|tanpa)|\bdo\s+anything\s+now\b",
     r"tanpa\s+(batasan|aturan|filter|sensor)|no\s+(restrictions|rules|limits)",
     r"\b(mem)?bobol\b|\bhack(ing)?\b",
+    # Serangan menguras sumber daya: meminta query tanpa batas. Pengaman SQL tetap
+    # memaksa LIMIT dan batas waktu, tapi pertanyaan ini sebaiknya tidak sampai ke LLM.
+    r"\bcross\s+join\b",
+    r"(tanpa|jangan\s+(gunakan|pakai))\s+(\w+\s+){0,2}(limit|pagination|timeout)",
+    r"abaikan\s+(\w+\s+){0,3}(timeout|limit|pembatasan)",
 ]
 
 ROUTER_PROMPT = """Kamu router untuk chatbot data e-commerce OLIST (Brasil, 2016 sampai 2018).

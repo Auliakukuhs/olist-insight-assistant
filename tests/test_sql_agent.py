@@ -248,3 +248,13 @@ def test_peringkat_rasio_tanpa_batas_diberi_batas_pesanan(sql):
 def test_batas_pengguna_dan_peringkat_bukan_rasio_tidak_diubah(sql):
     safe, _ = jalankan(sql, "admin", None)
     assert "jumlah_order >= 30" not in safe
+
+
+def test_cross_join_tanpa_limit_tetap_dipotong():
+    # Lapis kedua bila guard terlewati: CROSS JOIN tanpa LIMIT tetap 200 baris.
+    sql = "SELECT * FROM v_order CROSS JOIN v_pembayaran_per_order"
+    safe, rows = jalankan(sql, "admin", None)
+    assert "LIMIT 200" in safe
+    assert len(rows) == 200
+    safe, _ = jalankan(sql + " LIMIT 100000000", "admin", None)
+    assert "LIMIT 200" in safe
