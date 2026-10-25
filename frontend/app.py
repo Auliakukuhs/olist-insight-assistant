@@ -61,9 +61,10 @@ def api(method: str, path: str, **kwargs) -> tuple[dict | None, str | None]:
         return body, None
     detail = body.get("detail", "") if isinstance(body, dict) else ""
     if response.status_code == 401 and path != "/auth/login":
-        # Token kedaluwarsa atau API key salah. Paksa login ulang.
-        st.session_state.token = None
-        return None, "Sesi login berakhir. Silakan login ulang."
+        # Token kedaluwarsa atau akun dicabut. Bersihkan seluruh sesi, termasuk
+        # riwayat, lalu langsung kembali ke halaman login (audit 25 Okt, S08).
+        keluar("Sesi login berakhir. Silakan login ulang.")
+        st.rerun()
     return None, f"{detail or 'API menolak permintaan'} (kode {response.status_code})"
 
 
@@ -92,10 +93,17 @@ def percakapan_baru() -> None:
     st.session_state.total_biaya = 0.0
 
 
-def logout() -> None:
+def keluar(pesan: str | None = None) -> None:
+    """Hapus semua yang melekat pada login, supaya tidak tersisa di komputer bersama."""
     st.session_state.token = None
     st.session_state.pengguna = None
+    st.session_state.pending = None
+    st.session_state.login_error = pesan
     percakapan_baru()
+
+
+def logout() -> None:
+    keluar()
 
 
 # ---------- Halaman login ----------
