@@ -555,7 +555,8 @@ Waktu server sekarang {sekarang} WIB. Hari ini {hari_ini}, besok {besok}, kemari
 {kemarin}.
 
 Pilih jenis "umum" dan jawab singkat untuk:
-- sapaan, salam, basa-basi, dan ucapan terima kasih,
+- sapaan, salam, basa-basi, dan ucapan terima kasih. Balas sapaannya, lalu tawarkan
+  bantuan dengan satu contoh pertanyaan dari daftar di bawah,
 - pertanyaan tentang siapa kamu dan apa yang bisa kamu bantu,
 - pertanyaan tanggal, hari, atau jam sekarang, dijawab dari waktu server di atas.
 
@@ -757,7 +758,10 @@ def llm_synthesizer(model) -> SynthFn:
             "Gabungkan dua jawaban berikut menjadi satu jawaban bahasa Indonesia yang "
             "ringkas untuk pertanyaan pengguna. Angka hanya dari bagian database, "
             "pendapat pembeli hanya dari bagian ulasan. Pertahankan ID [review:...] "
-            "yang dikutip. Bila ada asumsi, tulis di kalimat pertama. Bila pengguna "
+            "yang dikutip. Bila pertanyaan memuat baris 'Asumsi yang dipakai', sebut "
+            "isinya secara alami di kalimat pertama tanpa menulis kata asumsi. Bila "
+            "baris itu tidak ada, jangan menyebut filter atau lokasi apa pun yang tidak "
+            "ada di pertanyaan. Bila pengguna "
             "meminta saran atau cara menangani, boleh beri paling banyak tiga saran, "
             "tetapi setiap saran wajib menyebut angka atau ulasan [review:...] yang "
             "mendasarinya. Jangan menambah fakta baru.\n\n"
