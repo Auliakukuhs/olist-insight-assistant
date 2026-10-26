@@ -74,9 +74,7 @@ def test_produksi_tanpa_kunci_layanan_gagal_start(monkeypatch):
     monkeypatch.setenv("APP_ENV", "production")
     monkeypatch.setenv("API_ACCESS_KEY", "kunci")
     monkeypatch.setenv("AUTH_SECRET", "r" * 32)
-    monkeypatch.setenv(
-        "DEMO_USERS", '{"admin": {"password": "rahasia-panjang", "peran": "admin"}}'
-    )
+    monkeypatch.setenv("DEMO_USERS", '{"admin": {"password": "rahasia-panjang", "peran": "admin"}}')
     monkeypatch.setenv("QDRANT_URL", "https://qdrant.uji")
     monkeypatch.setenv("QDRANT_API_KEY", "q")
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
