@@ -187,6 +187,7 @@ def tampilkan_jawaban(pesan: dict) -> None:
             "Ditangani oleh "
             + ", ".join(LABEL_AGENT[a] for a in proses["agent"])
             + f" · rute {data['route']}"
+            + (" · dari cache" if proses.get("cache") else "")
         )
     if data.get("table"):
         st.dataframe(data["table"], hide_index=True, width="stretch")

@@ -64,6 +64,8 @@ class Proses(BaseModel):
     """Estimasi dari harga model per 1 juta token. Embedding query tidak termasuk."""
     durasi_ms: int
     model: str
+    cache: bool = False
+    """True bila jawaban diambil dari cache pertanyaan berulang, tanpa memanggil agent."""
 
 
 class Source(BaseModel):

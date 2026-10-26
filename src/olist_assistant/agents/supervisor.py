@@ -21,7 +21,10 @@ Alur graph:
   dan bila jawabannya belum lengkap, agent kedua dipanggil satu kali dengan
   alasan yang tercatat.
 - Riwayat percakapan disimpan checkpointer per session_id, dan diteruskan ke
-  agent RAG dan agent SQL. Klien tidak mengirim riwayat.
+  agent RAG dan agent SQL. Klien tidak mengirim riwayat. Di AWS checkpointer-nya
+  DynamoDB, jadi riwayat tahan restart container (riwayat.py).
+- Pertanyaan pertama sesi yang sama persis dari peran dan seller yang sama dijawab
+  dari cache bila diaktifkan (cache.py), dengan tanda di panel proses.
 """
 
 import os
@@ -35,13 +38,16 @@ from typing import Annotated, Literal, TypedDict
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage
 from langchain_core.runnables import RunnableLambda
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from pydantic import BaseModel, Field
 
+from olist_assistant.agents.cache import JALUR_DISIMPAN, CacheJawaban
 from olist_assistant.agents.proses import ProsesRecorder
-from olist_assistant.agents.rag import RagResult
+from olist_assistant.agents.rag import RAG_TERLALU_BANYAK, RagResult
+from olist_assistant.agents.riwayat import sudah_kedaluwarsa
 from olist_assistant.agents.sql_contract import Message, Pengguna, SqlResult
 
 Route = Literal["rag", "sql", "hybrid", "out_of_scope"]
@@ -289,6 +295,10 @@ class Supervisor:
     """Pemeriksa kecukupan jalur tunggal. None berarti tidak ada eskalasi."""
     peran_check: Callable[[str, list[Message], str], tuple[bool, str]] | None = None
     """Pemeriksa maksud untuk selain admin: meminta data seller lain? None berarti pola saja."""
+    checkpointer: BaseCheckpointSaver | None = None
+    """Penyimpanan riwayat. None berarti InMemorySaver, hilang saat proses berhenti."""
+    cache: CacheJawaban | None = None
+    """Cache pertanyaan pertama sesi. None berarti setiap pertanyaan diproses agent."""
 
     def __post_init__(self) -> None:
         # Sub-agent dibungkus run bernama supaya tercatat sebagai langkah di
@@ -358,7 +368,7 @@ class Supervisor:
         graph.add_edge(["hybrid_sql", "hybrid_rag"], "gabung")
         for node in ("tolak", "langsung", "susulan", "gabung"):
             graph.add_edge(node, END)
-        return graph.compile(checkpointer=InMemorySaver())
+        return graph.compile(checkpointer=self.checkpointer or InMemorySaver())
 
     def _question(self, state: SupervisorState) -> str:
         return state["messages"][-1].content
@@ -570,21 +580,87 @@ class Supervisor:
         Hasilnya state graph ditambah kunci "proses", ringkasan agent, tool,
         token, biaya, dan lama tiap langkah untuk giliran ini saja.
         """
-        recorder = ProsesRecorder()
         config = {
             "configurable": {"thread_id": session_id},
-            "callbacks": [*self.callbacks, recorder],
             "run_name": "olist-supervisor",
             # Dibaca handler Langfuse untuk mengelompokkan trace per sesi.
             "metadata": {"langfuse_session_id": session_id, "langfuse_tags": [role]},
         }
         started = time.perf_counter()
+        ada_riwayat = self._siapkan_riwayat(config)
+        kunci = None
+        if self.cache is not None and not ada_riwayat:
+            kunci = self.cache.kunci(question, role, seller_id)
+            tersimpan = self.cache.ambil(kunci)
+            if tersimpan is not None:
+                return self._dari_cache(question, role, seller_id, config, *tersimpan, started)
+
+        recorder = ProsesRecorder()
         state = self.graph.invoke(
             {"messages": [HumanMessage(content=question)], "role": role, "seller_id": seller_id},
-            config,
+            {**config, "callbacks": [*self.callbacks, recorder]},
         )
         durasi_ms = round((time.perf_counter() - started) * 1000)
+        if kunci is not None and _layak_cache(state):
+            self.cache.simpan(
+                kunci,
+                {k: state.get(k) for k in ("answer", "route", "route_by", "sources", "table")},
+            )
         return {**state, "proses": recorder.summary(durasi_ms, state.get("alasan"))}
+
+    def _siapkan_riwayat(self, config: dict) -> bool:
+        """True bila sesi punya riwayat. Riwayat yang melewati umur sesi dihapus dulu."""
+        snapshot = self.graph.get_state(config)
+        if not snapshot.values.get("messages"):
+            return False
+        if sudah_kedaluwarsa(snapshot.created_at):
+            self.graph.checkpointer.delete_thread(config["configurable"]["thread_id"])
+            return False
+        return True
+
+    def _dari_cache(
+        self, question, role, seller_id, config, nilai: dict, umur: float, started: float
+    ) -> SupervisorState:
+        """Jawaban dari cache. Pertanyaan dan jawabannya tetap dicatat di riwayat sesi,
+        supaya pertanyaan lanjutan seperti "kalau yang di SP?" tetap punya konteks."""
+        self.graph.update_state(
+            config,
+            {
+                **nilai,
+                "messages": [HumanMessage(content=question), AIMessage(content=nilai["answer"])],
+                "role": role,
+                "seller_id": seller_id,
+            },
+            as_node="tolak",
+        )
+        durasi_ms = round((time.perf_counter() - started) * 1000)
+        alasan = (
+            f"Pertanyaan yang sama dari peran yang sama sudah dijawab {umur / 60:.0f} menit "
+            "lalu, jadi jawabannya diambil dari cache tanpa memanggil agent."
+        )
+        proses = ProsesRecorder().summary(durasi_ms, alasan)
+        proses["langkah"] = [
+            {
+                "nama": "Ambil dari cache",
+                "durasi_ms": durasi_ms,
+                "token_input": 0,
+                "token_output": 0,
+            }
+        ]
+        proses["cache"] = True
+        return {**nilai, "alasan": alasan, "proses": proses}
+
+
+def _layak_cache(state: SupervisorState) -> bool:
+    """Hanya jawaban agent yang berhasil. Penolakan dan jawaban gagal tidak disimpan."""
+    from olist_assistant.agents.sql_agent import SQL_TERLALU_BANYAK
+
+    if state.get("route") not in JALUR_DISIMPAN or state.get("ditolak_peran"):
+        return False
+    answer = state.get("answer") or ""
+    return not any(
+        pesan in answer for pesan in (SQL_UNAVAILABLE, SQL_TERLALU_BANYAK, RAG_TERLALU_BANYAK)
+    )
 
 
 # ---------- Fungsi LLM untuk supervisor ----------
@@ -942,8 +1018,15 @@ def langfuse_callbacks() -> list:
     return [CallbackHandler()]
 
 
-def default_supervisor() -> Supervisor:
-    """Supervisor dengan LLM, Qdrant Cloud, dan agent SQL sesuai environment."""
+def default_supervisor(
+    checkpointer: BaseCheckpointSaver | None = None, cache: CacheJawaban | None = None
+) -> Supervisor:
+    """Supervisor dengan LLM, Qdrant Cloud, dan agent SQL sesuai environment.
+
+    Cache dan checkpointer tahan restart dipasang oleh API. Skrip evaluasi memakai
+    bawaannya (tanpa cache, riwayat di memori), supaya angka evaluasi tidak tercampur
+    jawaban cache.
+    """
     from olist_assistant.agents.rag import default_model, default_search, jawab_rag
     from olist_assistant.agents.sql_contract import jawab_sql
 
@@ -966,4 +1049,6 @@ def default_supervisor() -> Supervisor:
         plan=llm_planner(model),
         check=llm_checker(model),
         peran_check=llm_pemeriksa_peran(model),
+        checkpointer=checkpointer,
+        cache=cache,
     )

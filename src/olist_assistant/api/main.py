@@ -125,9 +125,11 @@ def get_supervisor() -> Supervisor:
             status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Layanan agent belum dikonfigurasi di server",
         )
+    from olist_assistant.agents.cache import CacheJawaban
+    from olist_assistant.agents.riwayat import buat_checkpointer
     from olist_assistant.agents.supervisor import default_supervisor
 
-    return default_supervisor()
+    return default_supervisor(checkpointer=buat_checkpointer(), cache=CacheJawaban.dari_env())
 
 
 app.include_router(auth.router, dependencies=[Depends(require_api_key)])
