@@ -68,6 +68,11 @@ def periksa_konfigurasi(settings: Settings) -> None:
         )
         if not value
     ]
+    # Kunci layanan juga wajib. Tanpa ini container lolos health check tetapi setiap
+    # chat dijawab 503, seperti task staging yang kehilangan OPENAI_API_KEY karena
+    # galat jaringan saat deploy (26 Okt). Gagal start membuat ECS membatalkan
+    # rollout dan kembali ke versi sebelumnya.
+    kurang += [name for name in REQUIRED_ENV if not os.getenv(name)]
     if kurang:
         raise RuntimeError(f"Konfigurasi produksi tidak lengkap: {', '.join(kurang)}")
     auth.demo_users(settings)  # lempar ValueError bila isinya tidak valid

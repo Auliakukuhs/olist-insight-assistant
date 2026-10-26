@@ -174,11 +174,17 @@ ATURAN_PERAN = {
 
 # Lapisan deterministik sebelum LLM. Di uji dengan LLM asli, prompt saja tidak cukup,
 # karena model mengakali larangan dengan peringkat per kota yang disebut "seller".
+# Sinonimnya ikut, karena "Toko mana yang paling laku di SP?" sebagai customer lolos
+# dari pola dan pemeriksa maksud di red team CI 26 Okt (pf-02). Syarat "tidak diikuti
+# huruf" membuat "penjualan" tidak ikut, tetapi "seller_id" tetap tertangkap. Toko
+# milik pengguna sendiri ("toko saya") dikecualikan.
+SELLER = r"(seller|penjual|toko|pesaing|vendedor(es)?|lojas?)(?![a-z])(?!\s+(saya|sendiri|anda)\b)"
 PERINGKAT_SELLER = re.compile(
-    r"\b(\d+\s+)?seller\s+(\w+\s+){0,3}(teratas|terbaik|terbesar|tertinggi|terendah|"
+    rf"\b(\d+\s+)?{SELLER}\s+(\w+\s+){{0,3}}(teratas|terbaik|terbesar|tertinggi|terendah|"
     r"terburuk|terlaris|paling|mana|siapa)|\b(siapa|daftar|peringkat|ranking|top\s*\d*)\s+"
-    r"(\w+\s+){0,2}seller|\b(performa|kinerja)\s+(para\s+|semua\s+|seluruh\s+)?seller"
-    r"(?!\s+saya)",
+    rf"(\w+\s+){{0,2}}{SELLER}|\b(performa|kinerja|desempenho)\s+(para\s+|semua\s+|seluruh\s+|d[oa]s?\s+)?"
+    rf"{SELLER}"
+    r"|\b(toko|penjual|seller)\s+mana\b|\bmana\s+(toko|penjual|seller)\b",
     re.IGNORECASE,
 )
 # seller_id siapa pun yang ditulis di pertanyaan. Untuk selain admin, id yang bukan

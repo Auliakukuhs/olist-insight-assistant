@@ -80,16 +80,33 @@ aws ecr describe-images --region "${REGION}" --repository-name "${REPO}" \
 # Kunci layanan dibaca ECS dari SSM Parameter Store (SecureString) saat task
 # start, lalu disuntik sebagai environment. Nilainya tidak pernah masuk image
 # maupun berkas ini. Execution role hanya boleh membaca parameter /olist/*.
+#
+# Semua nama dicek dalam satu panggilan. Dulu setiap nama dicek sendiri dengan
+# `if aws ... | grep`, sehingga galat jaringan dibaca sebagai "tidak ada" dan kunci
+# OpenAI diam-diam tertinggal dari task staging (26 Okt). Kini galat menghentikan
+# deploy (set -e), dan kunci wajib yang tidak ada membatalkan deploy.
+WAJIB="OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY ${KUNCI_AKSES}"
+OPSIONAL="LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST"
+path_ssm() {
+  if [[ " ${KUNCI_AKSES} " == *" $1 "* ]]; then echo "${PREFIX_AKSES}/$1"; else echo "/olist/$1"; fi
+}
+SEMUA=""
+for name in ${WAJIB} ${OPSIONAL}; do SEMUA="${SEMUA:+${SEMUA},}$(path_ssm "${name}")"; done
+ADA="$(aws ssm describe-parameters --region "${REGION}" \
+  --parameter-filters "Key=Name,Values=${SEMUA}" --query 'Parameters[].Name' --output text)"
+ADA=" $(echo "${ADA}" | tr '\t\n' '  ') "
 SECRETS=""
-for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUSE_SECRET_KEY LANGFUSE_HOST ${KUNCI_AKSES}; do
-  prefix="/olist"
-  [[ " ${KUNCI_AKSES} " == *" ${name} "* ]] && prefix="${PREFIX_AKSES}"
-  arn="arn:aws:ssm:${REGION}:${ACCOUNT}:parameter${prefix}/${name}"
-  if aws ssm describe-parameters --region "${REGION}" \
-      --parameter-filters "Key=Name,Values=${prefix}/${name}" \
-      --query 'length(Parameters)' --output text | grep -q '^1$'; then
-    SECRETS="${SECRETS:+${SECRETS},}{\"name\": \"${name}\", \"valueFrom\": \"${arn}\"}"
+for name in ${WAJIB} ${OPSIONAL}; do
+  path="$(path_ssm "${name}")"
+  if [[ "${ADA}" != *" ${path} "* ]]; then
+    if [[ " ${WAJIB} " == *" ${name} "* ]]; then
+      echo "Parameter SSM wajib ${path} tidak ada. Deploy dibatalkan." >&2
+      exit 1
+    fi
+    echo "Parameter opsional ${path} tidak ada, dilewati" >&2
+    continue
   fi
+  SECRETS="${SECRETS:+${SECRETS},}{\"name\": \"${name}\", \"valueFrom\": \"arn:aws:ssm:${REGION}:${ACCOUNT}:parameter${path}\"}"
 done
 
 # Riwayat chat di DynamoDB bila tabel dan role dari siapkan_riwayat_aws.sh sudah ada

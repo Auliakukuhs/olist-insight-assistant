@@ -70,6 +70,20 @@ def test_s02_produksi_tanpa_rahasia_gagal_tertutup(stub, monkeypatch):
         periksa_konfigurasi(get_settings())
 
 
+def test_produksi_tanpa_kunci_layanan_gagal_start(monkeypatch):
+    monkeypatch.setenv("APP_ENV", "production")
+    monkeypatch.setenv("API_ACCESS_KEY", "kunci")
+    monkeypatch.setenv("AUTH_SECRET", "r" * 32)
+    monkeypatch.setenv("DEMO_USERS", '{"admin": {"password": "rahasia-panjang", "peran": "admin"}}')
+    monkeypatch.setenv("QDRANT_URL", "https://qdrant.uji")
+    monkeypatch.setenv("QDRANT_API_KEY", "q")
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
+        periksa_konfigurasi(get_settings())
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-uji")
+    periksa_konfigurasi(get_settings())
+
+
 def test_s02_lokal_tanpa_login_tetap_boleh(stub):
     assert chat(role="admin").status_code == 200
 
