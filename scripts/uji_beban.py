@@ -4,6 +4,10 @@ Setiap gelombang menjalankan N pengguna bersamaan. Setiap pengguna login dengan
 salah satu akun demo, lalu mengirim beberapa pertanyaan berurutan. Dicatat:
 latensi p50 dan p95, galat 429 (rate limit), 5xx, dan timeout.
 
+Pertanyaan pertama sesi yang berulang dijawab dari cache (#67), jadi jumlah jawaban
+cache dicatat terpisah, dan p95_agent_detik hanya menghitung jawaban yang benar-benar
+diproses agent. Angka itu yang dipakai untuk menilai kapasitas.
+
 Variabel lingkungan sama dengan scripts/serang_api.py (STAGING_*).
 
 Contoh:
@@ -55,7 +59,7 @@ async def pengguna(client, url, headers, token, nomor: int, hasil: list) -> None
     sesi = f"beban-{uuid.uuid4().hex[:8]}"
     for i in range(PER_PENGGUNA):
         peran, q = PERTANYAAN[(nomor + i) % len(PERTANYAAN)]
-        mulai = time.monotonic()
+        mulai, cache = time.monotonic(), False
         try:
             r = await client.post(
                 f"{url}/chat",
@@ -63,11 +67,13 @@ async def pengguna(client, url, headers, token, nomor: int, hasil: list) -> None
                 headers={**headers, "Authorization": f"Bearer {token[peran]}"},
             )
             kode = r.status_code
+            cache = kode == 200 and bool((r.json().get("proses") or {}).get("cache"))
         except httpx.TimeoutException:
             kode = "timeout"
         except httpx.HTTPError as error:
             kode = type(error).__name__
-        hasil.append({"kode": kode, "detik": round(time.monotonic() - mulai, 2), "peran": peran})
+        detik = round(time.monotonic() - mulai, 2)
+        hasil.append({"kode": kode, "detik": detik, "peran": peran, "cache": cache})
 
 
 async def gelombang(n: int, url: str, headers: dict, passwords: dict) -> dict:
@@ -78,9 +84,10 @@ async def gelombang(n: int, url: str, headers: dict, passwords: dict) -> dict:
         await asyncio.gather(*(pengguna(client, url, headers, token, i, hasil) for i in range(n)))
         durasi = time.monotonic() - mulai
     sukses = sorted(h["detik"] for h in hasil if h["kode"] == 200)
+    agent = sorted(h["detik"] for h in hasil if h["kode"] == 200 and not h["cache"])
 
-    def persen(p: float) -> float | None:
-        return sukses[min(len(sukses) - 1, int(len(sukses) * p))] if sukses else None
+    def persen(p: float, data: list[float] = sukses) -> float | None:
+        return data[min(len(data) - 1, int(len(data) * p))] if data else None
 
     return {
         "pengguna_serentak": n,
@@ -88,6 +95,8 @@ async def gelombang(n: int, url: str, headers: dict, passwords: dict) -> dict:
         "kode": dict(Counter(str(h["kode"]) for h in hasil)),
         "p50_detik": round(statistics.median(sukses), 1) if sukses else None,
         "p95_detik": persen(0.95),
+        "dari_cache": len(sukses) - len(agent),
+        "p95_agent_detik": persen(0.95, agent),
         "maks_detik": sukses[-1] if sukses else None,
         "durasi_gelombang_detik": round(durasi, 1),
     }

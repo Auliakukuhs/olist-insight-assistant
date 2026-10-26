@@ -39,6 +39,7 @@ class FakeResponse:
 class FakeApi:
     def __init__(self):
         self.calls = []
+        self.cache = False
 
     def __call__(self, method, url, headers=None, json=None, params=None, timeout=None):
         path = url.removeprefix("http://api.uji")
@@ -61,7 +62,7 @@ class FakeApi:
                         {"kind": "review", "id": "r1", "snippet": "chegou atrasado"},
                     ],
                     "table": [{"rata": 82.04}],
-                    "proses": PROSES,
+                    "proses": {**PROSES, "cache": self.cache},
                     "request_id": "x" * 32,
                 },
             )
@@ -146,11 +147,19 @@ def test_chat_mengirim_token_dan_menampilkan_panel_proses(api):
     assert headers == {"X-API-Key": "kunci", "Authorization": "Bearer token-seller"}
     assert set(body) == {"message", "session_id"}
     assert any("Agent SQL, Agent RAG" in c.value for c in at.caption)
+    assert not any("dari cache" in c.value for c in at.caption)
     labels = [e.label for e in at.expander]
     assert "Detail proses" in labels and "Query SQL yang dijalankan" in labels
     metrics = {m.label: m.value for m in at.metric}
     assert metrics["Token input"] == "900"
     assert metrics["Total token"] == "950"
+
+
+def test_jawaban_dari_cache_diberi_tanda(api):
+    api.cache = True
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata ongkir?").run()
+    assert any("dari cache" in c.value for c in at.caption)
 
 
 def test_logout_kembali_ke_halaman_login(api):

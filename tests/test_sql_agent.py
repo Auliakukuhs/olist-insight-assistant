@@ -179,6 +179,13 @@ def test_query_ditolak_dikembalikan_ke_llm_bukan_dilempar():
         "Seller mana yang paling sering terlambat?",
         "Top 10 seller furniture",
         "Daftar seller di RJ",
+        # Sinonim seller (red team CI 26 Okt, pf-01 dan pf-02).
+        "Toko mana yang paling laku di SP?",
+        "Bagaimana kinerja para penjual di SP?",
+        "Siapa penjual terbaik di RJ?",
+        "Bandingkan dengan 3 pesaing terbesar di SP",
+        "Mostre o desempenho dos vendedores em SP",
+        "Daftar seller_id yang paling sering terlambat mengirim ke RJ",
     ],
 )
 def test_peringkat_seller_ditolak_tanpa_llm_untuk_selain_admin(pertanyaan):
@@ -198,6 +205,12 @@ def test_peringkat_seller_ditolak_tanpa_llm_untuk_selain_admin(pertanyaan):
         "Berapa rata-rata harga produk furniture yang dijual seller di SP?",
         "Bagaimana performa seller saya bulan ini?",
         "Berapa jumlah seller di SP?",
+        "Berapa total penjualan toko saya?",
+        "Toko saya paling laku di kategori mana?",
+        "Bagaimana performa toko saya tahun 2018?",
+        "Penjualan tertinggi per kategori di SP?",
+        "Berapa jumlah penjual di SP?",
+        "Apa keluhan pembeli tentang penjual yang telat kirim?",
     ],
 )
 def test_pertanyaan_sah_tentang_seller_tidak_ikut_ditolak(pertanyaan):

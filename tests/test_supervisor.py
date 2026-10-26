@@ -300,8 +300,8 @@ def test_pemeriksa_maksud_menolak_parafrase_yang_lolos_pola():
         return True, "pemeriksa maksud: menilai kinerja penjual lain"
 
     supervisor.peran_check = peran_check
-    state = supervisor.ask("Bagaimana kinerja para penjual di Campinas?", "s1", "seller", "a" * 32)
-    assert dicek == [("Bagaimana kinerja para penjual di Campinas?", "seller")]
+    state = supervisor.ask("Quais lojas mais vendem em Campinas?", "s1", "seller", "a" * 32)
+    assert dicek == [("Quais lojas mais vendem em Campinas?", "seller")]
     assert state["route"] == "sql" and "hanya tersedia untuk admin" in state["answer"]
     assert rag.calls == [] and sql.calls == []
 
@@ -309,7 +309,7 @@ def test_pemeriksa_maksud_menolak_parafrase_yang_lolos_pola():
 def test_pemeriksa_maksud_tidak_dipanggil_untuk_admin_dan_rag():
     supervisor, *_ = make("hybrid")
     supervisor.peran_check = lambda q, h, r: (_ for _ in ()).throw(AssertionError("dipanggil"))
-    supervisor.ask("Bagaimana kinerja para penjual di Campinas?", "s1", "admin")
+    supervisor.ask("Quais lojas mais vendem em Campinas?", "s1", "admin")
     supervisor, *_ = make("rag")
     supervisor.peran_check = lambda q, h, r: (_ for _ in ()).throw(AssertionError("dipanggil"))
     supervisor.ask("Apa keluhan pembeli soal penjual di Campinas?", "s2", "seller", "a" * 32)

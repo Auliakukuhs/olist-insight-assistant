@@ -68,6 +68,11 @@ def periksa_konfigurasi(settings: Settings) -> None:
         )
         if not value
     ]
+    # Kunci layanan juga wajib. Tanpa ini container lolos health check tetapi setiap
+    # chat dijawab 503, seperti task staging yang kehilangan OPENAI_API_KEY karena
+    # galat jaringan saat deploy (26 Okt). Gagal start membuat ECS membatalkan
+    # rollout dan kembali ke versi sebelumnya.
+    kurang += [name for name in REQUIRED_ENV if not os.getenv(name)]
     if kurang:
         raise RuntimeError(f"Konfigurasi produksi tidak lengkap: {', '.join(kurang)}")
     auth.demo_users(settings)  # lempar ValueError bila isinya tidak valid
@@ -120,9 +125,11 @@ def get_supervisor() -> Supervisor:
             status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Layanan agent belum dikonfigurasi di server",
         )
+    from olist_assistant.agents.cache import CacheJawaban
+    from olist_assistant.agents.riwayat import buat_checkpointer
     from olist_assistant.agents.supervisor import default_supervisor
 
-    return default_supervisor()
+    return default_supervisor(checkpointer=buat_checkpointer(), cache=CacheJawaban.dari_env())
 
 
 app.include_router(auth.router, dependencies=[Depends(require_api_key)])
