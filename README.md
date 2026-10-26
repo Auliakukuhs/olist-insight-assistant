@@ -459,6 +459,16 @@ Celah yang ditemukan red team lalu ditambal. Di jalur hybrid, perencana menulis 
 
 Keterbatasan yang diketahui. Pola peringkat seller ikut menolak pertanyaan pasar "seller dari negara bagian mana yang paling banyak" untuk customer dan seller. Router ONNX dilatih tanpa contoh serangan, jadi serangan yang tidak cocok pola guard bergantung pada router LLM.
 
+## Cari produk dan rekomendasi beralasan
+
+`GET /rekomendasi?kategori=toys&harga_min=0&harga_max=100&negara_bagian_seller=SP&jumlah=5` (wajib login, semua peran) dan tab **Cari produk** di Streamlit.
+
+1. **Kandidat dari SQLite**, lewat query tetap dengan parameter terikat. Produk di kategori, kisaran harga, dan negara bagian seller yang diminta, minimal 5 ulasan per produk.
+2. **Peringkat dengan skor terbobot (rumus rating IMDb).** Rata-rata skor produk ditarik ke rata-rata kandidat sesuai jumlah ulasannya, dengan prior 10 ulasan. Contoh nyata: mainan dengan 36 ulasan rata-rata 4,69 berada di atas mainan dengan 8 ulasan rata-rata 5,0.
+3. **Alasan dari ulasan produk itu sendiri.** Ulasan diambil dari Qdrant lewat filter `metadata.product_ids`, lalu satu panggilan LLM merangkumnya dalam bahasa Indonesia hanya dari angka dan ulasan tersebut. Bila LLM gagal, alasan dibuat dari angka saja.
+
+Data OLIST tidak memuat nama atau foto produk, jadi produk disebut dengan `product_id`. `seller_id` tidak pernah dikirim, sehingga customer dan seller tidak bisa memakai fitur ini untuk melihat performa seller. Alasan dari LLM dibersihkan dari gambar, tautan, dan HTML.
+
 ## Endpoint analytics
 
 Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan query tetap dan parameter terikat, tidak lewat LLM.

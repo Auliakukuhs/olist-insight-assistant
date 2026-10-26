@@ -138,6 +138,7 @@ class ReviewSearch:
         min_score: int | None = None,
         max_score: int | None = None,
         k: int = 6,
+        product_id: str | None = None,
     ) -> list[Hit]:
         conditions = [_match("metadata.doc_type", "review")]
         if isinstance(category, str):
@@ -150,6 +151,12 @@ class ReviewSearch:
             )
         if seller_state:
             conditions.append(_match("metadata.seller_states", seller_state))
+        if product_id:
+            conditions.append(
+                models.FieldCondition(
+                    key="metadata.product_ids", match=models.MatchAny(any=[product_id])
+                )
+            )
         if min_score is not None or max_score is not None:
             conditions.append(
                 models.FieldCondition(
