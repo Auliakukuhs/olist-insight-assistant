@@ -304,6 +304,12 @@ Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu
 
 Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21 Oktober 2026. Token dihitung oleh callback LangChain (`src/olist_assistant/agents/proses.py`) yang mengaitkan setiap pemanggilan LLM dan tool ke langkah terdekat di graph, termasuk pemanggilan di dalam sub-agent. Biaya memakai harga gpt-4o-mini, 0,15 USD per 1 juta token input dan 0,60 USD per 1 juta token output. Embedding query ke Qdrant tidak ikut dihitung. Langkah yang sama juga tercatat sebagai span di Langfuse.
 
+### Cache pertanyaan berulang dan riwayat tahan restart
+
+**Cache (#67).** Pertanyaan pertama sesi yang sama persis dari peran dan seller yang sama dijawab dari cache, tanpa memanggil agent. Perbedaan huruf besar, spasi, dan tanda tanya di ujung diabaikan. Kunci cache memuat peran dan `seller_id`, jadi jawaban data toko seller A tidak pernah sampai ke seller B atau ke customer. Yang disimpan hanya jawaban agent SQL, RAG, dan hybrid yang berhasil. Penolakan, sapaan, jawaban tanggal, dan jawaban gagal tidak disimpan. Pertanyaan lanjutan tidak memakai cache karena jawabannya bergantung pada percakapan, tetapi jawaban dari cache tetap dicatat di riwayat sesi, sehingga "kalau yang di SP?" sesudahnya tetap punya konteks. Panel proses menandainya dengan `"cache": true`, token 0, dan alasan "diambil dari cache", dan Streamlit menulis "dari cache" di bawah jawaban. Cache ada di memori, berisi paling banyak 256 jawaban selama 6 jam, dan kosong lagi setiap deploy, jadi aturan atau prompt baru tidak terhalang jawaban lama. Pengaturannya `CACHE_JAWABAN=0` untuk mematikan, `CACHE_JAWABAN_UKURAN`, dan `CACHE_JAWABAN_UMUR_MENIT`. Skrip evaluasi tidak memakai cache, supaya angka evaluasi tidak tercampur.
+
+**Riwayat (#70).** Di AWS riwayat disimpan di DynamoDB lewat `DynamoDBSaver` dari `langgraph-checkpoint-aws`, sehingga percakapan tetap tersambung saat container restart atau task diganti oleh deploy. SQLite di disk tidak cukup karena disk task Fargate ikut hilang setiap task diganti. Umur sesi 24 jam (`RIWAYAT_UMUR_JAM`). DynamoDB menghapus item kedaluwarsa lewat TTL, dan karena penghapusannya bisa tertunda, umur juga dicek saat riwayat dibaca. Sesi yang lewat umur dimulai dari nol. Tanpa `RIWAYAT_TABEL` (lokal, tes, evaluasi) riwayat di memori seperti sebelumnya. Uji restart ada di `tests/test_cache_riwayat.py`, dengan DynamoDB tiruan dari moto.
+
 Pengamanan biaya. `POST /chat` dibatasi 20 pertanyaan per menit per `session_id` dan 60 per menit per alamat klien (dibaca dari `X-Forwarded-For` di belakang load balancer). Lebih dari itu dijawab 429 dengan header `Retry-After`. Batas bisa diubah lewat `RATE_LIMIT_PER_SESSION` dan `RATE_LIMIT_PER_CLIENT`. Saat server menyala, supervisor dan model router dimuat lebih dulu di thread terpisah, sehingga request pertama tidak lambat. Bila `API_ACCESS_KEY` diisi, semua endpoint kecuali `/health` mewajibkan header `X-API-Key`.
 
 ## Keamanan berlapis
@@ -487,6 +493,15 @@ AWS_PROFILE=olist scripts/deploy_aws.sh
 ```
 
 Skrip membangun image dari commit saat ini, memberi tag SHA commit, push ke ECR (tag immutable, scan saat push), lalu memperbarui service. Kunci layanan disimpan di AWS SSM Parameter Store sebagai SecureString di bawah `/olist/`, lalu disuntik ECS sebagai environment saat task start. Nilainya tidak pernah masuk image atau repo, dan execution role hanya boleh membaca parameter `/olist/*`. Di cloud, `POST /chat` mewajibkan header `X-API-Key`.
+
+Riwayat chat butuh tabel DynamoDB dan task role, yang dibuat sekali per lingkungan:
+
+```sh
+AWS_PROFILE=olist scripts/siapkan_riwayat_aws.sh                  # olist-riwayat, role olist-api-task
+AWS_PROFILE=olist TARGET=staging scripts/siapkan_riwayat_aws.sh   # olist-riwayat-staging
+```
+
+Task role hanya boleh membaca dan menulis tabel lingkungannya sendiri. Begitu role-nya ada, `deploy_aws.sh` memasang role dan `RIWAYAT_TABEL` ke service. Tabel bayar per permintaan, jadi tanpa biaya tetap.
 
 ## Alur kerja
 

@@ -24,8 +24,9 @@ REGION="${AWS_REGION:-ap-southeast-1}"
 REPO="olist-insight-assistant"
 TARGET="${TARGET:-production}"
 case "${TARGET}" in
-  production) SERVICE="olist-api"; PREFIX_AKSES="/olist" ;;
-  staging) SERVICE="olist-api-staging"; PREFIX_AKSES="/olist/staging" ;;
+  production) SERVICE="olist-api"; PREFIX_AKSES="/olist"; TABEL="olist-riwayat"; ROLE="olist-api-task" ;;
+  staging) SERVICE="olist-api-staging"; PREFIX_AKSES="/olist/staging"; TABEL="olist-riwayat-staging"
+    ROLE="olist-api-staging-task" ;;
   *) echo "TARGET harus production atau staging" >&2; exit 1 ;;
 esac
 # Kunci yang berbeda per lingkungan. Sisanya dipakai bersama.
@@ -91,6 +92,18 @@ for name in OPENAI_API_KEY QDRANT_URL QDRANT_API_KEY LANGFUSE_PUBLIC_KEY LANGFUS
   fi
 done
 
+# Riwayat chat di DynamoDB bila tabel dan role dari siapkan_riwayat_aws.sh sudah ada
+# (#70). Tanpa itu riwayat di memori dan hilang setiap task diganti.
+RIWAYAT_ENV=""
+TASK_ROLE=()
+if aws iam get-role --role-name "${ROLE}" >/dev/null 2>&1; then
+  RIWAYAT_ENV=", {\"name\": \"RIWAYAT_TABEL\", \"value\": \"${TABEL}\"}"
+  TASK_ROLE=(--task-role-arn "arn:aws:iam::${ACCOUNT}:role/${ROLE}")
+  echo "Riwayat chat disimpan di DynamoDB ${TABEL}"
+else
+  echo "Role ${ROLE} belum ada, riwayat chat di memori. Jalankan siapkan_riwayat_aws.sh." >&2
+fi
+
 # Kuota dinaikkan dari bawaan (60 per klien, 30 per akun) setelah uji beban 26 Okt:
 # satu task melayani 40 pengguna serentak dengan p95 23 detik. Semua pengguna
 # Streamlit Cloud datang dari satu alamat, dan penguji bisa berbagi akun demo.
@@ -99,7 +112,7 @@ CONTAINER="$(cat <<JSON
  "environment": [{"name": "APP_ENV", "value": "production"},
                  {"name": "LANGFUSE_TRACING_ENVIRONMENT", "value": "${TARGET}"},
                  {"name": "RATE_LIMIT_PER_CLIENT", "value": "120"},
-                 {"name": "RATE_LIMIT_PER_ACCOUNT", "value": "60"}],
+                 {"name": "RATE_LIMIT_PER_ACCOUNT", "value": "60"}${RIWAYAT_ENV}],
  "secrets": [${SECRETS}]}
 JSON
 )"
@@ -110,6 +123,7 @@ if aws ecs describe-express-gateway-service --region "${REGION}" --service-arn "
   aws ecs update-express-gateway-service \
     --region "${REGION}" \
     --service-arn "${SERVICE_ARN}" \
+    ${TASK_ROLE[@]+"${TASK_ROLE[@]}"} \
     --primary-container "${CONTAINER}" \
     --query 'service.status.statusCode' --output text
 else
@@ -119,6 +133,7 @@ else
     --cluster default \
     --service-name "${SERVICE}" \
     --execution-role-arn "arn:aws:iam::${ACCOUNT}:role/ecsTaskExecutionRole" \
+    ${TASK_ROLE[@]+"${TASK_ROLE[@]}"} \
     --infrastructure-role-arn "arn:aws:iam::${ACCOUNT}:role/ecsInfrastructureRoleForExpressServices" \
     --health-check-path /health \
     --cpu 256 --memory 1024 --cpu-architecture ARM64 \
