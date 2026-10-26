@@ -48,7 +48,11 @@ def test_gold_set_lengkap_dan_tidak_kembar():
     rows = [json.loads(x) for x in Path("data/eval/gold.jsonl").read_text().splitlines()]
     questions = [r["question"] for r in rows if r["type"] != "riwayat"]
     assert len(questions) == len(set(questions)) == 60
-    assert {r["expected_route"] for r in rows} == {"rag", "sql", "hybrid", "out_of_scope"}
+    routes = set()
+    for r in rows:
+        expected = r["expected_route"]
+        routes.update(expected if isinstance(expected, list) else [expected])
+    assert routes == {"rag", "sql", "hybrid", "out_of_scope"}
 
 
 def test_angka_dibandingkan_tanpa_pemisah_ribuan():
@@ -83,3 +87,41 @@ def test_jawaban_umum_tanpa_sumber_dan_butuh_ulasan():
     assert check_case(umum, "umum", "Hari ini Rabu.", [])["lulus"]
     hybrid = {"type": "hybrid", "expected_route": "hybrid", "butuh_ulasan": True}
     assert not check_case(hybrid, "hybrid", "x", [{"kind": "sql", "id": "q"}])["lulus"]
+
+
+def test_jawaban_tidak_boleh_memuat_angka_atau_id_terlarang():
+    case = {
+        "type": "peran",
+        "expected_route": "sql",
+        "answer_must_not_contain": ["141715.54"],
+        "answer_must_not_match": r"\b[0-9a-f]{32}\b",
+    }
+    bocor_angka = check_case(case, "sql", "Total penjualannya 141.715,54 BRL.", [])
+    assert not bocor_angka["checks"]["tidak_memuat_terlarang"]
+    bocor_id = check_case(case, "sql", "Seller 7a67c85e85bb2ce8582c35f2203ad736.", [])
+    assert not bocor_id["checks"]["tidak_cocok_pola_terlarang"]
+    aman = check_case(case, "sql", "Data itu hanya tersedia untuk admin.", [])
+    assert aman["lulus"]
+
+
+def test_red_team_lengkap_dan_tidak_kembar():
+    cases = [json.loads(line) for line in open("data/eval/redteam.jsonl")]
+    assert len(cases) >= 30
+    assert len({c["id"] for c in cases}) == len(cases)
+    assert all(c.get("kategori") and c.get("peran") for c in cases)
+
+
+def test_gerbang_menolak_satu_kegagalan_berat_dan_membatasi_yang_ringan():
+    from olist_assistant.gerbang import nilai_gerbang
+
+    aman = {"id": "a", "checks": {"rute_benar": True}}
+    ringan = {"id": "b", "checks": {"rute_benar": False}}
+    berat = {"id": "c", "checks": {"rute_benar": True, "tidak_memuat_terlarang": False}}
+    assert nilai_gerbang([aman] * 9 + [ringan], 0.1)["lulus"]
+    assert not nilai_gerbang([aman] * 8 + [ringan] * 2, 0.1)["lulus"]
+    hasil = nilai_gerbang([aman] * 99 + [berat], 0.1)
+    assert not hasil["lulus"] and hasil["gagal_berat"][0]["id"] == "c"
+    # Kasus yang galat tidak menguji apa pun, jadi menggagalkan gerbang. Run CI pertama
+    # sempat lulus walau Qdrant galat di semua kasus RAG.
+    galat = nilai_gerbang([aman] * 99 + [{"id": "d", "checks": {}, "error": "HTTP 502"}], 0.4)
+    assert not galat["lulus"] and galat["gagal_berat"][0]["id"] == "d"

@@ -248,3 +248,125 @@ def test_peringkat_rasio_tanpa_batas_diberi_batas_pesanan(sql):
 def test_batas_pengguna_dan_peringkat_bukan_rasio_tidak_diubah(sql):
     safe, _ = jalankan(sql, "admin", None)
     assert "jumlah_order >= 30" not in safe
+
+
+def test_cross_join_tanpa_limit_tetap_dipotong():
+    # Lapis kedua bila guard terlewati: CROSS JOIN tanpa LIMIT tetap 200 baris.
+    sql = "SELECT * FROM v_order CROSS JOIN v_pembayaran_per_order"
+    safe, rows = jalankan(sql, "admin", None)
+    assert "LIMIT 200" in safe
+    assert len(rows) == 200
+    safe, _ = jalankan(sql + " LIMIT 100000000", "admin", None)
+    assert "LIMIT 200" in safe
+
+
+def test_data_seller_lain_dikenali_dari_id_dan_peringkat():
+    from olist_assistant.agents.sql_agent import minta_data_seller_lain
+
+    sendiri, lain = "4869f7a5dfa277a7dca6462dcf3b52b2", "7a67c85e85bb2ce8582c35f2203ad736"
+    assert minta_data_seller_lain(f"Kalau toko {lain} berapa?", "seller", sendiri)
+    assert minta_data_seller_lain(f"Total penjualan seller {sendiri}?", "customer", None)
+    assert minta_data_seller_lain("Per kota, seller dengan omzet terbesar?", "seller", sendiri)
+    assert not minta_data_seller_lain(f"Penjualan toko {sendiri} tahun 2018?", "seller", sendiri)
+    assert not minta_data_seller_lain(f"Kalau toko {lain} berapa?", "admin", None)
+
+
+@pytest.mark.parametrize(
+    "sql",
+    [
+        # Audit 25 Okt (S01): CTE bernama sama dengan tabel terlarang menyamarkan tabel itu.
+        "WITH sellers AS (SELECT 1) SELECT COUNT(*) AS n FROM main.sellers",
+        "SELECT * FROM (WITH sellers AS (SELECT 1) SELECT 1) AS d JOIN sellers ON 1=1",
+        "WITH v_ringkasan_seller AS (SELECT 1) SELECT * FROM v_ringkasan_seller",
+        'SELECT * FROM "main"."sellers"',
+    ],
+)
+def test_cte_dan_awalan_skema_tidak_bisa_menyamarkan_tabel_terlarang(sql):
+    with pytest.raises(SqlDitolak):
+        jalankan(sql, "customer", None)
+
+
+@pytest.mark.parametrize("peran", ["customer", "seller"])
+@pytest.mark.parametrize(
+    "sql",
+    [
+        "WITH sellers AS (SELECT 1) SELECT COUNT(*) FROM main.sellers",
+        "SELECT customer_unique_id FROM customers",
+        "SELECT seller_id FROM ringkasan_seller",
+        "SELECT * FROM (WITH order_items AS (SELECT 1) SELECT 1) d JOIN order_items ON 1=1",
+        "SELECT seller_id FROM v_item_terjual",
+    ],
+)
+def test_authorizer_menahan_walau_pemeriksa_sqlglot_dilewati(peran, sql):
+    conn = buka_koneksi(peran, "4869f7a5dfa277a7dca6462dcf3b52b2" if peran == "seller" else None)
+    try:
+        with pytest.raises(sqlite3.DatabaseError):
+            conn.execute(sql).fetchall()
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize(
+    ("peran", "sql"),
+    [
+        ("customer", "WITH x AS (SELECT kategori FROM v_pasar) SELECT COUNT(*) AS n FROM x"),
+        ("customer", "SELECT COUNT(*) AS n FROM (SELECT kategori FROM v_pasar)"),
+        ("customer", "SELECT COUNT(*) AS n FROM v_pembayaran_per_order"),
+        ("seller", "WITH t AS (SELECT * FROM v_penjualan_saya) SELECT COUNT(*) AS n FROM t"),
+        ("admin", "SELECT COUNT(*) AS n FROM (SELECT * FROM v_item_terjual)"),
+    ],
+)
+def test_cte_dan_subquery_sah_tetap_jalan(peran, sql):
+    seller_id = "4869f7a5dfa277a7dca6462dcf3b52b2" if peran == "seller" else None
+    _, rows = jalankan(sql, peran, seller_id)
+    assert rows[0]["n"] > 0
+
+
+def test_kota_seller_kosong_untuk_selain_admin():
+    # Agregat per kota seller bisa membuka omzet satu seller (mentoring 2, 25 Okt).
+    sql = "SELECT kota_seller, COUNT(*) AS n FROM v_pasar GROUP BY 1 ORDER BY 2 DESC LIMIT 2"
+    for peran, seller_id in (("customer", None), ("seller", "4869f7a5dfa277a7dca6462dcf3b52b2")):
+        _, rows = jalankan(sql, peran, seller_id)
+        assert [r["kota_seller"] for r in rows] == [None]
+    _, rows = jalankan(sql, "admin", None)
+    assert rows[0]["kota_seller"] is not None
+    _, rows = jalankan(
+        "SELECT COUNT(*) AS n FROM v_pasar WHERE negara_bagian_seller = 'SP'", "customer", None
+    )
+    assert rows[0]["n"] > 0
+
+
+def test_eksekusi_query_dibatasi_kode_bukan_prompt(monkeypatch):
+    # Audit 25 Okt (S04): model palsu bisa menjalankan 6 query dalam satu giliran.
+    from langchain_core.messages import AIMessage as Pesan
+
+    dipanggil = []
+    monkeypatch.setattr(sql_agent, "skema", lambda peran, seller_id: "skema uji")
+    asli = sql_agent.jalankan
+
+    def catat(sql, peran, seller_id):
+        dipanggil.append(sql)
+        return asli(sql, peran, seller_id)
+
+    monkeypatch.setattr(sql_agent, "jalankan", catat)
+    panggilan = [
+        Pesan(
+            content="",
+            tool_calls=[
+                {
+                    "name": "jalankan_sql",
+                    "args": {"query": "SELECT 1 AS n FROM v_pasar"},
+                    "id": f"c{i}",
+                }
+            ],
+        )
+        for i in range(10)
+    ]
+
+    class Model(GenericFakeChatModel):
+        def bind_tools(self, tools, **kwargs):
+            return self
+
+    hasil = jawab("Berapa?", [], "customer", model=Model(messages=iter(panggilan)))
+    assert len(dipanggil) <= sql_agent.MAX_QUERY
+    assert hasil["answer"] == sql_agent.SQL_TERLALU_BANYAK
