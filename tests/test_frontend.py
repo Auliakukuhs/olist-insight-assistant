@@ -40,6 +40,7 @@ class FakeApi:
     def __init__(self):
         self.calls = []
         self.cache = False
+        self.tabel = [{"rata": 82.04}]
 
     def __call__(self, method, url, headers=None, json=None, params=None, timeout=None):
         path = url.removeprefix("http://api.uji")
@@ -61,7 +62,7 @@ class FakeApi:
                         {"kind": "sql", "id": "query", "snippet": "SELECT 1"},
                         {"kind": "review", "id": "r1", "snippet": "chegou atrasado"},
                     ],
-                    "table": [{"rata": 82.04}],
+                    "table": self.tabel,
                     "proses": {**PROSES, "cache": self.cache},
                     "request_id": "x" * 32,
                     "trace_id": "a" * 32,
@@ -248,3 +249,38 @@ def test_tab_pemakaian_hanya_untuk_admin(api):
     for peran in ("seller", "customer"):
         at = login(start(), peran)
         assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
+
+
+def grafik(at) -> list[str]:
+    """Jenis grafik yang digambar, dibaca dari spec Vega-Lite."""
+    return [
+        "line" if '"line"' in e.proto.spec else "bar" if '"bar"' in e.proto.spec else "?"
+        for e in at.get("vega_lite_chart")
+    ]
+
+
+@pytest.mark.parametrize(
+    ("tabel", "harapan"),
+    [
+        (
+            [{"kategori": "bed_bath_table", "jumlah": 9417}, {"kategori": "toys", "jumlah": 3886}],
+            ["bar"],
+        ),
+        ([{"bulan": "2017-01", "total": 1.0}, {"bulan": "2017-02", "total": 2.0}], ["line"]),
+        ([{"kategori": "toys", "jumlah": 1, "rata": 2.0}] * 2, []),
+    ],
+    ids=["kategori", "bulan", "tidak-cocok"],
+)
+def test_grafik_otomatis_hanya_untuk_tabel_yang_cocok(api, tabel, harapan):
+    api.tabel = tabel
+    at = login(start(), "admin")
+    at.chat_input[0].set_value("Berapa jumlah pesanan per kategori?").run()
+    assert grafik(at) == harapan
+    assert len(at.dataframe) >= 1
+
+
+def test_tabel_hasil_bisa_diunduh_sebagai_csv(api):
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    unduh = at.get("download_button")
+    assert [b.proto.label for b in unduh] == ["Unduh CSV"]

@@ -332,6 +332,15 @@ Penegakannya berlapis. Supervisor menyebut peran dan aturannya di prompt, agent 
 
 Akun demo dibaca dari `DEMO_USERS` (JSON) dan token ditandatangani dengan `AUTH_SECRET`. Di AWS keduanya ada di SSM, tidak di repo. Token berlaku 12 jam. Login dibatasi 10 percobaan per menit per klien. Riwayat percakapan dipisah per akun, sehingga `session_id` yang sama dari dua akun tidak berbagi riwayat. Bila `AUTH_SECRET` kosong (lokal dan tes), login mati dan peran diambil dari field `role` di body.
 
+### Tabel hasil, grafik, dan CSV
+
+Bila jawaban membawa tabel hasil SQL, Streamlit menampilkannya di bawah jawaban, ditambah dua hal.
+
+- **Grafik otomatis (#62).** Grafik hanya muncul bila tabel berisi tepat satu kolom label dan satu kolom angka, dengan 2 sampai 50 baris. Label waktu (bulan `2017-01`, atau kolom `bulan` dan `tahun`) memakai line chart yang diurutkan dari waktu paling awal, selain itu bar chart. Tabel lain tetap tabel saja.
+- **Unduh CSV (#69).** Tombol "Unduh CSV" di bawah setiap tabel. Berkasnya UTF-8 dengan BOM supaya Excel membaca huruf seperti "são paulo" dengan benar. Teks yang diawali `=`, `+`, `-`, atau `@` diberi awalan apostrof, supaya tidak dijalankan sebagai rumus saat dibuka di spreadsheet (CSV injection).
+
+Logikanya ada di `frontend/tabel.py` tanpa Streamlit, dengan test di `tests/test_tabel_frontend.py` dan AppTest di `tests/test_frontend.py`.
+
 ### Panel proses
 
 Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu.

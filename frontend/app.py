@@ -9,6 +9,7 @@ import uuid
 
 import requests
 import streamlit as st
+from tabel import bentuk_grafik, data_grafik, ke_csv
 
 API_URL = st.secrets["API_URL"].rstrip("/")
 API_KEY = st.secrets.get("API_ACCESS_KEY")
@@ -190,7 +191,20 @@ def tampilkan_jawaban(pesan: dict) -> None:
             + (" · dari cache" if proses.get("cache") else "")
         )
     if data.get("table"):
-        st.dataframe(data["table"], hide_index=True, width="stretch")
+        tabel = data["table"]
+        st.dataframe(tabel, hide_index=True, width="stretch")
+        # Grafik hanya untuk tabel satu label dan satu angka (#62). Tabel lain tetap tabel.
+        bentuk = bentuk_grafik(tabel)
+        if bentuk:
+            gambar = st.line_chart if bentuk["jenis"] == "line" else st.bar_chart
+            gambar(data_grafik(tabel, bentuk), x=bentuk["label"], y=bentuk["angka"])
+        st.download_button(
+            "Unduh CSV",
+            ke_csv(tabel),
+            file_name=f"olist-{data.get('request_id', 'hasil')[:8]}.csv",
+            mime="text/csv",
+            key=f"csv-{data.get('request_id', id(pesan))}",
+        )
     sources = data.get("sources") or []
     reviews = [s for s in sources if s["kind"] != "sql"]
     queries = [s for s in sources if s["kind"] == "sql"]
