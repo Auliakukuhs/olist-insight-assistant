@@ -366,6 +366,19 @@ Di bawah setiap jawaban Streamlit ada jempol naik dan turun. `/chat` mengembalik
 
 Pemilik trace dicatat di memori, paling banyak 5.000 jawaban terakhir. Jawaban dari cache (#67) tidak punya trace Langfuse, jadi tidak diberi jempol.
 
+### Dashboard pemakaian (admin)
+
+`GET /admin/pemakaian?hari=7` (1 sampai 31 hari) merangkum pemakaian chatbot dari Langfuse. Isinya per hari jumlah pertanyaan, token, biaya, dan latensi p50 serta p95, ditambah jumlah pertanyaan per peran, panggilan per agent, dan jumlah jempol naik dan turun. Angka diagregasi di server Langfuse lewat Metrics API v2, jadi API tidak menarik ribuan observasi. Hanya environment tracing server ini yang dihitung (`LANGFUSE_TRACING_ENVIRONMENT`, `production` di AWS dan `staging` di staging), sehingga evaluasi di laptop tidak tercampur. Di Streamlit tersedia sebagai tab **Pemakaian** yang hanya muncul untuk admin.
+
+| Kondisi | Jawaban |
+|---|---|
+| Admin | 200 |
+| Seller atau customer | 403 |
+| Tanpa login | 401 |
+| Langfuse tidak aktif | 503 |
+
+Dua batasan. Biaya belum dipecah per peran, karena tag peran ada di trace sedangkan biaya ada di observasi generation. Sebaran rute didekati dengan panggilan per agent, karena rute baru diketahui sesudah trace dimulai. Jawaban dari cache tidak tercatat di Langfuse, jadi tidak ikut dihitung.
+
 ### Cache pertanyaan berulang dan riwayat tahan restart
 
 **Cache (#67).** Pertanyaan pertama sesi yang sama persis dari peran dan seller yang sama dijawab dari cache, tanpa memanggil agent. Perbedaan huruf besar, spasi, dan tanda tanya di ujung diabaikan. Kunci cache memuat peran dan `seller_id`, jadi jawaban data toko seller A tidak pernah sampai ke seller B atau ke customer. Yang disimpan hanya jawaban agent SQL, RAG, dan hybrid yang berhasil. Penolakan, sapaan, jawaban tanggal, dan jawaban gagal tidak disimpan. Pertanyaan lanjutan tidak memakai cache karena jawabannya bergantung pada percakapan, tetapi jawaban dari cache tetap dicatat di riwayat sesi, sehingga "kalau yang di SP?" sesudahnya tetap punya konteks. Panel proses menandainya dengan `"cache": true`, token 0, dan alasan "diambil dari cache", dan Streamlit menulis "dari cache" di bawah jawaban. Cache ada di memori, berisi paling banyak 256 jawaban selama 6 jam, dan kosong lagi setiap deploy, jadi aturan atau prompt baru tidak terhalang jawaban lama. Pengaturannya `CACHE_JAWABAN=0` untuk mematikan, `CACHE_JAWABAN_UKURAN`, dan `CACHE_JAWABAN_UMUR_MENIT`. Skrip evaluasi tidak memakai cache, supaya angka evaluasi tidak tercampur.

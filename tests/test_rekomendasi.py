@@ -67,6 +67,7 @@ def siap(db, monkeypatch):
     monkeypatch.setenv("DEMO_USERS", json.dumps(USERS))
     monkeypatch.delenv("API_ACCESS_KEY", raising=False)
     monkeypatch.setattr(auth, "per_client_login", RateLimiter(1000))
+    monkeypatch.setattr(auth, "per_account_login", RateLimiter(1000))
     monkeypatch.setattr(rekomendasi, "per_akun", RateLimiter(1000))
     search = FakeSearch()
     monkeypatch.setattr(rekomendasi, "_pencarian", lambda: search)

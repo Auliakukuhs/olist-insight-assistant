@@ -360,17 +360,88 @@ def halaman_cari_produk() -> None:
     st.caption(hasil["catatan"])
 
 
+def halaman_pemakaian() -> None:
+    """Ringkasan pemakaian dari Langfuse (#64). Tab ini hanya digambar untuk admin,
+    dan API tetap menolak peran lain dengan 403."""
+    st.subheader("Pemakaian")
+    hari = st.select_slider(
+        "Rentang", options=[1, 7, 14, 31], value=7, format_func=lambda h: f"{h} hari"
+    )
+    data, error = api("GET", "/admin/pemakaian", params={"hari": hari})
+    if error:
+        st.error(error)
+        return
+    per_hari = data["per_hari"]
+    pertanyaan = sum(h["pertanyaan"] for h in per_hari)
+    kolom = st.columns(4)
+    kolom[0].metric("Pertanyaan", f"{pertanyaan:,}")
+    kolom[1].metric("Token", f"{sum(h['token'] for h in per_hari):,}")
+    kolom[2].metric("Biaya", f"${sum(h['biaya_usd'] for h in per_hari):.4f}")
+    jempol = data["umpan_balik"]
+    kolom[3].metric(
+        "Umpan balik", f"{jempol['naik']} naik", f"{jempol['turun']} turun", delta_color="off"
+    )
+    if not per_hari:
+        st.info("Belum ada pertanyaan di rentang ini.")
+        return
+    st.markdown("**Per hari**")
+    st.dataframe(
+        [
+            {
+                "Tanggal": h["tanggal"],
+                "Pertanyaan": h["pertanyaan"],
+                "Token": h["token"],
+                "Biaya (USD)": h["biaya_usd"],
+                "Latensi p50 (detik)": None
+                if h["latensi_p50_ms"] is None
+                else round(h["latensi_p50_ms"] / 1000, 1),
+                "Latensi p95 (detik)": None
+                if h["latensi_p95_ms"] is None
+                else round(h["latensi_p95_ms"] / 1000, 1),
+            }
+            for h in per_hari
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    kiri, kanan = st.columns(2)
+    kiri.markdown("**Pertanyaan per peran**")
+    kiri.dataframe(
+        [{"Peran": k, "Pertanyaan": v} for k, v in sorted(data["per_peran"].items())],
+        hide_index=True,
+        width="stretch",
+    )
+    kanan.markdown("**Panggilan per agent**")
+    kanan.dataframe(
+        [
+            {"Agent": LABEL_AGENT.get(k, k), "Panggilan": v}
+            for k, v in sorted(data["per_agent"].items())
+        ],
+        hide_index=True,
+        width="stretch",
+    )
+    st.caption(
+        f"Sumber Langfuse, environment {data['environment']}, "
+        f"{data['dari']} sampai {data['sampai']}. "
+        "Jawaban dari cache tidak tercatat di Langfuse, jadi tidak ikut dihitung."
+    )
+
+
 def main() -> None:
     st.set_page_config(page_title="OLIST Insight Assistant", layout="wide")
     init_state()
     if not st.session_state.token:
         halaman_login()
         return
-    chat, cari = st.tabs(["Chat", "Cari produk"])
-    with chat:
+    admin = (st.session_state.pengguna or {}).get("peran") == "admin"
+    tabs = st.tabs(["Chat", "Cari produk", *(["Pemakaian"] if admin else [])])
+    with tabs[0]:
         halaman_chat()
-    with cari:
+    with tabs[1]:
         halaman_cari_produk()
+    if admin:
+        with tabs[2]:
+            halaman_pemakaian()
     # Sidebar digambar terakhir supaya total token sudah termasuk jawaban terbaru.
     sidebar()
 

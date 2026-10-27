@@ -16,7 +16,7 @@ from fastapi.security import APIKeyHeader
 
 from olist_assistant import __version__
 from olist_assistant.agents.supervisor import Supervisor
-from olist_assistant.api import analytics, auth, rekomendasi, umpan_balik
+from olist_assistant.api import analytics, auth, pemakaian, rekomendasi, umpan_balik
 from olist_assistant.api.auth import current_user
 from olist_assistant.api.keluaran import bersihkan
 from olist_assistant.api.ratelimit import RateLimiter, client_ip
@@ -136,6 +136,7 @@ app.include_router(auth.router, dependencies=[Depends(require_api_key)])
 app.include_router(analytics.router, dependencies=[Depends(require_api_key)])
 app.include_router(rekomendasi.router, dependencies=[Depends(require_api_key)])
 app.include_router(umpan_balik.router, dependencies=[Depends(require_api_key)])
+app.include_router(pemakaian.router, dependencies=[Depends(require_api_key)])
 
 
 def client_key(request: Request) -> str:
