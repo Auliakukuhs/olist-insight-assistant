@@ -64,8 +64,11 @@ class FakeApi:
                     "table": [{"rata": 82.04}],
                     "proses": {**PROSES, "cache": self.cache},
                     "request_id": "x" * 32,
+                    "trace_id": "a" * 32,
                 },
             )
+        if path == "/feedback":
+            return FakeResponse(200, {"tercatat": True})
         if path.startswith("/analytics/kategori"):
             baris = {
                 "kategori": "toys",
@@ -202,3 +205,12 @@ def test_cari_produk_mengirim_filter_dan_menampilkan_alasan(api):
     }
     assert any("Pembeli memuji kualitasnya." in m.value for m in at.markdown)
     assert any(m.label == "Skor ulasan" for m in at.metric)
+
+
+def test_jempol_mengirim_umpan_balik_untuk_trace_jawaban(api):
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    assert len(at.feedback) == 1
+    at.feedback[0].set_value(0).run()
+    kiriman = [c for c in api.calls if c[1] == "/feedback"]
+    assert kiriman and kiriman[-1][3] == {"trace_id": "a" * 32, "suka": False}

@@ -211,3 +211,12 @@ def test_item_dynamodb_diberi_ttl(tabel_dynamodb):
         TableName="olist-riwayat-uji"
     )["Items"]
     assert items and all("ttl" in item for item in items)
+
+
+def test_jawaban_cache_tanpa_trace_jadi_tanpa_umpan_balik():
+    supervisor, _, _ = make(cache=CacheJawaban())
+    supervisor.tracing = lambda trace_id: []
+    pertama = supervisor.ask("Berapa rata-rata ongkir?", "s1")
+    kedua = supervisor.ask("Berapa rata-rata ongkir?", "s2")
+    assert len(pertama["trace_id"]) == 32
+    assert kedua.get("trace_id") is None

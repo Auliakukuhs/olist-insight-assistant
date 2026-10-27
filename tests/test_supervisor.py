@@ -169,11 +169,33 @@ def test_giliran_setelah_serangan_kembali_normal():
 
 
 def test_tracing_mati_tanpa_kunci_langfuse(monkeypatch):
-    from olist_assistant.agents.supervisor import langfuse_callbacks
+    from olist_assistant.agents.supervisor import langfuse_client, langfuse_tracing
 
     monkeypatch.delenv("LANGFUSE_PUBLIC_KEY", raising=False)
     monkeypatch.delenv("LANGFUSE_SECRET_KEY", raising=False)
-    assert langfuse_callbacks() == []
+    assert langfuse_tracing() is None
+    assert langfuse_client() is None
+
+
+def test_setiap_pertanyaan_mendapat_trace_id_sendiri():
+    dibuat = []
+
+    def tracing(trace_id):
+        dibuat.append(trace_id)
+        return []
+
+    supervisor, *_ = make("rag")
+    supervisor.tracing = tracing
+    a = supervisor.ask("Apa keluhan pembeli bayi?", "s1")
+    b = supervisor.ask("Apa keluhan pembeli bayi?", "s1")
+    assert a["trace_id"] != b["trace_id"]
+    assert dibuat == [a["trace_id"], b["trace_id"]]
+    assert all(len(t) == 32 and int(t, 16) >= 0 for t in dibuat)
+
+
+def test_tanpa_tracing_trace_id_kosong():
+    supervisor, *_ = make("rag")
+    assert supervisor.ask("Apa keluhan pembeli bayi?", "s1")["trace_id"] is None
 
 
 def test_callback_menerima_session_dan_role():

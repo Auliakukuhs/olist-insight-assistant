@@ -31,6 +31,7 @@ import os
 import re
 import time
 import unicodedata
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta, timezone
@@ -112,6 +113,28 @@ HYBRID_RAG_NOTE = (
     "Catatan sistem: angka dan peringkat dihitung agent lain. Tugasmu hanya mencari "
     "contoh ulasan yang relevan. Jangan menyebut statistik atau peringkat apa pun."
 )
+# Pertanyaan hybrid yang kategorinya baru diketahui dari peringkat SQL, misalnya
+# "kategori terlaris 2018 itu pembelinya puas tidak?". Bila paralel, agent RAG
+# mengambil ulasan tanpa tahu kategori itu (ditemukan juri LLM, #63 dan #75).
+PERINGKAT_KATEGORI = re.compile(
+    r"\bkategori\b.*\b(paling|ter(laris|tinggi|rendah|banyak|sedikit|buruk|jelek|mahal|"
+    r"murah|lama|cepat|baik)|top\s*\d+|\d+\s+kategori)"
+    r"|\b(top\s*\d+|\d+)\s+kategori\b",
+    re.IGNORECASE,
+)
+MAX_KATEGORI_LANJUT = 3
+
+
+def kategori_dari_sql(rows: list[dict] | None) -> list[str]:
+    """Kategori di baris hasil SQL, urut sesuai peringkatnya, tanpa duplikat."""
+    hasil: list[str] = []
+    for row in rows or []:
+        kategori = row.get("kategori")
+        if isinstance(kategori, str) and kategori not in hasil:
+            hasil.append(kategori)
+    return hasil[:MAX_KATEGORI_LANJUT]
+
+
 SQL_UNAVAILABLE = (
     "Data angka dan agregat (agent SQL) belum tersedia di versi ini, jadi pertanyaan "
     "tentang harga, jumlah, atau ranking belum bisa dijawab."
@@ -299,6 +322,8 @@ class Supervisor:
     """Penyimpanan riwayat. None berarti InMemorySaver, hilang saat proses berhenti."""
     cache: CacheJawaban | None = None
     """Cache pertanyaan pertama sesi. None berarti setiap pertanyaan diproses agent."""
+    tracing: Callable[[str], list] | None = None
+    """Pembuat handler tracing per pertanyaan dari trace id. None berarti tanpa trace id."""
 
     def __post_init__(self) -> None:
         # Sub-agent dibungkus run bernama supaya tercatat sebagai langkah di
@@ -349,6 +374,8 @@ class Supervisor:
         graph.add_node("rencana", self._rencana)
         graph.add_node("hybrid_sql", self._hybrid_sql)
         graph.add_node("hybrid_rag", self._hybrid_rag)
+        graph.add_node("hybrid_sql_dulu", self._hybrid_sql)
+        graph.add_node("hybrid_rag_lanjut", self._hybrid_rag_lanjut)
         graph.add_node("gabung", self._gabung)
 
         graph.add_edge(START, "guard")
@@ -362,10 +389,18 @@ class Supervisor:
         graph.add_edge("rag", "periksa")
         graph.add_edge("sql", "periksa")
         graph.add_conditional_edges("periksa", lambda s: "susulan" if s.get("eskalasi") else END)
-        # Dua cabang paralel. gabung baru berjalan setelah keduanya selesai.
-        graph.add_edge("rencana", "hybrid_sql")
-        graph.add_edge("rencana", "hybrid_rag")
+        # Biasanya dua cabang paralel, dan gabung berjalan setelah keduanya selesai.
+        # Pertanyaan yang kategorinya ditentukan peringkat SQL dijalankan berurutan.
+        graph.add_conditional_edges(
+            "rencana",
+            lambda s: (
+                "hybrid_sql_dulu" if s["rencana"].get("berurutan") else ["hybrid_sql", "hybrid_rag"]
+            ),
+            ["hybrid_sql", "hybrid_rag", "hybrid_sql_dulu"],
+        )
         graph.add_edge(["hybrid_sql", "hybrid_rag"], "gabung")
+        graph.add_edge("hybrid_sql_dulu", "hybrid_rag_lanjut")
+        graph.add_edge("hybrid_rag_lanjut", "gabung")
         for node in ("tolak", "langsung", "susulan", "gabung"):
             graph.add_edge(node, END)
         return graph.compile(checkpointer=self.checkpointer or InMemorySaver())
@@ -537,12 +572,19 @@ class Supervisor:
     # ---------- Jalur hybrid paralel ----------
 
     def _rencana(self, state: SupervisorState) -> dict:
-        """Cara kedua dari mentoring 1. Tentukan filter bersama, lalu agent jalan paralel."""
+        """Cara kedua dari mentoring 1. Tentukan filter bersama, lalu agent jalan paralel.
+
+        Bila kategorinya baru diketahui dari peringkat SQL, kedua agent dijalankan
+        berurutan supaya agent RAG mencari ulasan di kategori hasil SQL.
+        """
         question = self._question(state)
         if self.plan is None:
-            return {"rencana": {"pertanyaan_sql": question, "pertanyaan_rag": question}}
-        rencana = self.plan(question, _history(state["messages"]), state.get("role", "customer"))
-        return {"rencana": rencana}
+            rencana = {"pertanyaan_sql": question, "pertanyaan_rag": question}
+        else:
+            rencana = self.plan(
+                question, _history(state["messages"]), state.get("role", "customer")
+            )
+        return {"rencana": {**rencana, "berurutan": bool(PERINGKAT_KATEGORI.search(question))}}
 
     def _hybrid_sql(self, state: SupervisorState) -> dict:
         result = self._call_sql(
@@ -552,6 +594,19 @@ class Supervisor:
 
     def _hybrid_rag(self, state: SupervisorState) -> dict:
         question = f"{state['rencana']['pertanyaan_rag']}\n\n{HYBRID_RAG_NOTE}"
+        return {"hasil_rag": self._call_rag(question, _history(state["messages"]))}
+
+    def _hybrid_rag_lanjut(self, state: SupervisorState) -> dict:
+        """RAG setelah SQL selesai, difokuskan ke kategori yang ditemukan SQL."""
+        hasil_sql = state.get("hasil_sql")
+        kategori = kategori_dari_sql(hasil_sql["rows"] if hasil_sql else None)
+        question = state["rencana"]["pertanyaan_rag"]
+        if kategori:
+            question = (
+                f"{question}\n\nKategori yang dimaksud menurut data: {', '.join(kategori)}. "
+                "Panggil cari_ulasan dengan kategori itu, dan sebut kategori setiap ulasan."
+            )
+        question = f"{question}\n\n{HYBRID_RAG_NOTE}"
         return {"hasil_rag": self._call_rag(question, _history(state["messages"]))}
 
     def _gabung(self, state: SupervisorState) -> dict:
@@ -596,9 +651,14 @@ class Supervisor:
                 return self._dari_cache(question, role, seller_id, config, *tersimpan, started)
 
         recorder = ProsesRecorder()
+        # Trace id ditentukan di sini, bukan dibaca dari handler, karena handler
+        # yang dipakai bersama bisa tertukar antar pertanyaan yang datang bersamaan.
+        # Jawaban dari cache tidak punya trace, jadi tidak diberi tombol umpan balik.
+        trace_id = uuid.uuid4().hex if self.tracing else None
+        tracers = self.tracing(trace_id) if trace_id else []
         state = self.graph.invoke(
             {"messages": [HumanMessage(content=question)], "role": role, "seller_id": seller_id},
-            {**config, "callbacks": [*self.callbacks, recorder]},
+            {**config, "callbacks": [*self.callbacks, *tracers, recorder]},
         )
         durasi_ms = round((time.perf_counter() - started) * 1000)
         if kunci is not None and _layak_cache(state):
@@ -606,7 +666,11 @@ class Supervisor:
                 kunci,
                 {k: state.get(k) for k in ("answer", "route", "route_by", "sources", "table")},
             )
-        return {**state, "proses": recorder.summary(durasi_ms, state.get("alasan"))}
+        return {
+            **state,
+            "proses": recorder.summary(durasi_ms, state.get("alasan")),
+            "trace_id": trace_id,
+        }
 
     def _siapkan_riwayat(self, config: dict) -> bool:
         """True bila sesi punya riwayat. Riwayat yang melewati umur sesi dihapus dulu."""
@@ -740,7 +804,8 @@ Waktu server sekarang {sekarang} WIB. Hari ini {hari_ini}, besok {besok}, kemari
 {kemarin}.
 
 Pilih jenis "umum" dan jawab singkat untuk:
-- sapaan, salam, basa-basi, dan ucapan terima kasih,
+- sapaan, salam, basa-basi, dan ucapan terima kasih. Balas sapaannya, lalu tawarkan
+  bantuan dengan satu contoh pertanyaan dari daftar di bawah,
 - pertanyaan tentang siapa kamu dan apa yang bisa kamu bantu,
 - pertanyaan tanggal, hari, atau jam sekarang, dijawab dari waktu server di atas.
 
@@ -995,7 +1060,10 @@ def llm_synthesizer(model) -> SynthFn:
             "Gabungkan dua jawaban berikut menjadi satu jawaban bahasa Indonesia yang "
             "ringkas untuk pertanyaan pengguna. Angka hanya dari bagian database, "
             "pendapat pembeli hanya dari bagian ulasan. Pertahankan ID [review:...] "
-            "yang dikutip. Bila ada asumsi, tulis di kalimat pertama. Bila pengguna "
+            "yang dikutip. Bila pertanyaan memuat baris 'Asumsi yang dipakai', sebut "
+            "isinya secara alami di kalimat pertama tanpa menulis kata asumsi. Bila "
+            "baris itu tidak ada, jangan menyebut filter atau lokasi apa pun yang tidak "
+            "ada di pertanyaan. Bila pengguna "
             "meminta saran atau cara menangani, boleh beri paling banyak tiga saran, "
             "tetapi setiap saran wajib menyebut angka atau ulasan [review:...] yang "
             "mendasarinya. Jangan menambah fakta baru.\n\n"
@@ -1007,15 +1075,35 @@ def llm_synthesizer(model) -> SynthFn:
     return synthesize
 
 
-def langfuse_callbacks() -> list:
-    """Handler Langfuse bila kuncinya ada. Tanpa kunci, tracing mati tanpa error."""
+def langfuse_aktif() -> bool:
+    """Kunci Langfuse ada. Tanpa kunci, tracing dan umpan balik mati tanpa error."""
     if not (os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")):
-        return []
+        return False
     if os.getenv("LANGFUSE_HOST") and not os.getenv("LANGFUSE_BASE_URL"):
         os.environ["LANGFUSE_BASE_URL"] = os.environ["LANGFUSE_HOST"]
+    return True
+
+
+def langfuse_tracing() -> Callable[[str], list] | None:
+    """Handler Langfuse baru per pertanyaan dengan trace id yang ditentukan supervisor.
+
+    Trace id yang sama dikembalikan /chat, jadi umpan balik pengguna bisa
+    ditempel ke trace yang tepat lewat /feedback.
+    """
+    if not langfuse_aktif():
+        return None
     from langfuse.langchain import CallbackHandler
 
-    return [CallbackHandler()]
+    return lambda trace_id: [CallbackHandler(trace_context={"trace_id": trace_id})]
+
+
+def langfuse_client():
+    """Client Langfuse untuk menulis score, atau None bila Langfuse tidak aktif."""
+    if not langfuse_aktif():
+        return None
+    from langfuse import get_client
+
+    return get_client()
 
 
 def default_supervisor(
@@ -1044,7 +1132,7 @@ def default_supervisor(
         rag=lambda q, h: jawab_rag(q, h, search, model),
         sql=lambda q, h, u: jawab_sql(q, h, peran=u["peran"], seller_id=u["seller_id"]),
         synthesize=llm_synthesizer(model),
-        callbacks=langfuse_callbacks(),
+        tracing=langfuse_tracing(),
         direct=llm_direct(model),
         plan=llm_planner(model),
         check=llm_checker(model),

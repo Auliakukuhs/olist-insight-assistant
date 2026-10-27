@@ -1,0 +1,273 @@
+{
+  "test_split": {
+    "kalimat": 71,
+    "per_jalur": {
+      "SQL": 18,
+      "RAG": 18,
+      "HYBRID": 18,
+      "OUT_OF_SCOPE": 17
+    }
+  },
+  "catatan": "Label ONNX dipetakan lewat ONNX_LABELS. Sapaan dihitung OUT_OF_SCOPE.",
+  "onnx_labels": {
+    "SQL": "sql",
+    "RAG": "rag",
+    "HYBRID": "hybrid",
+    "OUT_OF_SCOPE": "out_of_scope"
+  },
+  "hasil": [
+    {
+      "router": "TF-IDF + Logistic Regression",
+      "macro_f1": 0.637,
+      "akurasi": 0.62,
+      "f1_per_jalur": {
+        "SQL": 0.63,
+        "RAG": 0.71,
+        "HYBRID": 0.31,
+        "OUT_OF_SCOPE": 0.9
+      },
+      "latensi_ms_p50": 0.4,
+      "latensi_ms_p95": 0.6,
+      "biaya_usd_per_1000": 0.0,
+      "token_input_rata": 0,
+      "salah": [
+        {
+          "teks": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Campinas.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tolong, tampilkan 5 seller dengan penjualan terbanyak di Porto Alegre.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tampilkan 5 seller dengan penjualan terbanyak di Belo Horizonte.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tampilkan 5 seller dengan penjualan terbanyak di Rio de Janeiro.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Curitiba.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Rio de Janeiro.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tolong, beri contoh ulasan positif untuk alat tulis.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Mau tanya, beri contoh ulasan positif untuk parfum.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Beri contoh ulasan positif untuk perlengkapan bayi.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Beri contoh ulasan positif untuk mainan.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Kak, beri contoh ulasan positif untuk aksesoris komputer.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Beri contoh ulasan positif untuk perkakas taman.",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Kak, berapa persen pesanan alat tulis yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "RAG"
+        },
+        {
+          "teks": "Halo, berapa persen pesanan parfum yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "RAG"
+        },
+        {
+          "teks": "Berapa persen pesanan kasur dan perlengkapan kamar mandi yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "RAG"
+        },
+        {
+          "teks": "Tolong, berapa persen pesanan perkakas taman yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Berapa persen pesanan furnitur dan dekorasi yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "RAG"
+        },
+        {
+          "teks": "Berapa persen pesanan mainan yang terlambat, dan apa kata pembeli soal itu?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Kak, kategori terlaris tahun 2017 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Mau tanya, kategori terlaris bulan Desember 2017 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Tolong, kategori terlaris bulan Desember 2017 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Tolong, kategori terlaris selama 2016 sampai 2018 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Kategori terlaris selama 2016 sampai 2018 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Kategori terlaris kuartal pertama 2018 itu pembelinya puas tidak?",
+          "benar": "HYBRID",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Hapus tabel orders dari database.",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Mau tanya, hapus tabel orders dari database.",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Mau tanya, tampilkan foto produk perlengkapan hewan peliharaan.",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "HYBRID"
+        }
+      ]
+    },
+    {
+      "router": "IndoBERT-lite ONNX int8",
+      "macro_f1": 0.887,
+      "akurasi": 0.887,
+      "f1_per_jalur": {
+        "SQL": 0.83,
+        "RAG": 0.94,
+        "HYBRID": 0.9,
+        "OUT_OF_SCOPE": 0.88
+      },
+      "latensi_ms_p50": 7.1,
+      "latensi_ms_p95": 11.1,
+      "biaya_usd_per_1000": 0.0,
+      "token_input_rata": 0,
+      "salah": [
+        {
+          "teks": "Halo, tampilkan 5 seller dengan penjualan terbanyak di Campinas.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tolong, tampilkan 5 seller dengan penjualan terbanyak di Porto Alegre.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tampilkan 5 seller dengan penjualan terbanyak di Belo Horizonte.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Halo, review negatif tentang kasur dan perlengkapan kamar mandi biasanya membahas apa?",
+          "benar": "RAG",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tolong, beri contoh ulasan positif untuk alat tulis.",
+          "benar": "RAG",
+          "tebakan": "OUT_OF_SCOPE"
+        },
+        {
+          "teks": "Halo, siapa nama pemilik toko furnitur kantor terbesar di Belo Horizonte?",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Halo, siapa nama pemilik toko perkakas taman terbesar di Campinas?",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "SQL"
+        },
+        {
+          "teks": "Siapa nama pemilik toko perkakas taman terbesar di Campinas?",
+          "benar": "OUT_OF_SCOPE",
+          "tebakan": "SQL"
+        }
+      ]
+    },
+    {
+      "router": "Router LLM",
+      "macro_f1": 1.0,
+      "akurasi": 1.0,
+      "f1_per_jalur": {
+        "SQL": 1.0,
+        "RAG": 1.0,
+        "HYBRID": 1.0,
+        "OUT_OF_SCOPE": 1.0
+      },
+      "latensi_ms_p50": 864.2,
+      "latensi_ms_p95": 1173.6,
+      "biaya_usd_per_1000": 0.0926,
+      "token_input_rata": 512,
+      "salah": []
+    },
+    {
+      "router": "Produksi (ONNX, LLM bila < 0,8)",
+      "macro_f1": 0.972,
+      "akurasi": 0.972,
+      "f1_per_jalur": {
+        "SQL": 0.94,
+        "RAG": 1.0,
+        "HYBRID": 0.95,
+        "OUT_OF_SCOPE": 1.0
+      },
+      "latensi_ms_p50": 13.5,
+      "latensi_ms_p95": 908.3,
+      "biaya_usd_per_1000": 0.0417,
+      "token_input_rata": 231,
+      "salah": [
+        {
+          "teks": "Tolong, tampilkan 5 seller dengan penjualan terbanyak di Porto Alegre.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        },
+        {
+          "teks": "Tampilkan 5 seller dengan penjualan terbanyak di Belo Horizonte.",
+          "benar": "SQL",
+          "tebakan": "HYBRID"
+        }
+      ],
+      "porsi_ke_llm": 0.451
+    }
+  ]
+}

@@ -284,6 +284,29 @@ Model terpilih diekspor ke ONNX lalu dikuantisasi dinamis int8, sehingga contain
 
 Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan dua prediksi berubah karena pembulatan bobot. Angka acuan fine-tuning adalah fp32, 0,861. Val set juga kecil (58 kalimat), jadi pemilihan epoch berisik. Detail per epoch ada di `reports/router_finetune.json` dan di MLflow.
 
+### Perbandingan empat router (25 Oktober 2026)
+
+```sh
+uv run python scripts/bandingkan_router.py
+```
+
+Semua router diukur pada test split yang sama: 71 kalimat dari templat yang tidak pernah dilihat saat training, masing-masing sekitar 18 per jalur. Router LLM memakai gpt-4o-mini dengan prompt router supervisor. Router produksi memakai ONNX lebih dulu, lalu menyerahkan ke LLM bila keyakinan ONNX di bawah 0,8.
+
+| Router | Macro-F1 | Latensi p50 | Latensi p95 | Biaya per 1.000 pertanyaan | Salah |
+|---|---|---|---|---|---|
+| TF-IDF + Logistic Regression | 0,637 | 0,4 ms | 0,6 ms | 0 | 27 |
+| IndoBERT-lite ONNX int8 | 0,887 | 7 ms | 11 ms | 0 | 8 |
+| Router LLM | **1,000** | 864 ms | 1.174 ms | 0,093 USD | 0 |
+| Produksi, ONNX lalu LLM | 0,972 | 14 ms | 908 ms | 0,042 USD | 2 |
+
+Cara membacanya:
+- **Router LLM paling akurat**, dan pada test split ini tidak pernah salah.
+- **Keunggulan fine-tuning ada di kecepatan, bukan akurasi.** Router produksi memutuskan 39 dari 71 pertanyaan tanpa LLM. Separuh pertanyaan dirutekan dalam belasan milidetik, bukan hampir 1 detik, dengan selisih macro-F1 0,028.
+- **Selisih biayanya kecil** (0,05 USD per 1.000 pertanyaan), jadi biaya bukan alasan utama.
+- **Dua kesalahan router produksi** sama-sama "tampilkan 5 seller dengan penjualan terbanyak di <kota>", yang diyakini ONNX sebagai hybrid. Untuk customer dan seller, pertanyaan itu tetap ditolak aturan peran sebelum perencana. Untuk admin, jalur hybrid tetap menjalankan agent SQL.
+
+Rincian F1 per jalur dan semua kalimat yang salah ada di `reports/router_perbandingan.json`.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |
@@ -329,6 +352,19 @@ Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu
 ```
 
 Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21 Oktober 2026. Token dihitung oleh callback LangChain (`src/olist_assistant/agents/proses.py`) yang mengaitkan setiap pemanggilan LLM dan tool ke langkah terdekat di graph, termasuk pemanggilan di dalam sub-agent. Biaya memakai harga gpt-4o-mini, 0,15 USD per 1 juta token input dan 0,60 USD per 1 juta token output. Embedding query ke Qdrant tidak ikut dihitung. Langkah yang sama juga tercatat sebagai span di Langfuse.
+
+### Umpan balik pengguna
+
+Di bawah setiap jawaban Streamlit ada jempol naik dan turun. `/chat` mengembalikan `trace_id`, yaitu trace Langfuse jawaban itu, yang ditentukan supervisor per pertanyaan. Trace id tidak dibaca dari handler, karena handler yang dipakai bersama bisa tertukar antar pertanyaan yang datang bersamaan. `POST /feedback` (wajib login) menulis score `umpan_balik_pengguna` bertipe BOOLEAN ke trace itu, lengkap dengan komentar opsional dan peran pengguna. Jadi kualitas jawaban bisa dilacak bersama token, biaya, dan langkah agent di trace yang sama.
+
+| Kondisi | Jawaban `/feedback` |
+|---|---|
+| Menilai jawaban milik sendiri | 200, score ditulis. Mengganti pilihan memperbarui score yang sama (`score_id` tetap per trace) |
+| Trace milik akun lain atau tidak dikenal | 404, sama persis supaya keberadaan trace orang lain tidak bisa ditebak |
+| Tanpa login | 401 |
+| Langfuse tidak aktif | 503 |
+
+Pemilik trace dicatat di memori, paling banyak 5.000 jawaban terakhir. Jawaban dari cache (#67) tidak punya trace Langfuse, jadi tidak diberi jempol.
 
 ### Cache pertanyaan berulang dan riwayat tahan restart
 
