@@ -156,6 +156,21 @@ Keputusan yang perlu diketahui.
 - **Geolocation** diringkas dari 1 juta baris menjadi 19.015 baris, satu per prefix kode pos.
 - **Database ikut di dalam image.** Database 87 MB terlalu dekat dengan batas 100 MB GitHub, jadi yang di-commit `data/olist.db.gz` (42 MB) dan dibongkar saat `docker build`. Gzip ditulis deterministik, sehingga membangun ulang tanpa perubahan kode tidak mengubah berkasnya. Tes di CI gagal bila `views.sql` atau `etl.py` berubah tetapi `olist.db.gz` belum dibangun ulang.
 
+### Kamus data dan EDA
+
+- **[docs/KAMUS-DATA.md](docs/KAMUS-DATA.md):** setiap kolom di 8 view, berisi tipe, satuan, persen kosong, dan contoh nilai, ditambah tabel jebakan data. Dibangun dari database dengan `uv run python scripts/kamus_data.py`. Test gagal bila ada view atau kolom baru tanpa keterangan.
+- **[notebooks/eda_olist.ipynb](notebooks/eda_olist.ipynb):** sebaran harga dan ongkir, waktu kirim dibanding estimasi, sebaran skor, kategori terlaris, keterlambatan dan skor, serta penjualan per bulan. Jalankan ulang dengan `uv sync --group eda`. Gambarnya ada di [docs/eda/](docs/eda/).
+
+Temuan utama:
+
+| Temuan | Angka |
+|---|---|
+| Keterlambatan menjatuhkan skor | Rata-rata 2,27 untuk pesanan terlambat dan 4,29 untuk yang tepat waktu. 62,3 persen pesanan terlambat mendapat skor 1 atau 2, dibanding 9,2 persen yang tepat waktu |
+| Estimasi kirim longgar | Rata-rata kirim 12,6 hari dengan estimasi 23,7 hari. Tiba 11,9 hari lebih cepat dari estimasi, dan hanya 6,8 persen yang terlambat |
+| Harga menceng ke kanan | Median 74,90 BRL dan rata-rata 120,38 BRL. Median ongkir 23 persen dari harga item |
+| Penjualan terkonsentrasi | 10 dari 74 kategori memegang 62 persen penjualan, dengan health_beauty di urutan teratas |
+| Review tanpa teks | 58,7 persen. Skor 5 mendominasi (57,8 persen), dan skor 1 sebanyak 11,5 persen |
+
 ## Evaluasi
 
 ```sh
