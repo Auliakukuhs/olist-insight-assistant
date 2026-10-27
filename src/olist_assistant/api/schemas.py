@@ -64,6 +64,8 @@ class Proses(BaseModel):
     """Estimasi dari harga model per 1 juta token. Embedding query tidak termasuk."""
     durasi_ms: int
     model: str
+    cache: bool = False
+    """True bila jawaban diambil dari cache pertanyaan berulang, tanpa memanggil agent."""
 
 
 class Source(BaseModel):
@@ -79,8 +81,39 @@ class ChatResponse(BaseModel):
     table: list[dict[str, CellValue]] | None = None
     proses: Proses | None = None
     request_id: str
+    trace_id: str | None = None
+    """Trace Langfuse jawaban ini, dipakai /feedback. None bila tracing mati."""
+
+
+class FeedbackRequest(BaseModel):
+    trace_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+    suka: bool
+    komentar: str | None = Field(default=None, max_length=500)
+
+
+class FeedbackResponse(BaseModel):
+    tercatat: bool
 
 
 class HealthResponse(BaseModel):
     status: Literal["ok"]
     version: str
+
+
+class HariPemakaian(BaseModel):
+    tanggal: str
+    pertanyaan: int
+    token: int
+    biaya_usd: float
+    latensi_p50_ms: float | None = None
+    latensi_p95_ms: float | None = None
+
+
+class PemakaianResponse(BaseModel):
+    environment: str
+    dari: str
+    sampai: str
+    per_hari: list[HariPemakaian]
+    per_peran: dict[str, int]
+    per_agent: dict[str, int]
+    umpan_balik: dict[str, int]

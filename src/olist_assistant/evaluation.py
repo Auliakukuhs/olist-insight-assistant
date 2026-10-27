@@ -14,6 +14,8 @@ Pemeriksaan isi yang bisa ditulis di kasus:
 import re
 from statistics import quantiles
 
+from pydantic import BaseModel, Field
+
 LEAK_MARKERS = (
     "kamu adalah agent",
     "kamu router",
@@ -57,6 +59,17 @@ def check_case(case: dict, route: str, answer: str, sources: list[dict]) -> dict
     words = case.get("answer_must_mention_any")
     if words:
         checks["menyebut_kata_kunci"] = any(w.lower() in lowered for w in words)
+    forbidden = case.get("answer_must_not_contain")
+    if forbidden:
+        # Dicek di teks asli dan teks yang angkanya dinormalkan, jadi 141.715,54
+        # tetap tertangkap oleh larangan "141715.54".
+        normalized = normalize_numbers(answer).lower()
+        checks["tidak_memuat_terlarang"] = not any(
+            f.lower() in lowered or normalize_numbers(f).lower() in normalized for f in forbidden
+        )
+    pattern = case.get("answer_must_not_match")
+    if pattern:
+        checks["tidak_cocok_pola_terlarang"] = re.search(pattern, answer) is None
     numbers = case.get("answer_must_contain_numbers")
     if numbers:
         normalized = normalize_numbers(answer)
@@ -80,3 +93,73 @@ def latency_summary(seconds: list[float]) -> dict:
         return {"p50": round(seconds[0], 1), "p95": round(seconds[0], 1)}
     cuts = quantiles(seconds, n=20, method="inclusive")
     return {"p50": round(cuts[9], 1), "p95": round(cuts[18], 1)}
+
+
+def resolve_dates(case: dict) -> dict:
+    """Ganti {hari_ini} dan {besok} di kata kunci dengan nama hari menurut WIB."""
+    from datetime import UTC, datetime, timedelta
+
+    from olist_assistant.agents.supervisor import HARI, WIB
+
+    today = datetime.now(UTC).astimezone(WIB)
+    names = {
+        "{hari_ini}": HARI[today.weekday()],
+        "{besok}": HARI[(today + timedelta(days=1)).weekday()],
+    }
+    words = case.get("answer_must_mention_any")
+    if not words:
+        return case
+    return case | {"answer_must_mention_any": [names.get(w, w) for w in words]}
+
+
+# ---------- Juri LLM untuk kesetiaan dan relevansi jawaban (#63) ----------
+
+JURI_PROMPT = """Kamu juri yang menilai jawaban chatbot data e-commerce OLIST.
+Nilai hanya dari bukti di bawah. Jangan memakai pengetahuanmu sendiri tentang OLIST.
+
+Pertanyaan pengguna:
+{pertanyaan}
+
+Bukti yang dipegang chatbot (hasil query SQL dan potongan ulasan pembeli):
+{bukti}
+
+Jawaban chatbot:
+{jawaban}
+
+Nilai dua hal.
+1. setia: true bila setiap klaim fakta di jawaban didukung bukti. Klaim fakta adalah
+   angka, nama kategori atau lokasi, dan isi keluhan atau pujian pembeli. Angka yang
+   dibulatkan atau ditulis dengan pemisah berbeda tetap dianggap didukung. Saran
+   tindakan, definisi yang disebut jawaban, dan kalimat penghubung bukan klaim fakta.
+   Isi klaim_tanpa_bukti dengan klaim yang tidak didukung, kosong bila setia.
+2. relevan: 1 sampai 5. Nilai 5 berarti menjawab tepat yang ditanyakan, 3 berarti
+   menjawab sebagian, 1 berarti tidak menjawab."""
+
+
+class Penilaian(BaseModel):
+    setia: bool
+    klaim_tanpa_bukti: list[str] = Field(default_factory=list)
+    relevan: int = Field(ge=1, le=5)
+    alasan: str
+
+
+def susun_bukti(sources: list[dict], table: list[dict] | None, max_rows: int = 30) -> str:
+    """Bukti dalam bentuk teks untuk juri. Baris tabel dipotong supaya prompt tetap kecil."""
+    bagian = []
+    for s in sources:
+        if s.get("kind") == "sql" and s.get("snippet"):
+            bagian.append(f"Query SQL: {s['snippet']}")
+    if table:
+        sisa = f" (dan {len(table) - max_rows} baris lain)" if len(table) > max_rows else ""
+        bagian.append(f"Hasil query, {len(table)} baris{sisa}: {table[:max_rows]}")
+    for s in sources:
+        if s.get("kind") in ("review", "category"):
+            bagian.append(f"Ulasan {s['id']}: {s.get('snippet', '')}")
+    return "\n".join(bagian) or "(tidak ada bukti)"
+
+
+def nilai_jawaban(model, pertanyaan: str, jawaban: str, sources: list[dict], table) -> Penilaian:
+    prompt = JURI_PROMPT.format(
+        pertanyaan=pertanyaan, bukti=susun_bukti(sources, table), jawaban=jawaban
+    )
+    return model.with_structured_output(Penilaian).invoke(prompt)

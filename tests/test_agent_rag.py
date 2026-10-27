@@ -180,3 +180,18 @@ def test_daftar_kategori_resmi_ada_di_prompt_tanpa_putaran_cari_kategori(search)
     tool_message = [m for m in model._calls[1] if isinstance(m, ToolMessage)][0]
     assert "'palsu' tidak dikenal" in tool_message.content
     assert "r1" in [s["id"] for s in result["sources"]]
+
+
+def test_klien_jaringan_rag_punya_batas_waktu(monkeypatch):
+    # Embedding tanpa timeout menunggu sampai 600 detik per percobaan (run juri 25 Okt).
+    from olist_assistant.agents import rag
+
+    monkeypatch.setenv("QDRANT_URL", "http://qdrant.uji")
+    monkeypatch.setenv("QDRANT_API_KEY", "x")
+    monkeypatch.setenv("OPENAI_API_KEY", "x")
+    dibuat = {}
+    monkeypatch.setattr(rag, "QdrantClient", lambda **kw: dibuat.update(kw) or object())
+    search = rag.default_search()
+    assert dibuat["timeout"] <= 60
+    assert search.embed_query.__self__.request_timeout <= 30
+    assert rag.default_model().request_timeout <= 30

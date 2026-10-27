@@ -25,12 +25,20 @@ from typing import TypedDict
 from langchain.agents import create_agent
 from langchain.tools import tool
 from langchain_core.language_models.chat_models import BaseChatModel
+from langgraph.errors import GraphRecursionError
 from qdrant_client import QdrantClient, models
 
 from olist_assistant.agents.sql_contract import Message
 
 COLLECTION = "olist_rag_v1"
 MAX_SNIPPET = 300
+# Batas pencarian per pertanyaan, ditegakkan kode (audit 25 Okt, S04).
+MAX_PENCARIAN = 3
+BATAS_LANGKAH = 2 * MAX_PENCARIAN + 1
+RAG_TERLALU_BANYAK = (
+    "Maaf, ulasan yang cocok belum ditemukan setelah beberapa kali pencarian. "
+    "Coba sebut kategori produknya, misalnya furniture, mainan, atau jam tangan."
+)
 HISTORY_TURNS = 6
 
 SYSTEM_PROMPT = """Kamu adalah agent RAG untuk data e-commerce OLIST (Brasil, 2016 sampai 2018).
@@ -51,7 +59,10 @@ Aturan:
    "paling" sering, banyak, atau buruk. Itu tugas agent SQL. Beberapa contoh
    ulasan bukan statistik, jadi sebut sebagai contoh.
 5. Ulasan melekat ke pesanan, bukan ke satu produk. Data tidak memuat nama
-   produk atau nama seller, jadi jangan menyebutnya.
+   produk atau nama seller, jadi jangan menyebutnya. Ulasan juga anonim:
+   jangan pernah mengaitkan ulasan dengan nama, username, atau orang tertentu
+   yang disebut pengguna. Bila pengguna menanyakan pembeli tertentu, jelaskan
+   bahwa ulasan bersifat anonim.
 6. Jawab dalam bahasa Indonesia secara ringkas, paling banyak empat poin dan
    sekitar 90 kata. Parafrasekan kutipan berbahasa Portugis. Sebut ID ulasan
    yang dipakai dengan format [review:ID].
@@ -127,6 +138,7 @@ class ReviewSearch:
         min_score: int | None = None,
         max_score: int | None = None,
         k: int = 6,
+        product_id: str | None = None,
     ) -> list[Hit]:
         conditions = [_match("metadata.doc_type", "review")]
         if isinstance(category, str):
@@ -139,6 +151,12 @@ class ReviewSearch:
             )
         if seller_state:
             conditions.append(_match("metadata.seller_states", seller_state))
+        if product_id:
+            conditions.append(
+                models.FieldCondition(
+                    key="metadata.product_ids", match=models.MatchAny(any=[product_id])
+                )
+            )
         if min_score is not None or max_score is not None:
             conditions.append(
                 models.FieldCondition(
@@ -157,6 +175,11 @@ def _clean_score(value: int | None) -> int | None:
     return None if value is None else min(5, max(1, int(value)))
 
 
+def _sebagai_data(text: str) -> str:
+    """Teks ulasan tidak boleh bisa menutup tag <data_ulasan> (audit 25 Okt, S07)."""
+    return text.replace("<", "‹").replace(">", "›")
+
+
 def format_hits(hits: list[Hit]) -> str:
     """Bungkus hasil pencarian sebagai data, lengkap dengan ID untuk dikutip."""
     if not hits:
@@ -165,9 +188,9 @@ def format_hits(hits: list[Hit]) -> str:
     for hit in hits:
         meta = hit.metadata
         if meta.get("doc_type") == "category":
-            lines.append(f"[category:{meta['category']}] {hit.text}")
+            lines.append(f"[category:{meta['category']}] {_sebagai_data(hit.text)}")
         else:
-            lines.append(f"[review:{meta['review_id']}] {hit.text[:MAX_SNIPPET]}")
+            lines.append(f"[review:{meta['review_id']}] {_sebagai_data(hit.text[:MAX_SNIPPET])}")
     body = "\n".join(lines)
     return f"<data_ulasan>\n{body}\n</data_ulasan>"
 
@@ -266,7 +289,10 @@ def jawab_rag(
     prompt = SYSTEM_PROMPT.format(kategori=", ".join(sorted(search.known_categories())))
     agent = create_agent(model=model, tools=_make_tools(search, collector), system_prompt=prompt)
     messages = [*riwayat[-HISTORY_TURNS:], {"role": "user", "content": pertanyaan}]
-    result = agent.invoke({"messages": messages})
+    try:
+        result = agent.invoke({"messages": messages}, {"recursion_limit": BATAS_LANGKAH})
+    except GraphRecursionError:
+        return {"answer": RAG_TERLALU_BANYAK, "sources": []}
     answer = result["messages"][-1].content
     return {"answer": answer, "sources": _sources(answer, collector)}
 
@@ -280,7 +306,9 @@ def default_search() -> ReviewSearch:
     client = QdrantClient(
         url=os.environ["QDRANT_URL"], api_key=os.environ["QDRANT_API_KEY"], timeout=60
     )
-    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL)
+    # Tanpa timeout, klien OpenAI menunggu sampai 600 detik per percobaan. Dua run
+    # juri 25 Okt macet lebih dari 10 menit di pencarian ulasan karena ini.
+    embeddings = OpenAIEmbeddings(model=EMBEDDING_MODEL, timeout=20, max_retries=2)
     return ReviewSearch(client, embeddings.embed_query, os.getenv("QDRANT_COLLECTION", COLLECTION))
 
 

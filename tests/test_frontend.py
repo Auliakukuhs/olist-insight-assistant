@@ -39,10 +39,12 @@ class FakeResponse:
 class FakeApi:
     def __init__(self):
         self.calls = []
+        self.cache = False
+        self.tabel = [{"rata": 82.04}]
 
     def __call__(self, method, url, headers=None, json=None, params=None, timeout=None):
         path = url.removeprefix("http://api.uji")
-        self.calls.append((method, path, headers or {}, json))
+        self.calls.append((method, path, headers or {}, json, params or {}))
         if path == "/auth/login":
             if json["password"] != "benar":
                 return FakeResponse(401, {"detail": "Username atau password salah"})
@@ -60,13 +62,41 @@ class FakeApi:
                         {"kind": "sql", "id": "query", "snippet": "SELECT 1"},
                         {"kind": "review", "id": "r1", "snippet": "chegou atrasado"},
                     ],
-                    "table": [{"rata": 82.04}],
-                    "proses": PROSES,
+                    "table": self.tabel,
+                    "proses": {**PROSES, "cache": self.cache},
                     "request_id": "x" * 32,
+                    "trace_id": "a" * 32,
                 },
             )
+        if path == "/feedback":
+            return FakeResponse(200, {"tercatat": True})
         if path.startswith("/analytics/kategori"):
-            return FakeResponse(200, {"data": [], "mata_uang": "BRL", "catatan": "historis"})
+            baris = {
+                "kategori": "toys",
+                "jumlah_order": 3800,
+                "total_penjualan_brl": 1.0,
+                "rata_harga_brl": 1.0,
+                "rata_ongkir_brl": 1.0,
+                "rata_skor": 4.2,
+                "persen_terlambat": 6.0,
+            }
+            return FakeResponse(200, {"data": [baris], "mata_uang": "BRL", "catatan": "historis"})
+        if path.startswith("/rekomendasi"):
+            produk = {
+                "product_id": "dd6a505f83" + "0" * 22,
+                "jumlah_order": 36,
+                "jumlah_ulasan": 36,
+                "rata_harga_brl": 49.79,
+                "rata_skor": 4.69,
+                "skor_berbobot": 4.58,
+                "persen_terlambat": 0.0,
+                "negara_bagian_seller": "SP",
+                "alasan": "Pembeli memuji kualitasnya.",
+                "ulasan": [{"id": "r1", "skor": 5, "cuplikan": "chegou rápido"}],
+            }
+            return FakeResponse(
+                200, {"kategori": "toys", "produk": [produk], "catatan": "skor terbobot"}
+            )
         if path.startswith("/analytics/seller/"):
             return FakeResponse(
                 200,
@@ -84,6 +114,28 @@ class FakeApi:
             )
         if path.startswith("/analytics/tren"):
             return FakeResponse(200, {"data": [], "mata_uang": "BRL"})
+        if path == "/admin/pemakaian":
+            return FakeResponse(
+                200,
+                {
+                    "environment": "production",
+                    "dari": "2026-10-21",
+                    "sampai": "2026-10-27",
+                    "per_hari": [
+                        {
+                            "tanggal": "2026-10-26",
+                            "pertanyaan": 120,
+                            "token": 300000,
+                            "biaya_usd": 0.06,
+                            "latensi_p50_ms": 3800.0,
+                            "latensi_p95_ms": 14900.0,
+                        }
+                    ],
+                    "per_peran": {"admin": 20, "customer": 60, "seller": 40},
+                    "per_agent": {"rag": 70, "sql": 80, "supervisor": 15},
+                    "umpan_balik": {"naik": 9, "turun": 2},
+                },
+            )
         return FakeResponse(404, {"detail": "tidak ada"})
 
 
@@ -116,11 +168,12 @@ def test_password_salah_menampilkan_pesan(api):
 def test_chat_mengirim_token_dan_menampilkan_panel_proses(api):
     at = login(start(), "seller")
     at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
-    method, path, headers, body = [c for c in api.calls if c[1] == "/chat"][-1]
+    method, path, headers, body, _ = [c for c in api.calls if c[1] == "/chat"][-1]
     assert method == "POST"
     assert headers == {"X-API-Key": "kunci", "Authorization": "Bearer token-seller"}
     assert set(body) == {"message", "session_id"}
     assert any("Agent SQL, Agent RAG" in c.value for c in at.caption)
+    assert not any("dari cache" in c.value for c in at.caption)
     labels = [e.label for e in at.expander]
     assert "Detail proses" in labels and "Query SQL yang dijalankan" in labels
     metrics = {m.label: m.value for m in at.metric}
@@ -130,13 +183,20 @@ def test_chat_mengirim_token_dan_menampilkan_panel_proses(api):
 
 def test_customer_tidak_melihat_market_analysis(api):
     at = login(start(), "customer")
-    assert len(at.tabs) == 0
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
 
 
 def test_seller_melihat_tokonya_sendiri(api):
     at = login(start(), "seller")
-    assert [t.label for t in at.tabs] == ["Chat", "Market analysis"]
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Market analysis"]
     assert ("GET", f"/analytics/seller/{SELLER}") in [(c[0], c[1]) for c in api.calls]
+
+
+def test_jawaban_dari_cache_diberi_tanda(api):
+    api.cache = True
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata ongkir?").run()
+    assert any("dari cache" in c.value for c in at.caption)
 
 
 def test_logout_kembali_ke_halaman_login(api):
@@ -144,3 +204,95 @@ def test_logout_kembali_ke_halaman_login(api):
     at.sidebar.button[1].click().run()
     assert at.title[0].value == "OLIST Insight Assistant"
     assert len(at.text_input) == 2
+
+
+def test_401_di_tengah_sesi_membersihkan_semua_dan_kembali_ke_login(api, monkeypatch):
+    # Audit 25 Okt (S08): dulu hanya token yang dihapus, pengguna dan riwayat tertinggal.
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    assert len(at.session_state.messages) == 2
+
+    def kedaluwarsa(method, url, **kwargs):
+        return FakeResponse(401, {"detail": "Silakan login ulang"})
+
+    monkeypatch.setattr(requests, "request", kedaluwarsa)
+    at.chat_input[0].set_value("Pertanyaan lanjutan").run()
+    assert at.session_state.token is None and at.session_state.pengguna is None
+    assert at.session_state.messages == []
+    assert [t.label for t in at.text_input] == ["Username", "Password"]
+    assert "Sesi login berakhir" in at.error[0].value
+
+
+def test_cari_produk_mengirim_filter_dan_menampilkan_alasan(api):
+    at = login(start(), "customer")
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
+    at.number_input[1].set_value(100.0)
+    at.selectbox[1].set_value("SP")
+    at.button(key="FormSubmitter:cari_produk-Cari").click().run()
+    kirim = [c for c in api.calls if c[1].startswith("/rekomendasi")]
+    assert kirim, "API rekomendasi tidak dipanggil"
+    assert kirim[-1][4] == {
+        "kategori": "toys",
+        "harga_min": 0.0,
+        "harga_max": 100.0,
+        "negara_bagian_seller": "SP",
+    }
+    assert any("Pembeli memuji kualitasnya." in m.value for m in at.markdown)
+    assert any(m.label == "Skor ulasan" for m in at.metric)
+
+
+def test_jempol_mengirim_umpan_balik_untuk_trace_jawaban(api):
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    assert len(at.feedback) == 1
+    at.feedback[0].set_value(0).run()
+    kiriman = [c for c in api.calls if c[1] == "/feedback"]
+    assert kiriman and kiriman[-1][3] == {"trace_id": "a" * 32, "suka": False}
+
+
+def test_tab_pemakaian_hanya_untuk_admin(api):
+    at = login(start(), "admin")
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Market analysis", "Pemakaian"]
+    metrics = {m.label: m.value for m in at.metric}
+    assert metrics["Pertanyaan"] == "120" and metrics["Umpan balik"] == "9 naik"
+    assert [c for c in api.calls if c[1] == "/admin/pemakaian"][-1][4] == {"hari": 7}
+
+    for peran in ("seller", "customer"):
+        at = login(start(), peran)
+        harapan = ["Chat", "Cari produk", *(["Market analysis"] if peran == "seller" else [])]
+        assert [t.label for t in at.tabs] == harapan
+
+
+def grafik(at) -> list[str]:
+    """Jenis grafik yang digambar, dibaca dari spec Vega-Lite."""
+    return [
+        "line" if '"line"' in e.proto.spec else "bar" if '"bar"' in e.proto.spec else "?"
+        for e in at.get("vega_lite_chart")
+    ]
+
+
+@pytest.mark.parametrize(
+    ("tabel", "harapan"),
+    [
+        (
+            [{"kategori": "bed_bath_table", "jumlah": 9417}, {"kategori": "toys", "jumlah": 3886}],
+            ["bar"],
+        ),
+        ([{"bulan": "2017-01", "total": 1.0}, {"bulan": "2017-02", "total": 2.0}], ["line"]),
+        ([{"kategori": "toys", "jumlah": 1, "rata": 2.0}] * 2, []),
+    ],
+    ids=["kategori", "bulan", "tidak-cocok"],
+)
+def test_grafik_otomatis_hanya_untuk_tabel_yang_cocok(api, tabel, harapan):
+    api.tabel = tabel
+    at = login(start(), "admin")
+    at.chat_input[0].set_value("Berapa jumlah pesanan per kategori?").run()
+    assert grafik(at) == harapan
+    assert len(at.dataframe) >= 1
+
+
+def test_tabel_hasil_bisa_diunduh_sebagai_csv(api):
+    at = login(start(), "customer")
+    at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
+    unduh = at.get("download_button")
+    assert [b.proto.label for b in unduh] == ["Unduh CSV"]
