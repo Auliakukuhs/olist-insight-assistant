@@ -2,7 +2,32 @@
 
 Chatbot multi-agent untuk customer, seller, dan admin di atas data e-commerce OLIST. Final Project Job Connector AI Engineering, Purwadhika, Kelompok 3.
 
-Status per 24 Oktober 2026. Supervisor LangGraph dengan jawaban langsung, dua agent paralel, dan pemeriksa kecukupan. Agent RAG ke Qdrant Cloud, agent SQL ke SQLite dengan aturan per peran, login tiga peran, panel proses, tracing Langfuse, dan CI keamanan. Backend berjalan di AWS, antarmuka Streamlit di Streamlit Community Cloud. Halaman market analysis sedang dikerjakan (#12).
+Rilis `v1.0.0`, code freeze 28 Oktober 2026. Backend berjalan di AWS, antarmuka di Streamlit Community Cloud.
+
+### Untuk penilai
+
+| Ingin melihat | Buka |
+|---|---|
+| Aplikasi | [Link](#link), lalu [Skenario demo](docs/DEMO.md) |
+| Cara kerja | [Arsitektur](#arsitektur) |
+| Hasil evaluasi | [Evaluasi](#evaluasi), dengan run final 27 Oktober |
+| Keamanan dan red team | [Keamanan berlapis](#keamanan-berlapis) |
+| Data | [Kamus data](docs/KAMUS-DATA.md) dan [notebook EDA](notebooks/eda_olist.ipynb) |
+| Yang belum selesai | [Keterbatasan](#keterbatasan) |
+
+### Fitur
+
+| Fitur | Peran |
+|---|---|
+| Chat multi-agent: supervisor LangGraph memilih agent SQL, agent RAG, atau keduanya (hybrid) | Semua |
+| Riwayat percakapan per akun, tahan restart (DynamoDB, 24 jam) | Semua |
+| Panel proses di setiap jawaban: agent, tool, alasan rute, token, biaya, lama | Semua |
+| Grafik otomatis dan unduh CSV untuk tabel hasil SQL | Semua |
+| Jempol umpan balik, dicatat sebagai score Langfuse | Semua |
+| Cari produk dengan skor terbobot dan alasan dari ulasan | Semua |
+| Market analysis: toko dibanding pasar, pangsa per bulan | Seller dan admin |
+| Performa dan peringkat seluruh seller | Admin |
+| Dashboard pemakaian dari Langfuse | Admin |
 
 ## Link
 
@@ -28,21 +53,25 @@ Jawaban membawa `proses`, yaitu agent dan tool yang dipakai, alasan rute, token,
 ```
 Streamlit Cloud  --HTTPS, X-API-Key, token login-->  FastAPI di AWS ECS (satu container)
                                                          |
-                                                         v
-                                   Supervisor LangGraph, riwayat per akun dan session_id
+                      cache pertanyaan berulang (per peran dan seller), lalu
+                      Supervisor LangGraph, riwayat per akun dan sesi di DynamoDB
                                                          |
-    guard --(serangan)--> tolak tanpa LLM
+    guard --(serangan, klaim otoritas, data pribadi)--> tolak tanpa LLM
       |
     router ONNX fine-tuned (yakin >= 0,8), cadangan router LLM
+      |
+    pemeriksa peran untuk selain admin: pola sinonim seller, lalu pemeriksa maksud LLM
       |
       +-- rag ------+--> periksa kecukupan --(kurang)--> agent kedua, lalu sintesis
       +-- sql ------+
       +-- hybrid --> rencana filter bersama --+--> agent SQL --+--> sintesis
-      |                                       +--> agent RAG --+    (paralel)
+      |                                       +--> agent RAG --+    (paralel, atau SQL dulu
+      |                                                              bila kategori dari peringkat)
       +-- di luar topik --> supervisor menjawab sendiri atau menolak sesuai peran
 
-    Agent RAG  -> Qdrant Cloud, 42.760 titik (ulasan dan profil kategori)
-    Agent SQL  -> SQLite read-only di dalam image, view per peran
+    Agent RAG  -> Qdrant Cloud, 42.760 titik (42.687 ulasan berteks, 73 profil kategori)
+    Agent SQL  -> SQLite read-only di dalam image, view per peran, authorizer, LIMIT 200, 5 detik
+    Langfuse   <- trace per pertanyaan, token, biaya, jempol pengguna
 ```
 
 - **Supervisor** memilih jalur, menjawab sendiri sapaan dan pertanyaan tanggal, dan menolak pertanyaan di luar topik dengan contoh pertanyaan sesuai peran.
@@ -97,21 +126,36 @@ docker compose up --build
 
 API terbuka di `http://localhost:8000`, dokumentasi interaktif di `http://localhost:8000/docs`.
 
+Antarmuka Streamlit membaca alamat API dan kunci dari `frontend/.streamlit/secrets.toml`, yang tidak di-commit.
+
+```sh
+cp frontend/.streamlit/secrets.toml.example frontend/.streamlit/secrets.toml
+uv run --group frontend streamlit run frontend/app.py
+```
+
+Di Streamlit Community Cloud, isi yang sama ditempel di **Settings > Secrets** aplikasi, dengan `API_URL` mengarah ke backend AWS.
+
 ### Struktur repo
 
 ```
 src/olist_assistant/
-  api/          FastAPI: main, auth (login dan peran), analytics, schemas, rate limit
-  agents/       supervisor (graph LangGraph), rag, sql_agent, sql_contract, proses (panel)
+  api/          FastAPI: main, auth (login dan peran), analytics, rekomendasi, umpan_balik,
+                pemakaian, keluaran (pembersih jawaban), schemas, rate limit
+  agents/       supervisor (graph LangGraph), rag, sql_agent, sql_contract, proses (panel),
+                cache, riwayat (checkpointer DynamoDB)
   rag/          dokumen dan ingestion Qdrant
   router/       dataset, baseline, dan router ONNX
   sql/          ETL CSV ke SQLite dan views.sql
-frontend/       Streamlit: login, chat, label agent, panel proses
-scripts/        build_sqlite, ingest_qdrant, evaluate_gold, coba_agent_sql, deploy_aws, training router
-data/eval/      gold set, holdout, skenario mentoring, pertanyaan contoh SQL
-reports/        hasil evaluasi dan training router
+  gerbang.py    aturan gerbang rilis red team
+frontend/       Streamlit app.py, ditambah tabel.py (grafik dan CSV) dan pasar.py (market)
+scripts/        ETL, ingestion, evaluasi, juri, red team, uji beban, deploy AWS, training router
+redteam/        konfigurasi promptfoo dan target staging
+data/eval/      gold set, holdout, skenario mentoring, red team, pertanyaan contoh SQL
+reports/        hasil evaluasi, juri, perbandingan router, dan training router
 models/router/  model ONNX int8 dan tokenizer
-tests/          sekitar 190 tes, dijalankan CI di setiap PR
+docs/           kamus data, gambar EDA, skenario demo
+notebooks/      EDA singkat
+tests/          351 tes, dijalankan CI di setiap PR
 ```
 
 ## Ingestion RAG
@@ -172,6 +216,30 @@ Temuan utama:
 | Review tanpa teks | 58,7 persen. Skor 5 mendominasi (57,8 persen), dan skor 1 sebanyak 11,5 persen |
 
 ## Evaluasi
+
+### Run final (27 Oktober 2026, commit e794990, LLM asli)
+
+| Set | Kasus | Lulus | Catatan |
+|---|---|---|---|
+| Gold set | 66 | **65** | rag-10 dinaikkan ke hybrid oleh pemeriksa kecukupan, kasus berisik yang dicatat di #66 |
+| Holdout buta | 15 | **15** | Tidak pernah dipakai untuk mengubah sistem |
+| Skenario mentoring 1 | 21 | **21** | |
+| Red team | 38 | **38** | Naik dari 37 pada 25 Oktober |
+| Klaim otoritas dan parafrase lintas peran | 14 | **14** | Termasuk kalimat Mas Nadif dan pf-01, pf-02 yang ditambal #84 |
+| Holdout serangan | 6 | **6** | |
+| **Total** | **160** | **159** | |
+
+| Jalur di gold set | p50 | p95 |
+|---|---|---|
+| sql | 4,0 detik | 4,3 detik |
+| rag | 7,7 detik | 11,0 detik |
+| hybrid | 12,6 detik | 18,3 detik |
+| di luar topik | 2,5 detik | 3,3 detik |
+| serangan | 0,0 detik (guard) | 2,1 detik |
+
+Laporan per kasus ada di `reports/eval_*.json`. Bagian di bawah ini adalah riwayat run sebelumnya, dipertahankan supaya perubahan dari waktu ke waktu bisa dilacak.
+
+### Cara menjalankan dan riwayat run
 
 ```sh
 uv run python scripts/evaluate_gold.py                               # gold set, 66 kasus
@@ -254,7 +322,7 @@ Enam serangan baru semuanya ditolak, dan lima di antaranya bukan oleh guard. ONN
 
 Routing pertanyaan SQL turun dari sekitar 0,8 detik (satu panggilan LLM) menjadi di bawah 0,05 detik.
 
-Batas evaluasi ini. Agent SQL belum tersedia, jadi kasus SQL dan hybrid baru dinilai rutenya, belum angkanya. Kebenaran isi jawaban RAG belum dinilai otomatis, hanya keberadaan sumber. Holdout hanya 15 kasus.
+Batas evaluasi run itu, yang dibuat sebelum agent SQL selesai. Kasus SQL dan hybrid baru dinilai rutenya, belum angkanya, dan isi jawaban RAG belum dinilai otomatis. Kedua batas ini sudah ditutup. Angka SQL dibandingkan dengan acuan dari database sejak 22 Oktober, dan kesetiaan isi dinilai juri LLM sejak 25 Oktober (lihat Evaluasi). Holdout tetap hanya 15 kasus.
 
 ## Router intent
 
@@ -597,12 +665,25 @@ Untuk halaman market analysis di Streamlit. Semuanya membaca view SQLite dengan 
 
 Kolom yang wajib ada di setiap view tertulis di `VIEW_CONTRACT` (`src/olist_assistant/api/analytics.py`). Database ikut di dalam image Docker (`SQLITE_PATH=/app/data/olist.db`). Bila berkasnya tidak ada, endpoint menjawab 503.
 
+## Keterbatasan
+
+| Batas | Penjelasan | Rencana |
+|---|---|---|
+| Data historis | Hanya pesanan 2016 sampai 2018, tanpa nama produk, stok, atau harga saat ini | Ditolak dengan penjelasan bila ditanya "sekarang" |
+| Latensi | p50 hybrid 12,6 detik, dan pertanyaan pertama sesudah task baru menyala bisa 19 detik. Jawaban belum mengalir per token | Streaming jawaban (#68) |
+| Pemeriksa maksud | LLM tidak selalu konsisten untuk parafrase lintas peran | Lapisan terakhir tetap di view data dan authorizer, jadi tidak ada data seller yang bocor walau pemeriksa lolos |
+| Pertanyaan lanjutan kompleks | "Dari keluhan itu, mana yang paling sering?" sesudah jawaban furniture pernah dijawab dengan kategori lain | Ringkasan konteks riwayat untuk agent SQL |
+| Juri LLM | Dijalankan sekali, belum dibandingkan dengan penilaian manusia | Sampel penilaian manusia |
+| Skala | Satu task 0,25 vCPU, cache di memori per task | Dua task dengan cache bersama |
+| Dashboard pemakaian | Biaya belum per peran, sebaran rute didekati per agent | Tag rute di trace |
+| Rasio di kategori kecil | 11 dari 74 kategori di bawah 30 pesanan | Peringkat rasio memakai minimal 30 pesanan |
+
 ## Tim dan pembagian
 
 | Anggota | Jalur |
 |---|---|
-| Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)) | Kerangka dan kontrak API, Docker, CI dan job keamanan, deploy AWS, agent RAG, supervisor (jawaban langsung, dua agent paralel, pemeriksa kecukupan), router intent fine-tuned, login dan peran, panel proses, evaluasi gold set |
-| Starletto ([@Starletto](https://github.com/Starletto)) | ETL 9 CSV ke SQLite dan view terkurasi, agent SQL dengan pengaman berlapis dan aturan per peran, Streamlit, halaman market analysis, data dictionary |
+| Kukuh ([@Auliakukuhs](https://github.com/Auliakukuhs)), PJ | Kerangka dan kontrak API, Docker, CI dan job keamanan, deploy AWS dan staging, agent RAG, supervisor (jawaban langsung, hybrid, pemeriksa kecukupan, pemeriksa peran), router intent fine-tuned, login dan peran, panel proses, evaluasi dan juri LLM, red team, cache dan riwayat, cari produk, umpan balik, dashboard pemakaian, grafik dan CSV, kamus data dan EDA |
+| Starletto ([@Starletto](https://github.com/Starletto)) | ETL 9 CSV ke SQLite dan view terkurasi, agent SQL dengan pengaman berlapis dan aturan per peran, Streamlit awal (login, chat, label agent, panel proses), halaman market analysis |
 
 ## Deploy ke AWS
 
@@ -632,4 +713,4 @@ Task role hanya boleh membaca dan menulis tabel lingkungannya sendiri. Begitu ro
 
 ## Data
 
-[Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), lisensi CC BY-NC-SA 4.0. Data mentah tidak di-commit. Harga dalam BRL dan bersifat historis (2016 sampai 2018). Dataset tidak memuat nama produk, nama seller, atau foto.
+[Brazilian E-Commerce Public Dataset by Olist](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), lisensi CC BY-NC-SA 4.0. Data mentah tidak di-commit. Harga dalam BRL dan bersifat historis (2016 sampai 2018). Dataset tidak memuat nama produk, nama seller, atau foto. Kolom, satuan, dan jebakan datanya ada di [docs/KAMUS-DATA.md](docs/KAMUS-DATA.md).
