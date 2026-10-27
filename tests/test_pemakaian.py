@@ -76,6 +76,7 @@ def langfuse(monkeypatch):
     monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", "production")
     monkeypatch.delenv("API_ACCESS_KEY", raising=False)
     monkeypatch.setattr(auth, "per_client_login", RateLimiter(1000))
+    monkeypatch.setattr(auth, "per_account_login", RateLimiter(1000))
     fake = FakeMetrics()
     monkeypatch.setattr(
         pemakaian, "langfuse_client", lambda: SimpleNamespace(api=SimpleNamespace(metrics=fake))

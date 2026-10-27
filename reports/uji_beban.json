@@ -1,0 +1,14 @@
+[
+  {
+    "pengguna_serentak": 40,
+    "permintaan": 80,
+    "kode": {
+      "200": 64,
+      "429": 16
+    },
+    "p50_detik": 15.6,
+    "p95_detik": 23.15,
+    "maks_detik": 25.22,
+    "durasi_gelombang_detik": 32.6
+  }
+]
