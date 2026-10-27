@@ -196,6 +196,32 @@ hybrid-02 (customer menanyakan seller paling laris di SP) kini diharapkan ditola
 
 Latensi p50 dan p95 per jenis, jawaban lengkap, dan kasus gagal ada di `reports/eval_*.json`.
 
+### Juri LLM untuk kesetiaan dan relevansi (25 Oktober 2026)
+
+```sh
+uv run python scripts/nilai_jawaban.py          # juri gpt-4o, bisa diganti OPENAI_JUDGE_MODEL
+```
+
+Gold set hanya memeriksa rute, angka acuan, dan kata kunci. Juri LLM menilai dua hal lain dari bukti yang dipegang chatbot, yaitu query SQL, baris hasil, dan potongan ulasan:
+- **Setia:** setiap klaim fakta (angka, kategori, isi keluhan) didukung bukti.
+- **Relevan:** skor 1 sampai 5, seberapa tepat jawaban menjawab pertanyaan.
+
+Juri memakai gpt-4o, berbeda dari penjawab gpt-4o-mini, supaya tidak menilai buatannya sendiri, dengan temperature 0. Yang dinilai adalah 59 kasus rag, sql, dan hybrid dari gold set, holdout, dan skenario mentoring. Dua kasus dilewati karena jawabannya penolakan tanpa data.
+
+| Rute | Kasus | Setia | Relevan rata-rata |
+|---|---|---|---|
+| sql | 17 | 17 | 5,00 |
+| rag | 18 | 15 | 4,72 |
+| hybrid | 24 | 18 | 4,08 |
+| **Total** | **59** | **50** | **4,54** |
+
+Sembilan jawaban dinilai tidak setia, dan penyebabnya ada tiga jenis:
+- **Ulasan di jalur hybrid tidak nyambung dengan kategori hasil SQL** (hybrid-01, hybrid-13, hybrid-14). Agent SQL dan RAG berjalan paralel, sehingga RAG tidak tahu kategori yang ditemukan SQL. Temuan ini diperbaiki di #75, yang menjalankan SQL dulu bila kategorinya ditentukan peringkat.
+- **Jawaban menarik kesimpulan melebihi bukti.** Contohnya "skor ulasan tidak tergolong buruk" tanpa angka skor (hybrid-09), atau menyebut keluhan dari kategori lain (hybrid-06).
+- **Batas bukti untuk juri.** Juri hanya melihat potongan ulasan 300 karakter dan potongan dokumen kategori, jadi jumlah produk per kategori (rag-10, holdout-04) dan sebagian kutipan ulasan (rag-01, rag-06) bisa benar tetapi tidak terlihat oleh juri.
+
+Batas evaluasi ini: juri sendiri adalah LLM, dijalankan sekali, dan belum dibandingkan dengan penilaian manusia. Laporan per kasus, lengkap dengan klaim yang dianggap tanpa bukti, ada di `reports/juri_jawaban.json`.
+
 ### Router fine-tuning di supervisor
 
 Supervisor memakai router ONNX lebih dulu. Bila keyakinannya minimal 0,8, jalurnya dipakai tanpa memanggil LLM. Bila di bawah itu, keputusan diserahkan ke router LLM. Ambang 0,8 ditetapkan sebelum evaluasi dan tidak diatur dari hasilnya.
@@ -257,6 +283,29 @@ Model terpilih diekspor ke ONNX lalu dikuantisasi dinamis int8, sehingga contain
 | 47,0 MB | 12,1 MB | sekitar 4 ms per pertanyaan | 97 persen |
 
 Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan dua prediksi berubah karena pembulatan bobot. Angka acuan fine-tuning adalah fp32, 0,861. Val set juga kecil (58 kalimat), jadi pemilihan epoch berisik. Detail per epoch ada di `reports/router_finetune.json` dan di MLflow.
+
+### Perbandingan empat router (25 Oktober 2026)
+
+```sh
+uv run python scripts/bandingkan_router.py
+```
+
+Semua router diukur pada test split yang sama: 71 kalimat dari templat yang tidak pernah dilihat saat training, masing-masing sekitar 18 per jalur. Router LLM memakai gpt-4o-mini dengan prompt router supervisor. Router produksi memakai ONNX lebih dulu, lalu menyerahkan ke LLM bila keyakinan ONNX di bawah 0,8.
+
+| Router | Macro-F1 | Latensi p50 | Latensi p95 | Biaya per 1.000 pertanyaan | Salah |
+|---|---|---|---|---|---|
+| TF-IDF + Logistic Regression | 0,637 | 0,4 ms | 0,6 ms | 0 | 27 |
+| IndoBERT-lite ONNX int8 | 0,887 | 7 ms | 11 ms | 0 | 8 |
+| Router LLM | **1,000** | 864 ms | 1.174 ms | 0,093 USD | 0 |
+| Produksi, ONNX lalu LLM | 0,972 | 14 ms | 908 ms | 0,042 USD | 2 |
+
+Cara membacanya:
+- **Router LLM paling akurat**, dan pada test split ini tidak pernah salah.
+- **Keunggulan fine-tuning ada di kecepatan, bukan akurasi.** Router produksi memutuskan 39 dari 71 pertanyaan tanpa LLM. Separuh pertanyaan dirutekan dalam belasan milidetik, bukan hampir 1 detik, dengan selisih macro-F1 0,028.
+- **Selisih biayanya kecil** (0,05 USD per 1.000 pertanyaan), jadi biaya bukan alasan utama.
+- **Dua kesalahan router produksi** sama-sama "tampilkan 5 seller dengan penjualan terbanyak di <kota>", yang diyakini ONNX sebagai hybrid. Untuk customer dan seller, pertanyaan itu tetap ditolak aturan peran sebelum perencana. Untuk admin, jalur hybrid tetap menjalankan agent SQL.
+
+Rincian F1 per jalur dan semua kalimat yang salah ada di `reports/router_perbandingan.json`.
 
 ## Kontrak API
 

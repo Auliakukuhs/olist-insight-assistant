@@ -235,3 +235,64 @@ def test_seller_dihitung_dari_pasar_kecuali_menyebut_toko_sendiri():
     lokasi = {"tingkat": "negara bagian", "nilai": "SP", "pemilik": "seller"}
     sp = tambah_filter(rencana, lokasi, "di SP", "admin")
     assert sp["pertanyaan_rag"].endswith("Hanya ulasan untuk seller di negara bagian SP.")
+
+
+def _supervisor_urutan(rows):
+    from olist_assistant.agents.supervisor import Supervisor
+
+    urutan = []
+
+    def rag(question, history):
+        urutan.append(("rag", question))
+        return {"answer": "Pembeli mengeluh sprei luntur [review:r1].", "sources": []}
+
+    def sql(question, history, user):
+        urutan.append(("sql", question))
+        return {"answer": "Terlaris bed_bath_table.", "sql": "SELECT 1", "rows": rows}
+
+    sup = Supervisor(
+        classify=lambda q, h: "hybrid", rag=rag, sql=sql, synthesize=lambda q, s, r: f"{s} {r}"
+    )
+    return sup, urutan
+
+
+def test_kategori_dari_peringkat_sql_dijalankan_berurutan():
+    rows = [{"kategori": "bed_bath_table", "total": 9}, {"kategori": "health_beauty", "total": 8}]
+    sup, urutan = _supervisor_urutan(rows)
+    state = sup.ask("Kategori terlaris 2018 itu pembelinya puas tidak?", "s1")
+    assert [u[0] for u in urutan] == ["sql", "rag"]
+    assert "bed_bath_table, health_beauty" in urutan[1][1]
+    assert state["route"] == "hybrid" and "bed_bath_table" in state["answer"]
+
+
+def test_hybrid_biasa_tetap_paralel_tanpa_sisipan_kategori():
+    sup, urutan = _supervisor_urutan([{"rata": 134.84}])
+    sup.ask("Berapa rata-rata harga produk bayi dan apa keluhan pembelinya?", "s1")
+    assert sorted(u[0] for u in urutan) == ["rag", "sql"]
+    assert all("Kategori yang dimaksud" not in u[1] for u in urutan)
+
+
+def test_sql_tanpa_kolom_kategori_rag_tetap_jalan_tanpa_sisipan():
+    sup, urutan = _supervisor_urutan([{"jumlah": 3}])
+    sup.ask("Kategori apa yang paling sering terlambat dan apa kata pembelinya?", "s1")
+    assert [u[0] for u in urutan] == ["sql", "rag"]
+    assert "Kategori yang dimaksud" not in urutan[1][1]
+
+
+def test_pola_peringkat_kategori():
+    from olist_assistant.agents.supervisor import PERINGKAT_KATEGORI, kategori_dari_sql
+
+    for q in [
+        "Kategori terlaris 2018 itu pembelinya puas tidak?",
+        "Tampilkan 3 kategori dengan skor terendah beserta contoh keluhannya.",
+        "Kategori apa yang skor reviewnya paling jelek dan kenapa pembeli kecewa?",
+        "Top 5 kategori penjualan tertinggi, apa kata pembelinya?",
+    ]:
+        assert PERINGKAT_KATEGORI.search(q), q
+    for q in [
+        "Berapa rata-rata harga furniture dan apa keluhannya?",
+        "Apa keluhan pembeli kategori mainan dan berapa harganya?",
+    ]:
+        assert not PERINGKAT_KATEGORI.search(q), q
+    rows = [{"kategori": c} for c in ("a", "b", "a", "c", "d")]
+    assert kategori_dari_sql(rows) == ["a", "b", "c"]

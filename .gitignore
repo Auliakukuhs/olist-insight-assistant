@@ -32,3 +32,4 @@ redteam/.promptfoo/
 reports/gerbang_*.json
 redteam/redteam.yaml
 redteam/hasil-promptfoo*.html
+reports/*.progres.jsonl
