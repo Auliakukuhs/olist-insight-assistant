@@ -332,6 +332,17 @@ Penegakannya berlapis. Supervisor menyebut peran dan aturannya di prompt, agent 
 
 Akun demo dibaca dari `DEMO_USERS` (JSON) dan token ditandatangani dengan `AUTH_SECRET`. Di AWS keduanya ada di SSM, tidak di repo. Token berlaku 12 jam. Login dibatasi 10 percobaan per menit per klien. Riwayat percakapan dipisah per akun, sehingga `session_id` yang sama dari dua akun tidak berbagi riwayat. Bila `AUTH_SECRET` kosong (lokal dan tes), login mati dan peran diambil dari field `role` di body.
 
+### Market analysis (seller dan admin)
+
+Tab **Market analysis** (#12, dibangun Starletto) muncul untuk seller dan admin.
+
+- **Ringkasan kategori.** Bisa diurutkan menurut total penjualan, jumlah pesanan, skor ulasan, atau persen terlambat, dengan batas minimal pesanan. Ditampilkan sebagai tabel dan bar chart, dan bisa diunduh sebagai CSV.
+- **Kartu toko.** Pesanan, penjualan, skor, terlambat, dan tren penjualan per bulan. Seller selalu melihat tokonya sendiri. Admin mengisi `seller_id`, yang divalidasi sebagai 32 karakter heksadesimal sebelum API dipanggil.
+- **Toko dibanding pasar.** Skor dan persen terlambat toko dibanding rata-rata kategori utamanya, dengan selisih berwarna sesuai arah metrik. Skor yang naik ditandai hijau, dan keterlambatan yang naik ditandai merah.
+- **Pangsa per bulan.** Porsi penjualan toko di kategori utamanya per bulan, dari `/analytics/tren` dengan filter toko dan kategori dibagi tren kategori.
+
+Pembanding hanya memakai agregat pasar per kategori, jadi tidak ada data seller lain yang terbuka. Seller yang meminta `/analytics/seller/{id}` atau `/analytics/tren?seller_id=...` milik toko lain ditolak 403, termasuk bila digabung filter kategori. Contoh untuk toko seller demo di produksi: skor 4,14 dibanding pasar `watches_gifts` 4,07, terlambat 10,5 persen dibanding 7,4 persen, dan pangsa memuncak 29,1 persen pada Agustus 2017.
+
 ### Tabel hasil, grafik, dan CSV
 
 Bila jawaban membawa tabel hasil SQL, Streamlit menampilkannya di bawah jawaban, ditambah dua hal.

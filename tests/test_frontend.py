@@ -80,7 +80,10 @@ class FakeApi:
                 "rata_skor": 4.2,
                 "persen_terlambat": 6.0,
             }
-            return FakeResponse(200, {"data": [baris], "mata_uang": "BRL", "catatan": "historis"})
+            jam = {**baris, "kategori": "watches_gifts", "rata_skor": 4.02, "persen_terlambat": 8.0}
+            return FakeResponse(
+                200, {"data": [baris, jam], "mata_uang": "BRL", "catatan": "historis"}
+            )
         if path.startswith("/rekomendasi"):
             produk = {
                 "product_id": "dd6a505f83" + "0" * 22,
@@ -113,7 +116,19 @@ class FakeApi:
                 },
             )
         if path.startswith("/analytics/tren"):
-            return FakeResponse(200, {"data": [], "mata_uang": "BRL"})
+            p = params or {}
+            # Total penjualan per bulan: toko di kategorinya, pasar kategori, atau toko.
+            if p.get("seller_id") and p.get("kategori"):
+                total = [100.0, 300.0]
+            elif p.get("kategori"):
+                total = [1000.0, 1500.0]
+            else:
+                total = [150.0, 320.0]
+            data = [
+                {"bulan": b, "jumlah_order": 1, "total_penjualan_brl": t}
+                for b, t in zip(["2017-01", "2017-02"], total, strict=True)
+            ]
+            return FakeResponse(200, {"data": data, "mata_uang": "BRL"})
         if path == "/admin/pemakaian":
             return FakeResponse(
                 200,
@@ -181,6 +196,17 @@ def test_chat_mengirim_token_dan_menampilkan_panel_proses(api):
     assert metrics["Total token"] == "950"
 
 
+def test_customer_tidak_melihat_market_analysis(api):
+    at = login(start(), "customer")
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
+
+
+def test_seller_melihat_tokonya_sendiri(api):
+    at = login(start(), "seller")
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Market analysis"]
+    assert ("GET", f"/analytics/seller/{SELLER}") in [(c[0], c[1]) for c in api.calls]
+
+
 def test_jawaban_dari_cache_diberi_tanda(api):
     api.cache = True
     at = login(start(), "customer")
@@ -241,21 +267,22 @@ def test_jempol_mengirim_umpan_balik_untuk_trace_jawaban(api):
 
 def test_tab_pemakaian_hanya_untuk_admin(api):
     at = login(start(), "admin")
-    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Pemakaian"]
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Market analysis", "Pemakaian"]
     metrics = {m.label: m.value for m in at.metric}
     assert metrics["Pertanyaan"] == "120" and metrics["Umpan balik"] == "9 naik"
     assert [c for c in api.calls if c[1] == "/admin/pemakaian"][-1][4] == {"hari": 7}
 
     for peran in ("seller", "customer"):
         at = login(start(), peran)
-        assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
+        harapan = ["Chat", "Cari produk", *(["Market analysis"] if peran == "seller" else [])]
+        assert [t.label for t in at.tabs] == harapan
 
 
-def grafik(at) -> list[str]:
-    """Jenis grafik yang digambar, dibaca dari spec Vega-Lite."""
+def grafik(blok) -> list[str]:
+    """Jenis grafik yang digambar di satu blok, dibaca dari spec Vega-Lite."""
     return [
         "line" if '"line"' in e.proto.spec else "bar" if '"bar"' in e.proto.spec else "?"
-        for e in at.get("vega_lite_chart")
+        for e in blok.get("vega_lite_chart")
     ]
 
 
@@ -273,9 +300,10 @@ def grafik(at) -> list[str]:
 )
 def test_grafik_otomatis_hanya_untuk_tabel_yang_cocok(api, tabel, harapan):
     api.tabel = tabel
-    at = login(start(), "admin")
+    at = login(start(), "customer")
     at.chat_input[0].set_value("Berapa jumlah pesanan per kategori?").run()
-    assert grafik(at) == harapan
+    # AppTest menggambar semua tab, jadi hanya grafik di tab Chat yang dihitung.
+    assert grafik(at.tabs[0]) == harapan
     assert len(at.dataframe) >= 1
 
 
@@ -284,3 +312,32 @@ def test_tabel_hasil_bisa_diunduh_sebagai_csv(api):
     at.chat_input[0].set_value("Berapa rata-rata harga furniture?").run()
     unduh = at.get("download_button")
     assert [b.proto.label for b in unduh] == ["Unduh CSV"]
+
+
+def test_market_seller_dibanding_pasar_dan_pangsa_per_bulan(api):
+    at = login(start(), "seller")
+    market = at.tabs[2]
+    metrics = {m.label: (m.value, m.proto.delta) for m in market.metric}
+    assert metrics["Skor ulasan"][0] == "4.13"
+    assert metrics["Terlambat"][0] == "10.5%"
+    # Kartu pembanding: skor toko 4,13 vs pasar 4,02, terlambat 10,5 vs 8,0.
+    pembanding = [m for m in market.metric if "dari pasar" in m.proto.delta]
+    assert [m.value for m in pembanding] == ["4.13", "10.5%"]
+    assert "+0.11" in pembanding[0].proto.delta and "+2.50 poin" in pembanding[1].proto.delta
+    # Terlambat lebih tinggi dari pasar harus tampil merah: arah metrik dibalik.
+    warna = [m.proto.color for m in pembanding]
+    assert warna[0] != warna[1]
+    assert grafik(market) == ["bar", "line", "line"]
+    tren = [c[4] for c in api.calls if c[1] == "/analytics/tren"]
+    assert {"seller_id": SELLER, "kategori": "watches_gifts"} in tren
+    assert {"kategori": "watches_gifts"} in tren
+    # Seller tidak pernah meminta toko lain.
+    toko = {c[1] for c in api.calls if c[1].startswith("/analytics/seller/")}
+    assert toko == {f"/analytics/seller/{SELLER}"}
+
+
+def test_market_admin_menolak_seller_id_tidak_sah(api):
+    at = login(start(), "admin")
+    at.text_input(key="market_seller_id").input("abc; DROP").run()
+    assert any("32 karakter" in w.value for w in at.warning)
+    assert not [c for c in api.calls if c[1] == "/analytics/seller/abc; drop"]

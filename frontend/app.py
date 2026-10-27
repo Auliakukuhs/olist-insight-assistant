@@ -9,6 +9,7 @@ import uuid
 
 import requests
 import streamlit as st
+from pasar import bandingkan, format_persen, format_skor, pangsa_bulanan, seller_id_sah
 from tabel import bentuk_grafik, data_grafik, ke_csv
 
 API_URL = st.secrets["API_URL"].rstrip("/")
@@ -283,6 +284,120 @@ def halaman_chat() -> None:
         kirim(pertanyaan)
 
 
+LABEL_URUT = {
+    "total_penjualan_brl": "Total penjualan",
+    "jumlah_order": "Jumlah pesanan",
+    "rata_skor": "Skor ulasan",
+    "persen_terlambat": "Persen terlambat",
+}
+
+
+def halaman_market() -> None:
+    """Market analysis untuk seller dan admin (#12, Starletto).
+
+    Ringkasan kategori, kartu toko, toko dibanding rata-rata kategorinya, dan
+    pangsa toko di kategori utamanya per bulan. Seller hanya melihat tokonya
+    sendiri, dan API menolak seller_id lain dengan 403.
+    """
+    pengguna = st.session_state.pengguna
+    st.subheader("Ringkasan kategori")
+    kolom = st.columns(2)
+    urut = kolom[0].selectbox(
+        "Urutkan menurut", list(LABEL_URUT), format_func=LABEL_URUT.get, key="market_urut"
+    )
+    min_order = kolom[1].number_input(
+        "Minimal pesanan", min_value=1, value=30, step=10, key="market_min_order"
+    )
+    data, error = api("GET", "/analytics/kategori", params={"urut": urut, "min_order": min_order})
+    if error:
+        st.error(error)
+    else:
+        st.dataframe(data["data"], hide_index=True, width="stretch")
+        if data["data"]:
+            st.bar_chart(
+                {
+                    "kategori": [r["kategori"] for r in data["data"]],
+                    LABEL_URUT[urut]: [r[urut] for r in data["data"]],
+                },
+                x="kategori",
+                y=LABEL_URUT[urut],
+                horizontal=True,
+                sort=False,
+            )
+            st.download_button(
+                "Unduh CSV",
+                ke_csv(data["data"]),
+                file_name=f"olist-kategori-{urut}.csv",
+                mime="text/csv",
+                key="csv-market-kategori",
+            )
+        st.caption(data["catatan"])
+
+    if pengguna["peran"] == "seller":
+        seller_id = pengguna["seller_id"]
+        st.subheader("Toko saya")
+    else:
+        st.subheader("Performa seller")
+        seller_id = (
+            st.text_input(
+                "seller_id", value="4869f7a5dfa277a7dca6462dcf3b52b2", key="market_seller_id"
+            )
+            .strip()
+            .lower()
+        )
+        if seller_id and not seller_id_sah(seller_id):
+            st.warning("seller_id berupa 32 karakter heksadesimal, misalnya 4869f7a5dfa2...")
+            return
+    if not seller_id:
+        return
+    ringkasan, error = api("GET", f"/analytics/seller/{seller_id}")
+    if error:
+        st.error(error)
+        return
+    kolom = st.columns(4)
+    kolom[0].metric("Pesanan", f"{ringkasan['jumlah_order']:,}")
+    kolom[1].metric("Penjualan", f"R$ {ringkasan['total_penjualan_brl']:,.0f}")
+    kolom[2].metric("Skor ulasan", format_skor(ringkasan["rata_skor"]))
+    kolom[3].metric("Terlambat", format_persen(ringkasan["persen_terlambat"]))
+    utama = ringkasan["kategori_utama"]
+    st.caption(f"{ringkasan['kota']}, {ringkasan['negara_bagian']}. Kategori utama {utama}.")
+
+    tren, error = api("GET", "/analytics/tren", params={"seller_id": seller_id})
+    if not error and tren["data"]:
+        st.markdown("**Penjualan per bulan (BRL)**")
+        st.line_chart(tren["data"], x="bulan", y="total_penjualan_brl")
+    if not utama:
+        return
+
+    # Pembanding hanya agregat pasar per kategori, tidak ada data seller lain.
+    semua, error = api("GET", "/analytics/kategori", params={"limit": 100, "min_order": 1})
+    pasar = next((r for r in (semua or {}).get("data", []) if r["kategori"] == utama), None)
+    baris = bandingkan(ringkasan, pasar)
+    if baris:
+        st.markdown(f"**Dibanding rata-rata kategori {utama}**")
+        kolom = st.columns(len(baris))
+        for k, b in zip(kolom, baris, strict=True):
+            persen = b["label"] == "Persen terlambat"
+            tampil = format_persen if persen else format_skor
+            k.metric(
+                b["label"],
+                tampil(b["toko"]),
+                f"{b['selisih']:+.2f}{' poin' if persen else ''} dari pasar {tampil(b['pasar'])}",
+                # Warna mengikuti arah metrik: skor naik itu baik, terlambat naik itu buruk.
+                delta_color="inverse" if persen else "normal",
+            )
+    tren_toko, error_toko = api(
+        "GET", "/analytics/tren", params={"seller_id": seller_id, "kategori": utama}
+    )
+    tren_pasar, error_pasar = api("GET", "/analytics/tren", params={"kategori": utama})
+    if error_toko or error_pasar:
+        return
+    pangsa = pangsa_bulanan(tren_toko["data"], tren_pasar["data"])
+    if any(r["pangsa_persen"] for r in pangsa):
+        st.markdown(f"**Pangsa penjualan di kategori {utama} per bulan (persen)**")
+        st.line_chart(pangsa, x="bulan", y="pangsa_persen")
+
+
 # ---------- Sidebar dan alur utama ----------
 
 
@@ -447,15 +562,17 @@ def main() -> None:
     if not st.session_state.token:
         halaman_login()
         return
-    admin = (st.session_state.pengguna or {}).get("peran") == "admin"
-    tabs = st.tabs(["Chat", "Cari produk", *(["Pemakaian"] if admin else [])])
-    with tabs[0]:
-        halaman_chat()
-    with tabs[1]:
-        halaman_cari_produk()
-    if admin:
-        with tabs[2]:
-            halaman_pemakaian()
+    # Tab per peran. Market analysis untuk seller dan admin (#12), Pemakaian untuk
+    # admin (#64). Akses datanya tetap dijaga di API, tab hanya menyembunyikan.
+    peran = (st.session_state.pengguna or {}).get("peran")
+    halaman = {"Chat": halaman_chat, "Cari produk": halaman_cari_produk}
+    if peran in ("seller", "admin"):
+        halaman["Market analysis"] = halaman_market
+    if peran == "admin":
+        halaman["Pemakaian"] = halaman_pemakaian
+    for tab, gambar in zip(st.tabs(list(halaman)), halaman.values(), strict=True):
+        with tab:
+            gambar()
     # Sidebar digambar terakhir supaya total token sudah termasuk jawaban terbaru.
     sidebar()
 
