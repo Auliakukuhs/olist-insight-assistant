@@ -113,6 +113,28 @@ class FakeApi:
             )
         if path.startswith("/analytics/tren"):
             return FakeResponse(200, {"data": [], "mata_uang": "BRL"})
+        if path == "/admin/pemakaian":
+            return FakeResponse(
+                200,
+                {
+                    "environment": "production",
+                    "dari": "2026-10-21",
+                    "sampai": "2026-10-27",
+                    "per_hari": [
+                        {
+                            "tanggal": "2026-10-26",
+                            "pertanyaan": 120,
+                            "token": 300000,
+                            "biaya_usd": 0.06,
+                            "latensi_p50_ms": 3800.0,
+                            "latensi_p95_ms": 14900.0,
+                        }
+                    ],
+                    "per_peran": {"admin": 20, "customer": 60, "seller": 40},
+                    "per_agent": {"rag": 70, "sql": 80, "supervisor": 15},
+                    "umpan_balik": {"naik": 9, "turun": 2},
+                },
+            )
         return FakeResponse(404, {"detail": "tidak ada"})
 
 
@@ -214,3 +236,15 @@ def test_jempol_mengirim_umpan_balik_untuk_trace_jawaban(api):
     at.feedback[0].set_value(0).run()
     kiriman = [c for c in api.calls if c[1] == "/feedback"]
     assert kiriman and kiriman[-1][3] == {"trace_id": "a" * 32, "suka": False}
+
+
+def test_tab_pemakaian_hanya_untuk_admin(api):
+    at = login(start(), "admin")
+    assert [t.label for t in at.tabs] == ["Chat", "Cari produk", "Pemakaian"]
+    metrics = {m.label: m.value for m in at.metric}
+    assert metrics["Pertanyaan"] == "120" and metrics["Umpan balik"] == "9 naik"
+    assert [c for c in api.calls if c[1] == "/admin/pemakaian"][-1][4] == {"hari": 7}
+
+    for peran in ("seller", "customer"):
+        at = login(start(), peran)
+        assert [t.label for t in at.tabs] == ["Chat", "Cari produk"]
