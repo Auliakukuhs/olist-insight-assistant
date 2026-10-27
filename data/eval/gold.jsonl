@@ -29,7 +29,7 @@
 {"id": "sql-14", "type": "sql", "question": "Berapa rata-rata jumlah cicilan kartu kredit?", "expected_route": "sql"}
 {"id": "sql-15", "type": "sql", "question": "How many orders were canceled?", "expected_route": "sql"}
 {"id": "hybrid-01", "type": "hybrid", "question": "Kategori apa yang skor reviewnya paling jelek dan kenapa pembeli kecewa?", "expected_route": "hybrid"}
-{"id": "hybrid-02", "type": "hybrid", "question": "Seller di SP yang paling laris, apa kata pembelinya?", "expected_route": "hybrid"}
+{"id": "hybrid-02", "type": "hybrid", "question": "Seller di SP yang paling laris, apa kata pembelinya?", "expected_route": ["hybrid", "sql"], "answer_must_mention_any": ["admin"], "catatan": "Diperbarui 25 Okt: customer tidak boleh melihat peringkat seller (aturan peran mentoring 1), jadi ditolak aturan peran sebelum perencana."}
 {"id": "hybrid-03", "type": "hybrid", "question": "Pesanan yang telat itu reviewnya gimana, dan berapa banyak yang telat?", "expected_route": "hybrid"}
 {"id": "hybrid-04", "type": "hybrid", "question": "Rekomendasikan produk mainan di bawah 100 BRL yang reviewnya bagus.", "expected_route": "hybrid"}
 {"id": "hybrid-05", "type": "hybrid", "question": "Bandingkan elektronik dan telepon dari sisi harga rata-rata dan keluhan pembeli.", "expected_route": "hybrid"}
