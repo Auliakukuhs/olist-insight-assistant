@@ -44,6 +44,8 @@ def langfuse(monkeypatch):
     monkeypatch.setenv("DEMO_USERS", json.dumps(USERS))
     monkeypatch.delenv("API_ACCESS_KEY", raising=False)
     monkeypatch.setattr(auth, "per_client_login", RateLimiter(1000))
+    monkeypatch.setattr(auth, "per_account_login", RateLimiter(1000))
+    monkeypatch.setattr(main, "per_account", RateLimiter(1000))
     monkeypatch.setattr(main, "per_session", RateLimiter(1000))
     monkeypatch.setattr(main, "per_client", RateLimiter(1000))
     monkeypatch.setattr(umpan_balik, "per_client_feedback", RateLimiter(1000))

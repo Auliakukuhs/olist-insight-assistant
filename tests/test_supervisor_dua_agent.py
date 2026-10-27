@@ -121,7 +121,8 @@ def test_penolakan_peran_tidak_diperiksa_ulang():
     state = supervisor.ask("Siapa seller terbaik?", "s1", role="seller")
     assert checks == []
     assert rag.calls == []
-    assert state["answer"] == SQL_DITOLAK["answer"]
+    # Ditolak aturan peran di router dengan pesan tetap, agent SQL tidak dipanggil.
+    assert "hanya tersedia untuk admin" in state["answer"]
 
 
 def test_eskalasi_ke_sql_yang_belum_ada_tetap_menjawab_dari_ulasan():
