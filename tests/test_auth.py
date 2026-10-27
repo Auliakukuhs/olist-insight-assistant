@@ -107,7 +107,7 @@ def test_chat_wajib_token_bila_login_aktif(login_aktif):
 
 
 def test_peran_dari_token_bukan_dari_body(login_aktif):
-    body = {"message": "Performa semua seller?", "session_id": "s1", "role": "admin"}
+    body = {"message": "Berapa rata-rata ongkir ke RJ?", "session_id": "s1", "role": "admin"}
     client.post("/chat", json=body, headers=token_for("toko"))
     assert login_aktif.sql_users == [{"peran": "seller", "seller_id": SELLER}]
 

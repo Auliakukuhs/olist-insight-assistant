@@ -27,4 +27,9 @@ mlflow.db
 
 # Database hasil ETL terlalu besar untuk GitHub. Yang di-commit versi .gz
 data/olist.db
+redteam/hasil-promptfoo*.json
+redteam/.promptfoo/
+reports/gerbang_*.json
+redteam/redteam.yaml
+redteam/hasil-promptfoo*.html
 reports/*.progres.jsonl

@@ -17,7 +17,12 @@ VECTOR_SIZE = 1536
 Embedder = Callable[[list[str]], list[list[float]]]
 Progress = Callable[[int, int], None]
 
-KEYWORD_FIELDS = ("metadata.doc_type", "metadata.categories", "metadata.seller_states")
+KEYWORD_FIELDS = (
+    "metadata.doc_type",
+    "metadata.categories",
+    "metadata.seller_states",
+    "metadata.product_ids",  # rekomendasi produk mengambil ulasan per produk (#13)
+)
 
 
 def ensure_collection(client: QdrantClient, name: str, vector_size: int = VECTOR_SIZE) -> None:

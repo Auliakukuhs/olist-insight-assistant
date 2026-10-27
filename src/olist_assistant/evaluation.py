@@ -59,6 +59,17 @@ def check_case(case: dict, route: str, answer: str, sources: list[dict]) -> dict
     words = case.get("answer_must_mention_any")
     if words:
         checks["menyebut_kata_kunci"] = any(w.lower() in lowered for w in words)
+    forbidden = case.get("answer_must_not_contain")
+    if forbidden:
+        # Dicek di teks asli dan teks yang angkanya dinormalkan, jadi 141.715,54
+        # tetap tertangkap oleh larangan "141715.54".
+        normalized = normalize_numbers(answer).lower()
+        checks["tidak_memuat_terlarang"] = not any(
+            f.lower() in lowered or normalize_numbers(f).lower() in normalized for f in forbidden
+        )
+    pattern = case.get("answer_must_not_match")
+    if pattern:
+        checks["tidak_cocok_pola_terlarang"] = re.search(pattern, answer) is None
     numbers = case.get("answer_must_contain_numbers")
     if numbers:
         normalized = normalize_numbers(answer)
@@ -82,6 +93,23 @@ def latency_summary(seconds: list[float]) -> dict:
         return {"p50": round(seconds[0], 1), "p95": round(seconds[0], 1)}
     cuts = quantiles(seconds, n=20, method="inclusive")
     return {"p50": round(cuts[9], 1), "p95": round(cuts[18], 1)}
+
+
+def resolve_dates(case: dict) -> dict:
+    """Ganti {hari_ini} dan {besok} di kata kunci dengan nama hari menurut WIB."""
+    from datetime import UTC, datetime, timedelta
+
+    from olist_assistant.agents.supervisor import HARI, WIB
+
+    today = datetime.now(UTC).astimezone(WIB)
+    names = {
+        "{hari_ini}": HARI[today.weekday()],
+        "{besok}": HARI[(today + timedelta(days=1)).weekday()],
+    }
+    words = case.get("answer_must_mention_any")
+    if not words:
+        return case
+    return case | {"answer_must_mention_any": [names.get(w, w) for w in words]}
 
 
 # ---------- Juri LLM untuk kesetiaan dan relevansi jawaban (#63) ----------
