@@ -196,6 +196,32 @@ hybrid-02 (customer menanyakan seller paling laris di SP) kini diharapkan ditola
 
 Latensi p50 dan p95 per jenis, jawaban lengkap, dan kasus gagal ada di `reports/eval_*.json`.
 
+### Juri LLM untuk kesetiaan dan relevansi (25 Oktober 2026)
+
+```sh
+uv run python scripts/nilai_jawaban.py          # juri gpt-4o, bisa diganti OPENAI_JUDGE_MODEL
+```
+
+Gold set hanya memeriksa rute, angka acuan, dan kata kunci. Juri LLM menilai dua hal lain dari bukti yang dipegang chatbot, yaitu query SQL, baris hasil, dan potongan ulasan:
+- **Setia:** setiap klaim fakta (angka, kategori, isi keluhan) didukung bukti.
+- **Relevan:** skor 1 sampai 5, seberapa tepat jawaban menjawab pertanyaan.
+
+Juri memakai gpt-4o, berbeda dari penjawab gpt-4o-mini, supaya tidak menilai buatannya sendiri, dengan temperature 0. Yang dinilai adalah 59 kasus rag, sql, dan hybrid dari gold set, holdout, dan skenario mentoring. Dua kasus dilewati karena jawabannya penolakan tanpa data.
+
+| Rute | Kasus | Setia | Relevan rata-rata |
+|---|---|---|---|
+| sql | 17 | 17 | 5,00 |
+| rag | 18 | 15 | 4,72 |
+| hybrid | 24 | 18 | 4,08 |
+| **Total** | **59** | **50** | **4,54** |
+
+Sembilan jawaban dinilai tidak setia, dan penyebabnya ada tiga jenis:
+- **Ulasan di jalur hybrid tidak nyambung dengan kategori hasil SQL** (hybrid-01, hybrid-13, hybrid-14). Agent SQL dan RAG berjalan paralel, sehingga RAG tidak tahu kategori yang ditemukan SQL. Temuan ini diperbaiki di #75, yang menjalankan SQL dulu bila kategorinya ditentukan peringkat.
+- **Jawaban menarik kesimpulan melebihi bukti.** Contohnya "skor ulasan tidak tergolong buruk" tanpa angka skor (hybrid-09), atau menyebut keluhan dari kategori lain (hybrid-06).
+- **Batas bukti untuk juri.** Juri hanya melihat potongan ulasan 300 karakter dan potongan dokumen kategori, jadi jumlah produk per kategori (rag-10, holdout-04) dan sebagian kutipan ulasan (rag-01, rag-06) bisa benar tetapi tidak terlihat oleh juri.
+
+Batas evaluasi ini: juri sendiri adalah LLM, dijalankan sekali, dan belum dibandingkan dengan penilaian manusia. Laporan per kasus, lengkap dengan klaim yang dianggap tanpa bukti, ada di `reports/juri_jawaban.json`.
+
 ### Router fine-tuning di supervisor
 
 Supervisor memakai router ONNX lebih dulu. Bila keyakinannya minimal 0,8, jalurnya dipakai tanpa memanggil LLM. Bila di bawah itu, keputusan diserahkan ke router LLM. Ambang 0,8 ditetapkan sebelum evaluasi dan tidak diatur dari hasilnya.

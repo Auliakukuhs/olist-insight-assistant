@@ -125,3 +125,35 @@ def test_gerbang_menolak_satu_kegagalan_berat_dan_membatasi_yang_ringan():
     # sempat lulus walau Qdrant galat di semua kasus RAG.
     galat = nilai_gerbang([aman] * 99 + [{"id": "d", "checks": {}, "error": "HTTP 502"}], 0.4)
     assert not galat["lulus"] and galat["gagal_berat"][0]["id"] == "d"
+
+
+def test_bukti_untuk_juri_memuat_query_baris_dan_ulasan():
+    from olist_assistant.evaluation import susun_bukti
+
+    sources = [
+        {"kind": "sql", "id": "query", "snippet": "SELECT AVG(harga_brl) FROM v_pasar"},
+        {"kind": "review", "id": "abc123def4567890", "snippet": "chegou atrasado"},
+    ]
+    table = [{"rata": i} for i in range(40)]
+    bukti = susun_bukti(sources, table, max_rows=30)
+    assert "SELECT AVG" in bukti and "chegou atrasado" in bukti
+    assert "40 baris (dan 10 baris lain)" in bukti and "{'rata': 30}" not in bukti
+    assert susun_bukti([], None) == "(tidak ada bukti)"
+
+
+def test_juri_memakai_output_terstruktur():
+    from olist_assistant.evaluation import Penilaian, nilai_jawaban
+
+    class Model:
+        def with_structured_output(self, schema):
+            self.schema = schema
+            return self
+
+        def invoke(self, prompt):
+            self.prompt = prompt
+            return Penilaian(setia=False, klaim_tanpa_bukti=["90 BRL"], relevan=4, alasan="x")
+
+    model = Model()
+    nilai = nilai_jawaban(model, "Rata-rata harga?", "90 BRL", [], [{"rata": 82.04}])
+    assert model.schema is Penilaian and "82.04" in model.prompt and "90 BRL" in model.prompt
+    assert nilai.klaim_tanpa_bukti == ["90 BRL"]
