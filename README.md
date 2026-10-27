@@ -258,6 +258,29 @@ Model terpilih diekspor ke ONNX lalu dikuantisasi dinamis int8, sehingga contain
 
 Selisih int8 di atas fp32 bukan peningkatan nyata. Test set hanya 71 kalimat dan dua prediksi berubah karena pembulatan bobot. Angka acuan fine-tuning adalah fp32, 0,861. Val set juga kecil (58 kalimat), jadi pemilihan epoch berisik. Detail per epoch ada di `reports/router_finetune.json` dan di MLflow.
 
+### Perbandingan empat router (25 Oktober 2026)
+
+```sh
+uv run python scripts/bandingkan_router.py
+```
+
+Semua router diukur pada test split yang sama: 71 kalimat dari templat yang tidak pernah dilihat saat training, masing-masing sekitar 18 per jalur. Router LLM memakai gpt-4o-mini dengan prompt router supervisor. Router produksi memakai ONNX lebih dulu, lalu menyerahkan ke LLM bila keyakinan ONNX di bawah 0,8.
+
+| Router | Macro-F1 | Latensi p50 | Latensi p95 | Biaya per 1.000 pertanyaan | Salah |
+|---|---|---|---|---|---|
+| TF-IDF + Logistic Regression | 0,637 | 0,4 ms | 0,6 ms | 0 | 27 |
+| IndoBERT-lite ONNX int8 | 0,887 | 7 ms | 11 ms | 0 | 8 |
+| Router LLM | **1,000** | 864 ms | 1.174 ms | 0,093 USD | 0 |
+| Produksi, ONNX lalu LLM | 0,972 | 14 ms | 908 ms | 0,042 USD | 2 |
+
+Cara membacanya:
+- **Router LLM paling akurat**, dan pada test split ini tidak pernah salah.
+- **Keunggulan fine-tuning ada di kecepatan, bukan akurasi.** Router produksi memutuskan 39 dari 71 pertanyaan tanpa LLM. Separuh pertanyaan dirutekan dalam belasan milidetik, bukan hampir 1 detik, dengan selisih macro-F1 0,028.
+- **Selisih biayanya kecil** (0,05 USD per 1.000 pertanyaan), jadi biaya bukan alasan utama.
+- **Dua kesalahan router produksi** sama-sama "tampilkan 5 seller dengan penjualan terbanyak di <kota>", yang diyakini ONNX sebagai hybrid. Untuk customer dan seller, pertanyaan itu tetap ditolak aturan peran sebelum perencana. Untuk admin, jalur hybrid tetap menjalankan agent SQL.
+
+Rincian F1 per jalur dan semua kalimat yang salah ada di `reports/router_perbandingan.json`.
+
 ## Kontrak API
 
 | Endpoint | Request | Response |
