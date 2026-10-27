@@ -1,5 +1,5 @@
 {
-  "run_id": "dc1462",
+  "run_id": "af06e5",
   "catatan": "Kasus tanpa angka acuan hanya dinilai rute dan sumbernya.",
   "ringkasan": {
     "umum": {
@@ -7,8 +7,8 @@
       "rute_benar": 6,
       "lulus_semua_cek": 6,
       "latensi_detik": {
-        "p50": 2.5,
-        "p95": 3.0
+        "p50": 1.8,
+        "p95": 2.0
       },
       "diputuskan_oleh": {
         "llm": 6
@@ -19,8 +19,8 @@
       "rute_benar": 4,
       "lulus_semua_cek": 4,
       "latensi_detik": {
-        "p50": 2.9,
-        "p95": 2.9
+        "p50": 1.9,
+        "p95": 2.1
       },
       "diputuskan_oleh": {
         "llm": 4
@@ -31,8 +31,8 @@
       "rute_benar": 5,
       "lulus_semua_cek": 5,
       "latensi_detik": {
-        "p50": 13.8,
-        "p95": 15.0
+        "p50": 11.2,
+        "p95": 11.3
       },
       "diputuskan_oleh": {
         "llm": 2,
@@ -44,8 +44,8 @@
       "rute_benar": 1,
       "lulus_semua_cek": 1,
       "latensi_detik": {
-        "p50": 13.5,
-        "p95": 13.5
+        "p50": 11.1,
+        "p95": 11.1
       },
       "diputuskan_oleh": {
         "llm": 1
@@ -56,8 +56,8 @@
       "rute_benar": 5,
       "lulus_semua_cek": 5,
       "latensi_detik": {
-        "p50": 5.3,
-        "p95": 11.4
+        "p50": 1.9,
+        "p95": 6.3
       },
       "diputuskan_oleh": {
         "llm": 2,
@@ -82,7 +82,7 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.58)",
-      "detik": 2.6,
+      "detik": 1.8,
       "jawaban": "Halo! Saya baik-baik saja, terima kasih. Bagaimana dengan Anda?",
       "error": null
     },
@@ -100,7 +100,7 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.37)",
-      "detik": 2.5,
+      "detik": 1.7,
       "jawaban": "Selamat pagi! Ada yang bisa saya bantu hari ini?",
       "error": null
     },
@@ -118,7 +118,7 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.49)",
-      "detik": 2.1,
+      "detik": 1.7,
       "jawaban": "Sama-sama! Senang bisa membantu.",
       "error": null
     },
@@ -142,8 +142,8 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.47)",
-      "detik": 3.2,
-      "jawaban": "Saya bisa membantu mencari isi ulasan pembeli dan menghitung angka dari data transaksi OLIST. Misalnya, saya bisa menjawab pertanyaan seperti, \"Apa keluhan pembeli produk bayi?\" atau \"Berapa rata-rata ongkir untuk pembeli di RJ?\"",
+      "detik": 2.0,
+      "jawaban": "Saya bisa membantu mencari isi ulasan pembeli dan menghitung angka dari data transaksi OLIST. Misalnya, saya bisa memberikan informasi tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -152,7 +152,7 @@
       "question": "Hari ini hari apa?",
       "expected_route": "umum",
       "answer_must_mention_any": [
-        "Kamis"
+        "Minggu"
       ],
       "checks": {
         "rute_benar": true,
@@ -164,8 +164,8 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.56)",
-      "detik": 2.3,
-      "jawaban": "Hari ini adalah Kamis, 22 Oktober 2026.",
+      "detik": 1.9,
+      "jawaban": "Hari ini adalah Minggu, 25 Oktober 2026.",
       "error": null
     },
     {
@@ -174,7 +174,7 @@
       "question": "Besok hari apa ya?",
       "expected_route": "umum",
       "answer_must_mention_any": [
-        "Jumat"
+        "Senin"
       ],
       "checks": {
         "rute_benar": true,
@@ -186,8 +186,8 @@
       "cek_manual": [],
       "rute": "umum",
       "diputuskan_oleh": "llm (onnx ragu 0.68)",
-      "detik": 2.4,
-      "jawaban": "Besok adalah hari Jumat, 23 Oktober 2026.",
+      "detik": 1.8,
+      "jawaban": "Besok adalah hari Senin, 26 Oktober 2026.",
       "error": null
     },
     {
@@ -211,8 +211,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.54)",
-      "detik": 2.5,
-      "jawaban": "Maaf, saya tidak dapat memberikan resep. Namun, Anda bisa bertanya tentang total penjualan toko Anda per tahun atau kategori yang paling laris di SP.",
+      "detik": 1.8,
+      "jawaban": "Maaf, saya tidak dapat memberikan resep. Namun, Anda bisa bertanya tentang total penjualan toko saya per tahun atau kategori apa yang paling laris di SP?",
       "error": null
     },
     {
@@ -235,7 +235,7 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.78)",
-      "detik": 2.8,
+      "detik": 2.1,
       "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang berita atau fakta dunia saat ini. Namun, Anda bisa bertanya tentang ulasan pembeli atau rata-rata ongkir di OLIST.",
       "error": null
     },
@@ -259,8 +259,8 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.42)",
-      "detik": 2.9,
-      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang cuaca. Namun, Anda bisa bertanya tentang ulasan pembeli atau rata-rata ongkir untuk pembeli di RJ.",
+      "detik": 1.9,
+      "jawaban": "Maaf, saya tidak dapat memberikan informasi tentang cuaca. Namun, Anda bisa bertanya tentang keluhan pembeli produk bayi atau rata-rata ongkir untuk pembeli di RJ.",
       "error": null
     },
     {
@@ -284,7 +284,7 @@
       "cek_manual": [],
       "rute": "out_of_scope",
       "diputuskan_oleh": "llm (onnx ragu 0.67)",
-      "detik": 2.9,
+      "detik": 1.9,
       "jawaban": "Maaf, saya tidak dapat membantu dengan permintaan itu. Namun, Anda bisa bertanya tentang data penjualan, seperti siapa 5 seller dengan penjualan tertinggi di Sao Paulo?",
       "error": null
     },
@@ -308,8 +308,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.77)",
-      "detik": 15.3,
-      "jawaban": "Untuk meningkatkan produk bayi, perlu diperhatikan beberapa keluhan dari pembeli, seperti produk yang diterima memiliki cacat dan kerusakan [review:c163c72f6684064dd9c10f0e26d63282], serta ketidaksesuaian antara produk yang diterima dan yang diharapkan [review:a3afd75ba9d3b44507d99eeae450a5d3]. Selain itu, ada juga masalah terkait pengiriman yang tidak tepat waktu [review:14b33ac24083bd93da570659d",
+      "detik": 11.2,
+      "jawaban": "Untuk meningkatkan produk bayi, perlu diperhatikan beberapa keluhan dari pembeli. Rata-rata harga per item produk bayi adalah 134,84 BRL. Beberapa masalah yang sering dihadapi antara lain: \n\n1. Cacat pada produk yang diterima, seperti yang dilaporkan oleh pembeli yang mengajukan pengembalian [review:c163c72f6684064dd9c10f0e26d63282].\n2. Ketidaksesuaian antara produk yang diterima dan yang diharapk",
       "error": null
     },
     {
@@ -334,8 +334,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.43)",
-      "detik": 13.5,
-      "jawaban": "Jika Anda mempertimbangkan untuk membeli produk bayi dari seller di negara bagian RJ, perlu diperhatikan bahwa rata-rata harga per item adalah 195,20 BRL. Namun, beberapa pembeli mengeluhkan masalah seperti item yang hilang dalam pesanan [review:f5014650c041b559f053c2bd254cd287], produk yang tidak sesuai dengan yang dipesan [review:027816b74a0cba9ce961d8be5dae3472], dan masalah dengan layanan pela",
+      "detik": 11.1,
+      "jawaban": "Berdasarkan asumsi bahwa lokasi yang dimaksud adalah negara bagian RJ, rata-rata harga per item produk bayi yang dijual oleh seller di sana adalah 195,20 BRL. Namun, beberapa pembeli mengeluhkan masalah seperti item yang tidak lengkap, seperti satu pembeli yang menerima pesanan tanpa satu set seprai [review:f5014650c041b559f053c2bd254cd287], pengiriman produk yang salah [review:027816b74a0cba9ce96",
       "error": null
     },
     {
@@ -356,8 +356,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.86",
-      "detik": 13.8,
-      "jawaban": "Rata-rata harga per item furniture di negara bagian São Paulo adalah 84.88 BRL. Beberapa keluhan pembeli terkait furniture meliputi masalah pemasangan yang membuat produk tidak dapat digunakan [review:4ae065a9ed27676994e75f0f0f3bab4c], produk yang diterima dalam kondisi cacat atau rusak [review:eada60766110d984171b1a231c1e3600], [review:ab2a7a5b86afdac6192523b81cf562b6], serta ketidaksesuaian prod",
+      "detik": 11.3,
+      "jawaban": "Rata-rata harga furniture di negara bagian São Paulo adalah 84.88 BRL. Beberapa keluhan pembeli mencakup masalah pemasangan yang membuat produk tidak dapat digunakan [review:4ae065a9ed27676994e75f0f0f3bab4c], produk cacat yang perlu ditukar [review:eada60766110d984171b1a231c1e3600], serta produk yang diterima dengan goresan dan tidak sesuai deskripsi [review:16230daf47fee777feeeec1785bf43f2]. \n\nUn",
       "error": null
     },
     {
@@ -378,8 +378,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "llm (onnx ragu 0.78)",
-      "detik": 14.0,
-      "jawaban": "Berdasarkan keluhan yang ada, beberapa pembeli produk bayi mengalami masalah dengan produk yang diterima, seperti cacat dan kerusakan, serta keterlambatan pengiriman. Rata-rata ongkir untuk produk bayi adalah 22.35 BRL. \n\nSaran untuk menangani keluhan ini adalah:\n1. Memastikan kualitas produk sebelum pengiriman untuk menghindari cacat, seperti yang dilaporkan oleh pembeli yang mengajukan pengembal",
+      "detik": 11.2,
+      "jawaban": "Berdasarkan keluhan yang ada, dapat diasumsikan bahwa pembeli produk bayi sering mengalami masalah dengan kualitas dan pengiriman. Rata-rata ongkir untuk produk bayi adalah 22.35 BRL. Beberapa keluhan yang sering muncul antara lain: produk yang diterima cacat dan meminta pengembalian uang [review:c163c72f6684064dd9c10f0e26d63282], produk yang sangat berbeda dari yang diharapkan dan juga mengalami ",
       "error": null
     },
     {
@@ -400,8 +400,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.89",
-      "detik": 13.0,
-      "jawaban": "Rata-rata skor ulasan untuk kategori jam tangan adalah 4.07. Beberapa keluhan utama pembeli meliputi produk yang tidak sesuai harapan dan kualitas yang buruk [review:032cecbea638b588b8a6fd5be4fddf8c], adanya cacat pada produk seperti barang yang datang dalam keadaan rusak [review:cc5b0a4875e99b76b467223755d062fd], serta pengalaman buruk dalam layanan pelanggan [review:1a44d2df84e5d4dee04e4b5cbbaff",
+      "detik": 8.9,
+      "jawaban": "Rata-rata skor ulasan untuk kategori jam tangan adalah 4.07. Namun, keluhan utama pembeli mencakup beberapa masalah, seperti produk yang tidak sesuai harapan, dengan satu ulasan menyebutkan \"produk sangat buruk\" [review:032cecbea638b588b8a6fd5be4fddf8c]. Selain itu, beberapa pembeli melaporkan adanya cacat pada produk, seperti \"produk datang dengan defect\" [review:f9ba06254a37b72b3b3497bf0ccc854c]",
       "error": null
     },
     {
@@ -422,8 +422,8 @@
       "cek_manual": [],
       "rute": "hybrid",
       "diputuskan_oleh": "onnx 0.83",
-      "detik": 12.6,
-      "jawaban": "Berdasarkan asumsi bahwa keterlambatan dapat mempengaruhi kepuasan pelanggan, persentase pesanan produk kecantikan yang terlambat adalah 7.5%. Mengenai pendapat pembeli, beberapa di antaranya mengeluhkan kurangnya informasi dari penjual tentang keterlambatan [review:c6eb0a009b8da1bba0f65abf4957575d], ada yang merasa sangat kecewa karena pesanan terlambat dua hari [review:4f77b1ce66564aeac994458d48",
+      "detik": 10.1,
+      "jawaban": "Berdasarkan asumsi bahwa keterlambatan dapat mempengaruhi kepuasan pelanggan, persentase pesanan produk kecantikan yang terlambat adalah 7.5%. Mengenai pendapat pembeli, beberapa di antaranya mengeluhkan keterlambatan tanpa informasi dari penjual [review:c6eb0a009b8da1bba0f65abf4957575d], ada yang merasa tidak dapat menerima keterlambatan dua hari [review:4f77b1ce66564aeac994458d48f47367], dan sat",
       "error": null
     },
     {
@@ -448,7 +448,7 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "llm (onnx ragu 0.34)",
-      "detik": 1.2,
+      "detik": 0.9,
       "jawaban": "Data performa dan peringkat seller adalah data internal perusahaan yang hanya tersedia untuk admin. Saya bisa membantu dengan data pasar per kategori atau lokasi, dan data penjualan toko Anda sendiri, misalnya rata-rata harga, ongkir, atau keterlambatan per kategori.",
       "error": null
     },
@@ -496,8 +496,8 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.91",
-      "detik": 12.7,
-      "jawaban": "Di São Paulo, terdapat 1.849 seller. Total penjualan di wilayah ini mencapai BRL 8.687.740,35 dengan rata-rata skor 4,03 dan rata-rata persen keterlambatan 7,89%.\n\nBerikut adalah 5 seller dengan penjualan tertinggi di São Paulo:\n\n1. **Seller ID:** 4869f7a5dfa277a7dca6462dcf3b52b2 - **Total Penjualan:** BRL 229.237,63\n2. **Seller ID:** 4a3ca9315b744ce9f8e9374361493884 - **Total Penjualan:** BRL 200",
+      "detik": 7.1,
+      "jawaban": "Di São Paulo, terdapat 1.849 seller dengan total penjualan sebesar R$ 8.687.740,35, rata-rata skor 4,03, dan rata-rata persen keterlambatan 7,89%.\n\nBerikut adalah 5 seller dengan penjualan tertinggi:\n\n1. **Seller ID:** 4869f7a5dfa277a7dca6462dcf3b52b2 - **Total Penjualan:** R$ 229.237,63\n2. **Seller ID:** 4a3ca9315b744ce9f8e9374361493884 - **Total Penjualan:** R$ 200.326,12\n3. **Seller ID:** fa1c1",
       "error": null
     },
     {
@@ -517,7 +517,7 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "onnx 0.95",
-      "detik": 6.2,
+      "detik": 3.2,
       "jawaban": "Total penjualan toko Anda tahun 2018 adalah 138.414,60 BRL.",
       "error": null
     },
@@ -544,7 +544,7 @@
       "cek_manual": [],
       "rute": "sql",
       "diputuskan_oleh": "llm (onnx ragu 0.54)",
-      "detik": 5.3,
+      "detik": 1.9,
       "jawaban": "Maaf, tetapi saya tidak dapat memberikan data perbandingan penjualan antara toko Anda dan seller lain. Namun, saya dapat memberikan informasi tentang penjualan toko Anda sendiri atau data pasar per kategori atau lokasi. Apakah Anda ingin melihat ringkasan penjualan toko Anda?",
       "error": null
     }
