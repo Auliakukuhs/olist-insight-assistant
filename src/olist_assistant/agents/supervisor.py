@@ -31,6 +31,7 @@ import os
 import re
 import time
 import unicodedata
+import uuid
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta, timezone
@@ -321,6 +322,8 @@ class Supervisor:
     """Penyimpanan riwayat. None berarti InMemorySaver, hilang saat proses berhenti."""
     cache: CacheJawaban | None = None
     """Cache pertanyaan pertama sesi. None berarti setiap pertanyaan diproses agent."""
+    tracing: Callable[[str], list] | None = None
+    """Pembuat handler tracing per pertanyaan dari trace id. None berarti tanpa trace id."""
 
     def __post_init__(self) -> None:
         # Sub-agent dibungkus run bernama supaya tercatat sebagai langkah di
@@ -648,9 +651,14 @@ class Supervisor:
                 return self._dari_cache(question, role, seller_id, config, *tersimpan, started)
 
         recorder = ProsesRecorder()
+        # Trace id ditentukan di sini, bukan dibaca dari handler, karena handler
+        # yang dipakai bersama bisa tertukar antar pertanyaan yang datang bersamaan.
+        # Jawaban dari cache tidak punya trace, jadi tidak diberi tombol umpan balik.
+        trace_id = uuid.uuid4().hex if self.tracing else None
+        tracers = self.tracing(trace_id) if trace_id else []
         state = self.graph.invoke(
             {"messages": [HumanMessage(content=question)], "role": role, "seller_id": seller_id},
-            {**config, "callbacks": [*self.callbacks, recorder]},
+            {**config, "callbacks": [*self.callbacks, *tracers, recorder]},
         )
         durasi_ms = round((time.perf_counter() - started) * 1000)
         if kunci is not None and _layak_cache(state):
@@ -658,7 +666,11 @@ class Supervisor:
                 kunci,
                 {k: state.get(k) for k in ("answer", "route", "route_by", "sources", "table")},
             )
-        return {**state, "proses": recorder.summary(durasi_ms, state.get("alasan"))}
+        return {
+            **state,
+            "proses": recorder.summary(durasi_ms, state.get("alasan")),
+            "trace_id": trace_id,
+        }
 
     def _siapkan_riwayat(self, config: dict) -> bool:
         """True bila sesi punya riwayat. Riwayat yang melewati umur sesi dihapus dulu."""
@@ -1063,15 +1075,35 @@ def llm_synthesizer(model) -> SynthFn:
     return synthesize
 
 
-def langfuse_callbacks() -> list:
-    """Handler Langfuse bila kuncinya ada. Tanpa kunci, tracing mati tanpa error."""
+def langfuse_aktif() -> bool:
+    """Kunci Langfuse ada. Tanpa kunci, tracing dan umpan balik mati tanpa error."""
     if not (os.getenv("LANGFUSE_PUBLIC_KEY") and os.getenv("LANGFUSE_SECRET_KEY")):
-        return []
+        return False
     if os.getenv("LANGFUSE_HOST") and not os.getenv("LANGFUSE_BASE_URL"):
         os.environ["LANGFUSE_BASE_URL"] = os.environ["LANGFUSE_HOST"]
+    return True
+
+
+def langfuse_tracing() -> Callable[[str], list] | None:
+    """Handler Langfuse baru per pertanyaan dengan trace id yang ditentukan supervisor.
+
+    Trace id yang sama dikembalikan /chat, jadi umpan balik pengguna bisa
+    ditempel ke trace yang tepat lewat /feedback.
+    """
+    if not langfuse_aktif():
+        return None
     from langfuse.langchain import CallbackHandler
 
-    return [CallbackHandler()]
+    return lambda trace_id: [CallbackHandler(trace_context={"trace_id": trace_id})]
+
+
+def langfuse_client():
+    """Client Langfuse untuk menulis score, atau None bila Langfuse tidak aktif."""
+    if not langfuse_aktif():
+        return None
+    from langfuse import get_client
+
+    return get_client()
 
 
 def default_supervisor(
@@ -1100,7 +1132,7 @@ def default_supervisor(
         rag=lambda q, h: jawab_rag(q, h, search, model),
         sql=lambda q, h, u: jawab_sql(q, h, peran=u["peran"], seller_id=u["seller_id"]),
         synthesize=llm_synthesizer(model),
-        callbacks=langfuse_callbacks(),
+        tracing=langfuse_tracing(),
         direct=llm_direct(model),
         plan=llm_planner(model),
         check=llm_checker(model),

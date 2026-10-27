@@ -327,6 +327,19 @@ Setiap jawaban membawa `proses`, ringkasan apa yang terjadi di balik jawaban itu
 
 Contoh di atas hasil pertanyaan nyata "Apa keluhan pembeli produk bayi?" pada 21 Oktober 2026. Token dihitung oleh callback LangChain (`src/olist_assistant/agents/proses.py`) yang mengaitkan setiap pemanggilan LLM dan tool ke langkah terdekat di graph, termasuk pemanggilan di dalam sub-agent. Biaya memakai harga gpt-4o-mini, 0,15 USD per 1 juta token input dan 0,60 USD per 1 juta token output. Embedding query ke Qdrant tidak ikut dihitung. Langkah yang sama juga tercatat sebagai span di Langfuse.
 
+### Umpan balik pengguna
+
+Di bawah setiap jawaban Streamlit ada jempol naik dan turun. `/chat` mengembalikan `trace_id`, yaitu trace Langfuse jawaban itu, yang ditentukan supervisor per pertanyaan. Trace id tidak dibaca dari handler, karena handler yang dipakai bersama bisa tertukar antar pertanyaan yang datang bersamaan. `POST /feedback` (wajib login) menulis score `umpan_balik_pengguna` bertipe BOOLEAN ke trace itu, lengkap dengan komentar opsional dan peran pengguna. Jadi kualitas jawaban bisa dilacak bersama token, biaya, dan langkah agent di trace yang sama.
+
+| Kondisi | Jawaban `/feedback` |
+|---|---|
+| Menilai jawaban milik sendiri | 200, score ditulis. Mengganti pilihan memperbarui score yang sama (`score_id` tetap per trace) |
+| Trace milik akun lain atau tidak dikenal | 404, sama persis supaya keberadaan trace orang lain tidak bisa ditebak |
+| Tanpa login | 401 |
+| Langfuse tidak aktif | 503 |
+
+Pemilik trace dicatat di memori, paling banyak 5.000 jawaban terakhir. Jawaban dari cache (#67) tidak punya trace Langfuse, jadi tidak diberi jempol.
+
 ### Cache pertanyaan berulang dan riwayat tahan restart
 
 **Cache (#67).** Pertanyaan pertama sesi yang sama persis dari peran dan seller yang sama dijawab dari cache, tanpa memanggil agent. Perbedaan huruf besar, spasi, dan tanda tanya di ujung diabaikan. Kunci cache memuat peran dan `seller_id`, jadi jawaban data toko seller A tidak pernah sampai ke seller B atau ke customer. Yang disimpan hanya jawaban agent SQL, RAG, dan hybrid yang berhasil. Penolakan, sapaan, jawaban tanggal, dan jawaban gagal tidak disimpan. Pertanyaan lanjutan tidak memakai cache karena jawabannya bergantung pada percakapan, tetapi jawaban dari cache tetap dicatat di riwayat sesi, sehingga "kalau yang di SP?" sesudahnya tetap punya konteks. Panel proses menandainya dengan `"cache": true`, token 0, dan alasan "diambil dari cache", dan Streamlit menulis "dari cache" di bawah jawaban. Cache ada di memori, berisi paling banyak 256 jawaban selama 6 jam, dan kosong lagi setiap deploy, jadi aturan atau prompt baru tidak terhalang jawaban lama. Pengaturannya `CACHE_JAWABAN=0` untuk mematikan, `CACHE_JAWABAN_UKURAN`, dan `CACHE_JAWABAN_UMUR_MENIT`. Skrip evaluasi tidak memakai cache, supaya angka evaluasi tidak tercampur.
